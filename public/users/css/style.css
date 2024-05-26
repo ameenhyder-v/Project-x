@@ -48,14 +48,16 @@ a:hover {
   background: #fff;
   max-width: 850px;
   margin: auto;
-  display: flex; }
+  display: flex;
+ justify-content: center;}
   .inner .image-holder {
-    width: 50%; }
+    width: 50%; 
+    justify-content: center;}
   .inner form {
     width: 50%;
-    padding-top: 36px;
+    padding-top: 80px;
     padding-left: 45px;
-    padding-right: 45px; }
+    padding-right: 45px;}
   .inner h3 {
     text-transform: uppercase;
     font-size: 25px;
@@ -188,7 +190,7 @@ select {
     background-position: right center; } }
 @media (max-width: 991px) {
   .inner form {
-    padding-top: 10px;
+    padding-top: 60px;
     padding-left: 30px;
     padding-right: 30px; } }
 @media (max-width: 767px) {

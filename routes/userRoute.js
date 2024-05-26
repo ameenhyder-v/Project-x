@@ -6,6 +6,11 @@ userRoute.set("view engine", "ejs");
 
 userRoute.set("views", "./views/users")
 
-userRoute.get("/", userController.register);
+userRoute.get("/", userController.home)
+userRoute.get("/registration", userController.register);
+userRoute.get("/productDetail", userController.productDetails);
+userRoute.get("/login", userController.userLogin);
+userRoute.get("/allProducts", userController.allProducts);
+userRoute.get("/shoping-cart", userController.shopingCart);
 
 module.exports = userRoute
