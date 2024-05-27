@@ -44,6 +44,15 @@ const shopingCart = async(req,res) => {
     }
 }
  
+const otp = async(req, res) => {
+    try {
+        res.render("otp")
+    } catch (error) {
+        console.log(`error form the userController.otp: ${error}`)
+    }
+}
+
+
 module.exports = {
   register,
   home,
@@ -51,4 +60,5 @@ module.exports = {
   userLogin,
   allProducts,
   shopingCart,
+  otp,
 };

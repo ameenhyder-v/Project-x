@@ -13,4 +13,6 @@ userRoute.get("/login", userController.userLogin);
 userRoute.get("/allProducts", userController.allProducts);
 userRoute.get("/shoping-cart", userController.shopingCart);
 
+userRoute.get("/otp", userController.otp)
+
 module.exports = userRoute

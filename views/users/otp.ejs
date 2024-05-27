@@ -1,0 +1,56 @@
+<%- include('../partials/userpartials/header.ejs') %>
+
+<style>
+    .otp-letter-input{
+    width: 2.5rem;
+    height: 4rem;
+    border: 1px solid #6b4568;
+    border-radius:10px;
+    color: #6b4568;
+    font-size: 2.7rem;
+    text-align: center;
+    }
+</style>
+<div class="wrapper" style="background-image: url('images/bg-registration-form-1.jpg');">
+    <div class="inner">
+        <div class="image-holder">
+            <img src="images/registration-form-1.jpg" alt="">
+        </div>
+        
+            <div class="p-5 m-3 rounded-3 shadow-sm border ">
+                <div>
+                    <p class="text-center text-success" style="font-size: 5.5rem;"><i class="fa-solid fa-envelope-circle-check"></i></p>
+                    <p class="text-center text-center h5 ">Please check your email</p>
+                    <p class="text-muted text-center">We've sent a code to contact@curfcode.com</p>
+                    <div class="row pt-4 pb-2">
+                        <div class="col-3">
+                            <input class="otp-letter-input" type="text">
+                        </div>
+                        <div class="col-3">
+                            <input class="otp-letter-input" type="text">
+                        </div>
+                        <div class="col-3">
+                            <input class="otp-letter-input" type="text">
+                        </div>
+                        <div class="col-3">
+                            <input class="otp-letter-input" type="text">
+                        </div>
+                    </div>
+                    <p class="text-muted text-center">Didn't get the code? <a href="#" class="text-success">Click to resend.</a></p>
+
+                    <div class="row pt-5">
+                        <div class="col-6">
+                            <button class="btn btn-outline-secondary w-100">Cancel</button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-success w-100">Verify</button>
+                        </div>
+                        
+                        
+                    </div>
+                </div>
+            </div>
+    </div>
+</div>
+
+<%- include('../partials/userpartials/footer.ejs') %>
