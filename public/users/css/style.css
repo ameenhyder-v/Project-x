@@ -55,7 +55,7 @@ a:hover {
     justify-content: center;}
   .inner form {
     width: 50%;
-    padding-top: 80px;
+    padding-top: 40px;
     padding-left: 45px;
     padding-right: 45px;}
   .inner h3 {
@@ -77,7 +77,7 @@ a:hover {
   .form-wrapper i {
     position: absolute;
     bottom: 9px;
-    right: 0; }
+    right: 0.7rem; }
 
 .form-control {
   border: 1px solid #333;
