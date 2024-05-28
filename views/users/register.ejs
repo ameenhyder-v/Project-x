@@ -7,42 +7,76 @@
             <div class="image-holder">
                 <img src="images/registration-form-1.jpg" alt="">
             </div>
-            <form action="">
+            <form method="post">
                 <h3>Registration Form</h3>
                 <!-- <div class="form-group">
                     <input type="text" placeholder="First Name" class="form-control">
                     <input type="text" placeholder="Last Name" class="form-control">
                 </div> -->
+                <% if(typeof messageUsername !== "undefined"){ %>
+                    <p style="color: red;"> <%= messageUsername %></p>
+                <% } %>
                 <div class="form-wrapper">
-                    <input type="text" placeholder="Username" class="form-control">
+                    <input type="text" placeholder="Username" name="username" class="form-control">
                     <i class="zmdi zmdi-account"></i>
                 </div>
+                <% if(typeof messageEmail !== "undefined"){ %>
+                    <p style="color: red;"> <%= messageEmail %></p>
+                <% } %>
                 <div class="form-wrapper">
-                    <input type="text" placeholder="Email Address" class="form-control">
+                    <input type="text" placeholder="Email Address" name="email" class="form-control">
                     <i class="zmdi zmdi-email"></i>
                 </div>
+                <% if(typeof messagePassword !== "undefined"){ %>
+                    <p style="color: red;"> <%= messagePassword %></p>
+                <% } %>
                 <div class="form-wrapper">
-                    <input type="password" placeholder="Password" class="form-control">
-                    <i class="zmdi zmdi-lock"></i>
+                    <input type="password" placeholder="Password" name="password" class="form-control" >
+                    <i class="zmdi zmdi-lock eye toggle-password" id="togglePassword1"></i>
+                </div>
+                <% if(typeof messagePasswordConfirm !== "undefined"){ %>
+                    <p style="color: red;"> <%= messagePasswordConfirm %></p>
+                <% } %>
+                <div class="form-wrapper">
+                    <input type="password" placeholder="Confirm Password"  name="psconfirm" class="form-control">
+                    <i class="zmdi zmdi-lock eye toggle-password" id="togglePassword2"></i>
                 </div>
                 <div class="form-wrapper">
-                    <input type="password" placeholder="Confirm Password" class="form-control">
-                    <i class="zmdi zmdi-lock"></i>
-                </div>
-                <div class="form-wrapper">
-                    <label class="form-check ml-4">
+                    <!-- <label class="form-check ml-4">
                         <input type="checkbox" class="form-check-input" checked="" />
                         <span>Agree to <a href="#">Terms & Condition</a></span>
-                    </label>
+                    </label> -->
                 </div>
-                <button class="logButton">Register
+                <button class="logButton" type="submit">Register
                     <i class="zmdi zmdi-arrow-right"></i>
                 </button>
 
-                <p class="text-center mb-4 mt-4">Already have account? <a href="#">Sign in</a></p>
+                <p class="text-center mb-4 mt-4">Already have account? <a href="/login">Sign in</a></p>
 
             </form>
         </div>
     </div>
+
+
+    <script>
+        document.querySelectorAll('.toggle-password').forEach(item => {
+            item.addEventListener('click', function() {
+                const inputField = this.previousElementSibling;
+                const fieldType = inputField.getAttribute('type') === 'password' ? 'text' : 'password';
+                inputField.setAttribute('type', fieldType);
+                this.classList.toggle('zmdi-lock');
+                this.classList.toggle('zmdi-unlock');
+            });
+        });
+    </script>
+
+    <style>
+        .eye {
+            cursor: pointer;
+        }
+        .zmdi-unlock:before {
+            content: "\f3c1"; /* Use the correct unicode for the unlocked icon */
+        }
+    </style>
 
 <%- include("../partials/userpartials/footer.ejs")  %>

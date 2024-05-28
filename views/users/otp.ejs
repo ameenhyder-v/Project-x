@@ -4,11 +4,16 @@
     .otp-letter-input{
     width: 2.5rem;
     height: 4rem;
-    border: 1px solid #6b4568;
+    border: 1px solid #8c5d77;
     border-radius:10px;
-    color: #6b4568;
+    color: #8c5d77;
     font-size: 2.7rem;
     text-align: center;
+    }
+    #timer {
+        font-weight: bold;
+        color: #8c5d77;
+        font-size: 1.5rem; /* Adjust size as needed */
     }
 </style>
 <div class="wrapper" style="background-image: url('images/bg-registration-form-1.jpg');">
@@ -17,40 +22,134 @@
             <img src="images/registration-form-1.jpg" alt="">
         </div>
         
-            <div class="p-5 m-3 rounded-3 shadow-sm border ">
+            <div class="p-5 m-3 rounded-3 shadow-sm" >
                 <div>
                     <p class="text-center text-success" style="font-size: 5.5rem;"><i class="fa-solid fa-envelope-circle-check"></i></p>
                     <p class="text-center text-center h5 ">Please check your email</p>
-                    <p class="text-muted text-center">We've sent a code to contact@curfcode.com</p>
+                    <p class="text-muted text-center">We've sent a code to <span style="color: #8c5d77;"><%= email %></span></p>
                     <div class="row pt-4 pb-2">
                         <div class="col-3">
-                            <input class="otp-letter-input" type="text">
+                            <input id="otpOne"  class="otp-letter-input"  type="text">
                         </div>
                         <div class="col-3">
-                            <input class="otp-letter-input" type="text">
+                            <input id="otpTwo"  class="otp-letter-input"  type="text">
                         </div>
                         <div class="col-3">
-                            <input class="otp-letter-input" type="text">
+                            <input id="otpThree"  class="otp-letter-input"  type="text">
                         </div>
                         <div class="col-3">
-                            <input class="otp-letter-input" type="text">
+                            <input id="otpFour" class="otp-letter-input"  type="text">
                         </div>
                     </div>
-                    <p class="text-muted text-center">Didn't get the code? <a href="#" class="text-success">Click to resend.</a></p>
+                    <p class="text-muted text-center mt-2">Didn't get the code? <a href="#" style="color: #8c5d77;">Click to resend.</a></p>
 
-                    <div class="row pt-5">
-                        <div class="col-6">
-                            <button class="btn btn-outline-secondary w-100">Cancel</button>
+                    <!-- Timer Display -->
+                <p class="text-center mt-2 " id="timer">00:50</p>
+
+                    <div class="row pt-5 ">
+                        <div class="col-6 mx-auto ">
+                            <button class="btn w-100 " style="background: #8c5d77; color: #f9f5f9;" onclick="print()">Verify</button>
                         </div>
-                        <div class="col-6">
-                            <button class="btn btn-success w-100">Verify</button>
-                        </div>
-                        
-                        
                     </div>
                 </div>
             </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<script>
+
+    const otpInputs = document.querySelectorAll('.otp-letter-input');
+
+    otpInputs.forEach((input, index) => {
+      input.addEventListener('input', () => {
+        if (input.value.length === 1 && index < otpInputs.length - 1) {
+          otpInputs[index + 1].focus();
+        }
+      });
+
+      input.addEventListener('keydown', (event) => {
+        if (event.key === 'Backspace' && input.value.length === 0 && index > 0) {
+          otpInputs[index - 1].focus();
+        }
+      });
+    });
+
+
+
+
+    // Timer functionality
+    let timer = 50; // 50 seconds
+    const timerElement = document.getElementById('timer');
+    const verifyButton = document.getElementById('verifyButton');
+    
+    const interval = setInterval(() => {
+        let minutes = Math.floor(timer / 60);
+        let seconds = timer % 60;
+
+        // Add leading zeros
+        minutes = minutes < 10 ? `0${minutes}` : minutes;
+        seconds = seconds < 10 ? `0${seconds}` : seconds;
+
+        timerElement.textContent = `${minutes}:${seconds}`;
+
+        if (timer > 0) {
+            timer--;
+        } else {
+            clearInterval(interval);
+            timerElement.textContent = "00:00";
+            verifyButton.disabled = true;
+            otpInputs.forEach(input => input.disabled = true);
+        }
+    }, 1000);
+
+
+    
+    function print(){
+        const otpOne = document.getElementById("otpOne").value
+        const otpTwo = document.getElementById("otpTwo").value
+        const otpThree = document.getElementById("otpThree").value
+        const otpFour = document.getElementById("otpFour").value
+        const Otp = [otpOne, otpTwo, otpThree, otpFour]
+
+        axios.post("/otpVerify", {otp: parseInt(Otp.join(""))})
+            .then(res => {
+                if(res.data.status == 0){
+                    Swal.fire({
+                        title: "OTP not match",
+                        confirmButtonText: "Ok",
+                        icon: "error",
+                        
+                     }).then((result) => {
+                        /* Read more about isConfirmed, isDenied below */
+                        if (result.isConfirmed) {
+                          window.location.reload()
+                        } 
+                    });
+                }else if (res.data.status == 1){
+                    Swal.fire({
+                        title: "OTP matched",
+                        confirmButtonText: "Ok",
+                        icon: "success",
+                        
+                     }).then((result) => {
+                        /* Read more about isConfirmed, isDenied below */
+                        if (result.isConfirmed) {
+                          window.location.href = "/login"
+                        } 
+                    });
+                }
+            })
+            .catch(err => {
+                console.log(err)
+            })
+    }
+    
+
+
+</script>
 
 <%- include('../partials/userpartials/footer.ejs') %>

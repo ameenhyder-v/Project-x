@@ -1,4 +1,4 @@
-const adminLogin = async(req, res) => {
+const adminLogin = async (req, res) => {
     try {
         res.render("admin_login")
     } catch (error) {
@@ -6,23 +6,46 @@ const adminLogin = async(req, res) => {
     }
 }
 
-const dashboard = async (req, res) => {
-  try {
-    res.render("dashboard");
-  } catch (error) {
-    console.log(`error from dashboaer: ${error}`);
-  }
-};
 
-const productList = async(req,res) => {
-     try {
-        res.render("productList")
-     } catch (error) {
-        console.log(`error form productList loding: ${error}`)
-     }
+const verifyAdmin = async (req, res) => {
+  const { username, password } = req.body;
+
+  // validation of email and password regex form
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+
+  if (!emailRegex.test(username)) {
+    return res.render("admin_login",{ message: "Invalid email format." });
+  }
+
+  if (!passwordRegex.test(password)) {
+    return res.render("admin_login",{ message: "Password must be at least 8 characters long and include at least one uppercase letter and one number." });
+  }
+
+  if (username === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASS) {
+    return res.render("dashboard");
+  } else {
+    return res.render("admin_login",{ message: "Invalid username or password." });
+  }
 }
 
-const addProduct = async(req, res) => {
+// const dashboard = async (req, res) => {
+//     try {
+//         res.render("dashboard");
+//     } catch (error) {
+//         console.log(`error from dashboaer: ${error}`);
+//     }
+// };
+
+const productList = async (req, res) => {
+    try {
+        res.render("productList")
+    } catch (error) {
+        console.log(`error form productList loding: ${error}`)
+    }
+}
+
+const addProduct = async (req, res) => {
     try {
         res.render("addProducts");
     } catch (error) {
@@ -30,7 +53,7 @@ const addProduct = async(req, res) => {
     }
 }
 
-const orders = async(req, res) => {
+const orders = async (req, res) => {
     try {
         res.render("orders")
     } catch (error) {
@@ -38,16 +61,16 @@ const orders = async(req, res) => {
     }
 }
 
-const allUsers = async(req,res) => {
-    try{
+const allUsers = async (req, res) => {
+    try {
         res.render("users")
-    } catch (error){
+    } catch (error) {
         console.log(`error from the adminController.allUsers: ${error}`)
     }
 }
 
-const userDetails = async(req, res) => {
-    try{
+const userDetails = async (req, res) => {
+    try {
         res.render("userDetails");
     } catch (error) {
         console.log(`error from the adminController.userDetails: ${error}`)
@@ -55,21 +78,22 @@ const userDetails = async(req, res) => {
 }
 
 
-const categories = async(req, res) => {
-     try {
+const categories = async (req, res) => {
+    try {
         res.render("categories");
-     } catch (error) {
+    } catch (error) {
         console.log(`error form the adminControler.categories`)
-     }
+    }
 }
 
 module.exports = {
-  dashboard,
-  productList,
-  orders,
-  adminLogin,
-  addProduct,
-  allUsers,
-  userDetails,
-  categories,
+    verifyAdmin,
+    // dashboard,
+    productList,
+    orders,
+    adminLogin,
+    addProduct,
+    allUsers,
+    userDetails,
+    categories,
 };

@@ -7,21 +7,28 @@
         <div class="image-holder">
             <img src="images/registration-form-1.jpg" alt="">
         </div>
-        <form action="" class="p-t-23">
+        <form action="/userVarify" class="p-t-23" method="post">
             <h3>Login</h3>
+            <% if (typeof message !== "undefined") { %>
+                <h6 style="color: red;"> <%= message %> </h6>
+             
+            <% } %>
             <div class="form-wrapper">
-                <input type="text" placeholder="Email or Username" class="form-control">
+                <input type="text" placeholder="Email or Username" name="username" class="form-control">
                 <i class="zmdi zmdi-email"></i>
             </div>
+            <% if (typeof messagePassword !== "undefined") { %>
+                <p style="color: red;"> <%= messagePassword %> </p> 
+            <% } %>
             <div class="form-wrapper">
-                <input type="password" placeholder="Password" class="form-control">
+                <input type="password" placeholder="Password" name="password" class="form-control">
                 <i class="zmdi zmdi-lock"></i>
             </div>
-            <button class="logButton">Login
+            <button class="logButton" type="submit" >Login
                 <i class="zmdi zmdi-arrow-right"></i>
             </button>
     
-            <p class="text-center mb-4 mt-4">Don't have account? <a href="#">Sign up</a></p>
+            <p class="text-center mb-4 mt-4">Don't have account? <a href="/registration">Sign up</a></p>
             <p class="text-center small text-muted mb-2">or sign up with</p>
             <div class="d-grid gap-3 mb-4">
                 <a href="#" class="btn w-100 btn-light font-sm d-flex align-items-center justify-content-center">
