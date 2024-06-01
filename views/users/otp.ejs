@@ -41,14 +41,14 @@
                             <input id="otpFour" class="otp-letter-input"  type="text">
                         </div>
                     </div>
-                    <p class="text-muted text-center mt-2">Didn't get the code? <a href="#" style="color: #8c5d77;">Click to resend.</a></p>
+                    <p class="text-muted text-center mt-2">Didn't get the code? <a href="/resend-otp" style="color: #8c5d77;">Click to resend.</a></p>
 
                     <!-- Timer Display -->
-                <p class="text-center mt-2 " id="timer">00:50</p>
+                <p class="text-center mt-2 " id="timer">01:30</p>
 
                     <div class="row pt-5 ">
                         <div class="col-6 mx-auto ">
-                            <button class="btn w-100 " style="background: #8c5d77; color: #f9f5f9;" onclick="print()">Verify</button>
+                            <button class="btn w-100 disabled-link" style="background: #8c5d77; color: #f9f5f9;" onclick="print()">Verify</button>
                         </div>
                     </div>
                 </div>
@@ -78,11 +78,26 @@
       });
     });
 
+    //const timeIntervel = setInterval(() => {
+     //   let minutes = Math.floor(timer / 60);
+       // let seconds = timer % 60;
+//
+  //      minutes = minutes < 10 ? `0${minutes}` : minutes;
+    //    seconds = seconds < 10 ? `0${seconds}` : seconds;
+
+     //   timerElement.textContent = `${minutes}:${seconds}`;
+//
+  //      if (timer > 0) {
+    //        timer--;
+      //  } else {
+        //    clearInterval(timeIntervel);
+          //  timerElement.textContent = "00:00";
+       // }
+  //  }, 1000);
 
 
-
-    // Timer functionality
-    let timer = 50; // 50 seconds
+    // for the timer functionality to run properly 
+    let timer = 90; // 90 seconds
     const timerElement = document.getElementById('timer');
     const verifyButton = document.getElementById('verifyButton');
     

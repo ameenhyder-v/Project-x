@@ -2,14 +2,18 @@ const User = require("../Model/userModel")
 const otpContoller = require("../Controller/otpController")
 const otpModel = require('../Model/otpModel')
 const bcrypt = require("bcrypt");
-const { log } = require("console");
 
 
 
 
 const register = async (req, res) => {
     try {
-        res.render('register')
+        const messageEmail = req.flash("messageEmail");
+        const messageUsername = req.flash("messageUsername");
+        const messagePassword = req.flash("messagePassword")
+        const messagePasswordConfirm = req.flash("messagePasswordConfirm")
+
+        res.render('register', { messageEmail, messageUsername, messagePassword, messagePasswordConfirm })
     }
     catch (error) {
         console.log(`error from register: ${error}`);
@@ -25,25 +29,30 @@ const insertUser = async (req, res) => {
         const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
 
         if (username.length < 4) {
-            return res.render("register", { messageUsername: "Username must be at least 4 characters long.", });
+            req.flash("messageUsername", "Username must be at least 4 characters long.")
+            return res.redirect("/registration");
         }
 
         if (!emailRegex.test(email)) {
-            return res.render("register", { messageEmail: "Invalid email format." });
+            req.flash("messageEmail", "Invalid email format.")
+            return res.redirect("/registration");
         }
 
         if (!passwordRegex.test(password)) {
-            return res.render("register", { messagePassword: "Password must be at least 8 characters long and include at least one uppercase letter and one number." });
+            req.flash("messagePassword", "Password must be at least 8 characters long and include at least one uppercase letter and one number.")
+            return res.redirect("/registration");
         }
 
         if (password !== psconfirm) {
-            return res.render("register", { messagePasswordConfirm: "Passwords do not match." });
+            req.flash("messagePasswordConfirm", "Passwords do not match.")
+            return res.redirect("/registration");
         }
 
         const existingUser = await User.findOne({ email });
 
         if (existingUser) {
-            return res.render("register", { messageEmail: "Email is already in use!" });
+            req.flash("messageEmail", "Email is already in use!")
+            return res.redirect("/registration");
         }
 
 
@@ -72,23 +81,42 @@ const insertUser = async (req, res) => {
         await save.save();
         res.render("otp", { email: email });
 
-        console.log(req.session);
+        // console.log(req.session);
     } catch (error) {
+
         console.log(`Error from the userRegister: ${error}`);
-        res.render("register", {
-            messageError: "An error occurred during registration. Please try again.",
-        });
     }
 };
 
+const successGoogleLogin = async (req, res) => {
+    try {
+        if (!req.user){
+            res.redirect("/failure")
+            // console.log(req.user)
+        }else {
+            res.send("success ok")
+        }
+        
+    } catch (error) {
+        
+    }
+}
 
+const failureGoolgeLogin = async (req, res) => {
+    req.flash("message", "Login using google has been Faild!")
+    res.redirect("/login")
+}
 
 const otpVerify = async (req, res) => {
     // console.log(req.body);
     // console.log(req.session);
     try {
-        console.log(req.body);
+
+        console.log('req,body: ',req.body);
+
+
         const OTP = req.body.otp
+        console.log('otp oppp',OTP)
 
         const findOtp = await otpModel.findOne({ emailId: req.session.email });
 
@@ -99,7 +127,6 @@ const otpVerify = async (req, res) => {
         } else {
 
             const userData = req.session.userData;
-            userData.is_Verified = true;
             await User.create(userData);
 
             res.send({ status: 1 })
@@ -109,6 +136,40 @@ const otpVerify = async (req, res) => {
         console.log(`error form the userController.otpVarify: ${error}`)
     }
 
+}
+
+
+const userLogin = async (req, res) => {
+    try {
+        const message = req.flash("message")
+        const messagePassword = req.flash("messagePassword")
+        res.render("login", { message, messagePassword })
+    } catch (error) {
+        console.log(`error from userLogin: ${error}`);
+    }
+}
+
+const userVarify = async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const Data = await User.findOne({ $or: [{ name: username }, { email: username }] })
+        if (!Data) {
+            req.flash( "message", "User Name or Email incorect" )
+            res.redirect("/login")
+
+        } else {
+            const comparePsw = await bcrypt.compare(password, Data.password);
+            if (!comparePsw) {
+                req.flash("messagePassword", "Incorrect Password")
+                res.render("login")
+            }else {
+                req.session.userId = Data._id;
+                res.render("home");
+            }
+        }
+    } catch (error) {
+        console.log(`error from userConroller.userVarify: ${error}`);
+    }
 }
 
 const home = async (req, res) => {
@@ -123,37 +184,6 @@ const productDetails = async (req, res) => {
         res.render("productDetail")
     } catch (error) {
         console.log(`error from productDetails: ${error}`);
-    }
-}
-
-
-const userLogin = async (req, res) => {
-    try {
-        res.render("login")
-    } catch (error) {
-        console.log(`error from userLogin: ${error}`);
-    }
-}
-
-const userVarify = async (req, res) => {
-    try {
-        const { username, password } = req.body;
-        const Data = await User.findOne({ $or: [{ name: username }, { email: username }] })
-        if (!Data) {
-
-            res.render("login", {message: "User Name or Email incorect"})
-
-        } else {
-            const comparePsw = await bcrypt.compare(password, Data.password);
-            if (!comparePsw) {
-                res.render("login", {messagePassword: "Incorrect Password"})
-            }else {
-                req.session.UserId = Data._id;
-                res.render("home");
-            }
-        }
-    } catch (error) {
-        console.log(`error from userConroller.userVarify: ${error}`);
     }
 }
 
@@ -187,4 +217,6 @@ module.exports = {
     insertUser,
     otpVerify,
     userVarify,
+    successGoogleLogin,
+    failureGoolgeLogin
 };

@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const path = require("path")
 const session = require("express-session")
+const flash = require("express-flash")
 require("dotenv").config();
 
 mongoose.connect("mongodb://127.0.0.1:27017/myStore");
@@ -18,6 +19,8 @@ app.use(session({
     resave: false,
     saveUninitialized: false
 }))
+
+app.use(flash())
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true}))

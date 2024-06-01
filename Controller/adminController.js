@@ -1,3 +1,7 @@
+const Users = require("../Model/userModel");
+const CategoryModel = require("../Model/categoryModel")
+
+
 const adminLogin = async (req, res) => {
     try {
         res.render("admin_login")
@@ -16,11 +20,7 @@ const verifyAdmin = async (req, res) => {
 
   if (!emailRegex.test(username)) {
     return res.render("admin_login",{ message: "Invalid email format." });
-  }
-
-  if (!passwordRegex.test(password)) {
-    return res.render("admin_login",{ message: "Password must be at least 8 characters long and include at least one uppercase letter and one number." });
-  }
+  }b
 
   if (username === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASS) {
     return res.render("dashboard");
@@ -29,13 +29,17 @@ const verifyAdmin = async (req, res) => {
   }
 }
 
-// const dashboard = async (req, res) => {
-//     try {
-//         res.render("dashboard");
-//     } catch (error) {
-//         console.log(`error from dashboaer: ${error}`);
-//     }
-// };
+const dashboard = async (req, res) => {
+    try {
+
+        res.render("dashboard");
+    } catch (error) {
+        console.log(`error from dashboaer: ${error}`);
+    }
+};
+
+
+
 
 const productList = async (req, res) => {
     try {
@@ -55,17 +59,40 @@ const addProduct = async (req, res) => {
 
 const orders = async (req, res) => {
     try {
+
         res.render("orders")
     } catch (error) {
         console.log(`error from the admin controller.orders: ${error}`)
     }
 }
 
+
 const allUsers = async (req, res) => {
     try {
-        res.render("users")
+        const allUsers = await Users.find();
+        console.log(allUsers)
+        res.render("users", {users: allUsers})
     } catch (error) {
         console.log(`error from the adminController.allUsers: ${error}`)
+    }
+}
+
+const userControl = async (req, res) => {
+    try {
+        console.log("working")
+        const {id, state} = req.query
+        console.log(`id= ${id} stste = ${state}`)
+        const data = await Users.findById({_id: id})
+        data.isBlocked = !data.isBlocked
+        const isSave = await data.save()
+
+        console.log(isSave)
+        console.log(data);
+        if (data){
+            res.send({success: 1})
+        }
+    } catch (error) {
+        console.log(`error form adminControler.userControl: ${error}`);
     }
 }
 
@@ -80,20 +107,23 @@ const userDetails = async (req, res) => {
 
 const categories = async (req, res) => {
     try {
-        res.render("categories");
+        const categoryData = await CategoryModel.find()
+
+        res.render("categories", {Data: categoryData });
     } catch (error) {
         console.log(`error form the adminControler.categories`)
     }
 }
 
 module.exports = {
-    verifyAdmin,
-    // dashboard,
-    productList,
-    orders,
-    adminLogin,
-    addProduct,
-    allUsers,
-    userDetails,
-    categories,
+  verifyAdmin,
+  dashboard,
+  productList,
+  orders,
+  adminLogin,
+  addProduct,
+  allUsers,
+  userDetails,
+  categories,
+  userControl,
 };

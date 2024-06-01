@@ -4,6 +4,7 @@
 // const User = require("../Model/userModel");
 const nodemailer = require("nodemailer");
 const SendmailTransport = require("nodemailer/lib/sendmail-transport");
+const otpModel = require("../Model/otpModel");
 require("dotenv").config();
 
 
@@ -33,26 +34,53 @@ const sendMail = (email) => {
   //   console.log("-----------------------------------------------");
 
   transproter.sendMail(mailOptions, (error, info) => {
-    if(error){
+    if (error) {
       console.log(`error from otp controller: ${error}`)
-    }else{
+    } else {
       console.log(`no error while sennding mail ${info.response}`)
 
     }
 
   })
   return otp;
-
 }
 
 
+const resendOtp = async (req, res) => {
+
+  try {
+    email = req.session.email
+
+    const otpp = sendMail(email);
+    const otp = parseInt(otpp);
+    console.log(otp);
+    // console.log(otpp);
+
+    const existOtp = await otpModel.findOneAndDelete({ emailId: email });
+    const save = new otpModel({
+      emailId: email,
+      otp: otp,
+    });
+
+    const saveOtp = await save.save();
+    if(saveOtp){
+      console.log("saved")
+      res.render("otp", { email: email });
+    }
+    
+  } catch (error) {
+      console.log(`Error from the otpController.resendOtp ${error.message}`)
+
+  }
+}
 
 
-function generateOTP(){
-  return Math.floor(1000 + Math.random() * 9000).toString(); 
+function generateOTP() {
+  return Math.floor(1000 + Math.random() * 9000).toString();
 };
 
 
 module.exports = {
-    sendMail,
+  sendMail,
+  resendOtp
 }
