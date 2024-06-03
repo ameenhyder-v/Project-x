@@ -92,9 +92,33 @@ const successGoogleLogin = async (req, res) => {
     try {
         if (!req.user){
             res.redirect("/failure")
-            // console.log(req.user)
         }else {
-            res.send("success ok")
+            const { displayName, email,} = req.user;
+
+            const userData = new User({
+                name: displayName,
+                email: email
+            });
+            const isExists = await User.findOne({email: email})
+            console.log(isExists)
+            if (isExists) {
+                req.session.userId = isExists._id
+                console.log(req.session.userId)
+                return res.redirect("/")
+            }
+            
+
+            const saving = await userData.save()
+            if (saving){
+                req.session.userId = saving._id
+                console.log(req.session.userId)
+                console.log("success");
+                
+                return res.redirect("/")
+            }
+
+            // console.log(`name ${displayName},     email ${email}`)
+
         }
         
     } catch (error) {

@@ -59,7 +59,9 @@ const addingProduct = async (req, res) => {
             //response
             const saving = await addProduct.save()
             const productId = saving._id
-            return res.status(200).json({ productId, success: "product addedd" })
+            req.session.productId = productId;
+            
+            return res.status(200).json({success: "product addedd" })
         }
         
     } catch (error) {
@@ -77,6 +79,8 @@ const removeProductVariantFalse = async (req, res) => {
     }
 }
 
+
+// const haveVariant = async function(Product_id)
 
 module.exports = {
     addingProduct,

@@ -11,9 +11,11 @@ const app = express();
 
 
 
-//app.use(express.static(path.join(__dirname, "public/users/assets/")));
-app.use(express.static("public/users"));
+app.use(express.static(path.join(__dirname, "public/users/assets/")));
+// app.use(express.static("public/users"));
 app.use(express.static("public/admin"));
+
+
 app.use(session({
     secret: 'my-secret-key',
     resave: false,

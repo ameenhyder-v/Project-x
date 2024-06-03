@@ -35,7 +35,7 @@ adminRoute.get("/delete-category", categoryController.deleteCategory)
 
 
 //ADD VARIANT
-adminRoute.post('/add-variant', upload.array('Image', 4) ,variantController.addVriant);
+adminRoute.post('/add-variant', upload.any(),variantController.addVriant);
 
 
 

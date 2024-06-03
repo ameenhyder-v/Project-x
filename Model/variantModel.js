@@ -1,6 +1,6 @@
 const mongoose = require("mongoose")
 
-const variantScema = {
+const variantScema = new mongoose.Schema({
     color: {
         type: String,
         required: true
@@ -13,7 +13,7 @@ const variantScema = {
         type: [String],
         required: true
     },
-    stock: [{ size: { type: String, required: true } }, { quantity: { type: Number, required: true } }, { price: { type: Number, required: true } }],
+    stock: [    { size: { type: String, required: true } ,  quantity: { type: Number, required: true } , price: { type: Number, required: true } }],
     isListed:{
         type: Boolean,
         default: true
@@ -23,6 +23,6 @@ const variantScema = {
         default: Date.now()
     }
 
-}
+})
 
 module.exports = mongoose.model("Variant", variantScema);
