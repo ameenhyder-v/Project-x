@@ -60,7 +60,7 @@ const addingProduct = async (req, res) => {
             const saving = await addProduct.save()
             const productId = saving._id
             req.session.productId = productId;
-            
+
             return res.status(200).json({success: "product addedd" })
         }
         
@@ -69,8 +69,7 @@ const addingProduct = async (req, res) => {
     }
 }
 
-const removeProductVariantFalse = async (req, res) => {
-    console.log("hello vaseem")
+const removeProductVariantFalse = async () => {
     const removeProduct = await Product.deleteMany({isVariant: false})
     if (removeProduct){
         console.log("success")
@@ -79,13 +78,31 @@ const removeProductVariantFalse = async (req, res) => {
     }
 }
 
+const blockProduct = async (req, res) => {
+    try {
+        const productId = req.query.id
+        const product = await Product.findOne({ _id: productId })
+        if (product) {
+            product.isBlocked = !product.isBlocked
+            const update = await product.save()
+            // console.log(`${product.name}'s status changed to  : ${product.isBlocked}`);
+            res.send({ success: true })
+        } else {
+            console.log("product id not found to block or unblock")
+            res.send({ success: false })
+        }
+    } catch (error) {
+        console.log("Error in block Product", error.message)
+    }
+}
 
 // const haveVariant = async function(Product_id)
 
 module.exports = {
     addingProduct,
     productExists,
-    removeProductVariantFalse
+    removeProductVariantFalse,
+    blockProduct
 }
 
 

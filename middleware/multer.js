@@ -13,5 +13,20 @@ const storage = multer.diskStorage({
 function getRandomThreeDigitNumber() {
     return Math.floor(Math.random() * 900) + 100;
 }
-const upload = multer({storage: storage});
+
+const imageFileFilter = (req, file, cb) => {
+    const allowedMimeTypes = ["image/jpeg", "image/png"];
+    if (allowedMimeTypes.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error("Invalid file type. Only JPEG, and PNG files are allowed."), false);
+    }
+};
+
+
+const upload = multer({
+    storage: storage,
+    fileFilter: imageFileFilter
+}); 
+
 module.exports = upload;

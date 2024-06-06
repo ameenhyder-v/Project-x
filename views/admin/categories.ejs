@@ -308,6 +308,62 @@
     </section>
     <!-- content-main end// -->
 
+    
+    <%- include('../partials/adminpartials/adminFooter.ejs') %>
+
+     <!-- modal part -->
+     <div class="modal fade dark" id="editCategory" tabindex="-1"
+     aria-labelledby="variantModalLabel" aria-hidden="true">
+     <div class="modal-dialog " style="max-width: 600px;">
+         <div class="modal-content"
+             style="background-color: rgb(68, 68, 68);">
+             <div class="modal-header ">
+                 <h5 class="modal-title" id="variantModalLabel">Edit Category</h5>
+                 <button type="button" class="btn-close" data-bs-dismiss="modal"  aria-label="Close"></button>
+             </div>
+             <div class="modal-body"
+                 style="background-color: rgb(68, 68, 68);">
+                 <form id="edit-catogory">
+                    <div class="mb-4">
+                        <% if (typeof message !== "undefined") { %>
+                        <label class="form-label" style="color: red;">
+                            <%= message %> </label>
+                        <% } %>
+                    </div>
+                    <div class="mb-4">
+                        <label for="product_name"
+                            class="form-label">Name</label>
+                        <input type="text" name="category"
+                            placeholder="Type here" class="form-control"
+                            id="product_name" />
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Gender</label>
+                        <select class="form-select" name="gender">
+                            <option value="selectHere"></option>
+                            <option>Male</option>
+                            <option>Female</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Description</label>
+                        <textarea placeholder="Type here"
+                            name="description"
+                            class="form-control"></textarea>
+                    </div>
+                    <div class="d-grid">
+                        <button class="btn btn-primary"
+                            type="submit">Create category</button>
+                    </div>
+                 </form>
+                 </div>
+             </div>
+ 
+         </div>
+     </div>
+ </div>
+
+
     <!-- sweet alert script cdn -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -360,4 +416,3 @@
         });
     }
 </script>
-    <%- include('../partials/adminpartials/adminFooter.ejs') %>

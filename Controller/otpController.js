@@ -65,7 +65,11 @@ const resendOtp = async (req, res) => {
     const saveOtp = await save.save();
     if(saveOtp){
       console.log("saved")
+      // console.log(email)
+      req.session.email = email;
       res.render("otp", { email: email });
+      console.log(req.session.email)
+      
     }
     
   } catch (error) {

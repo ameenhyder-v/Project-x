@@ -32,29 +32,11 @@
 <script src="https://unpkg.com/cropperjs"></script>
 
 <script>
-    function addNewRow() {
-        var container = document.getElementById("rows-container");
 
-        var firstRow = document.querySelector(".row-to-clone");
-
-        var newRow = firstRow.cloneNode(true);
-
-        newRow.querySelectorAll("input").forEach(input => input.value = "");
-        newRow.querySelectorAll("select").forEach(select => select.selectedIndex = 0);
-
-        var nextButton = newRow.querySelector(".btn-next");
-        nextButton.removeEventListener("click", addNewRow);
-        nextButton.addEventListener("click", addNewRow);
-        container.appendChild(newRow);
-    }
-
-    document.addEventListener("DOMContentLoaded", function() {
-        document.getElementById("next").addEventListener("click", addNewRow);
-    });
+   // FINDING CATEGORY 
 
     function categoryFinding(){
         const selectedGender = document.getElementById('gender');
-       // const selectedOption = selectedGender.options[selectedGender.selectedIndex].text;
        const selectedOption = selectedGender.value;
 
         if (selectedOption) {
@@ -87,12 +69,12 @@
     // Image Priview and cropperjs
     let cropper;
     let currentInput;
-    let croppedFiles = new Map(); // To store the cropped files
+    let croppedFiles = new Map(); 
 
     function previewImage(event) {
         const input = event.target;
         const file = input.files[0];
-        currentInput = input; // Save the reference to the current input
+        currentInput = input; 
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -114,20 +96,19 @@
     function cropImage() {
         if (cropper) {
             cropper.getCroppedCanvas({
-                width: 300, // desired width
-                height: 400, // desired height
+                width: 300, 
+                height: 400, 
             }).toBlob(function(blob) {
                 const croppedImageSrc = URL.createObjectURL(blob);
                 const imagePreview = currentInput.previousElementSibling;
                 if (imagePreview && imagePreview.tagName === 'IMG') {
                     imagePreview.src = croppedImageSrc;
                 }
-                // Replace the file input with the cropped image blob
                 const dataTransfer = new DataTransfer();
-                const file = new File([blob], `croppedImage${Date.now}.jpg`, { type: "image/jpeg" });
+                const file = new File([blob], `croppedImage${Date.now()}.jpg`, { type: "image/jpeg" });
                 dataTransfer.items.add(file);
                 currentInput.files = dataTransfer.files;
-                // Store the cropped file in the Map
+
                 croppedFiles.set(currentInput.name, file);
                 closeModal();
             }, 'image/jpeg');
@@ -172,16 +153,16 @@
             })
 
             if (!response.ok) {
-            const data = await response.json();
-            console.log(data)
-            Swal.fire({
-                position: "center",
-                icon: "warning",
-                title: `<span style="color: red;">${data.message}</span>`,
-                showConfirmButton: false,
-                timer: 1500
-                
-              });
+                const data = await response.json();
+                // console.log(data)
+                Swal.fire({
+                    position: "center",
+                    icon: "warning",
+                    title: `<span style="color: red;">${data.message}</span>`,
+                    showConfirmButton: false,
+                    timer: 1500
+                    
+                });
                 
             }
             const data = await response.json();
@@ -198,25 +179,70 @@
     }
 
 
-    // adding variant 
+    //function for clearing the modal
+    function clearModalFields() {
+        $('#variantModal').find('input, textarea, select').val('');
+        $('#variantModal').find('img').attr('src', '/assets/imgs/theme/upload.svg')
+      }
 
+    // adding variant 
     async function addVariant() {
         const formData = new FormData(document.getElementById("variantForm"));
         //console.log(Object.fromEntries(formData))
 
-        alert("hello world")
-        console.log(formData)
+       // alert("hello world")
+        //console.log(formData)
         const response = await fetch("/admin/add-variant", {
            method: "POST",
             body: formData
         });
 
       if (response.ok) {
-            console.log("Variant added successfully");
-        } else {
-            console.error("Error adding variant");
+        const data = await response.json();
+        if(data.fail){
+            Swal.fire({
+                position: "center",
+                icon: "warning",
+                title: `<span style="color: red;"> ${data.fail} </span>`,
+                showConfirmButton: false,
+                timer: 1500
+                
+              });
+        }else if(data.success){
+            Swal.fire({
+                title: "Do you want to add another variant?",
+                showDenyButton: true,
+                confirmButtonText: "Yes",
+                denyButtonText: "No"
+              }).then((result) => {
+                
+    
+                if (result.isConfirmed) {
+                    clearModalFields();
+                    $('#variantModal').modal('show');
+    
+                } else if (result.isDenied) {
+                    
+                    clearModalFields();
+                    Swal.fire("variant saved", "", "success");
+                    window.location.href = "/admin/productlist"
+                }
+            });
+        }
+     } else {
+            Swal.fire({
+                position: "center",
+                icon: "warning",
+                title: `<span style="color: red;"> Adding variant not working </span>`,
+                showConfirmButton: false,
+                timer: 1500
+                
+              });
+            
         }
     }
+
+    
 </script>
 
 <div class="screen-overlay"></div>
@@ -496,7 +522,7 @@
 
 <%- include("../partials/adminpartials/adminFooter") %>
 
-    <!-- modal part  -->
+    <!-- modal part adding variant -->
     <div class="modal fade dark" id="variantModal" tabindex="-1"
         aria-labelledby="variantModalLabel" aria-hidden="true">
         <div class="modal-dialog " style="max-width: 600px;">
@@ -519,28 +545,28 @@
                                         <div class="input-upload">
                                             <img  class="image-preview" src="/assets/imgs/theme/upload.svg" alt="product image" />
                                             <input class="form-control"
-                                                type="file" name="Image0" accept="image/jpeg, image/png," onchange="previewImage(event)" />
+                                                type="file" name="Image0" accept="image/jpeg, image/png," onchange="previewImage(event)" required/>
                                         </div>
                                         </div>
                                         <div class="card-body">
                                             <div class="input-upload">
                                                 <img  class="image-preview" src="/assets/imgs/theme/upload.svg" alt="product image"/>
                                                 <input class="form-control"
-                                                    type="file" name="Image1" accept="image/jpeg, image/png," onchange="previewImage(event)" />
+                                                    type="file" name="Image1" accept="image/jpeg, image/png," onchange="previewImage(event)" required/>
                                             </div>
                                         </div>
                                         <div class="card-body">
                                             <div class="input-upload">
                                                 <img  class="image-preview" src="/assets/imgs/theme/upload.svg" alt="product image" />
                                                 <input class="form-control"
-                                                    type="file" name="Image2" accept="image/jpeg, image/png," onchange="previewImage(event)"/>
+                                                    type="file" name="Image2" accept="image/jpeg, image/png," onchange="previewImage(event)" required/>
                                             </div>
                                         </div>
                                         <div class="card-body">
                                             <div class="input-upload">
                                                 <img  class="image-preview" src="/assets/imgs/theme/upload.svg" alt="product image" />
                                                 <input class="form-control"
-                                                    type="file" name="Image3" accept="image/jpeg, image/png" onchange="previewImage(event)"/>
+                                                    type="file" name="Image3" accept="image/jpeg, image/png" onchange="previewImage(event)" required/>
                                             </div>
                                         </div>
                                     </div>
@@ -553,27 +579,77 @@
                                         placeholder="e.g., Color," name="colour" />
                                 </div>
                                 <div id="rows-container">
-                                    <div class="row gx-4 row-to-clone">
-                                        <div class="col-sm-3 mb-3">
+                                    <div class="row gx-3 row-to-clone">
+                                        <div class="col-sm-3 mb-4">
                                             <label class="form-label" name="size">Size</label>
                                             <select class="form-select" name="size">
                                                 <option>S</option>
-                                                <option>M</option>
-                                                <option>L</option>
-                                                <option>XL</option>
                                             </select>
                                         </div>
-                                        <div class="col-sm-3 mb-3">
+                                        <div class="col-sm-3 mb-4">
                                             <label class="form-label">Quantity</label>
                                             <input type="number" name="quantity" class="form-control" placeholder="e.g, quantity.No" />
                                         </div>
-                                        <div class="col-sm-3 mb-3">
+                                        <div class="col-sm-3 mb-4">
                                             <label class="form-label">Price</label>
-                                            <input type="text" name="price" class="form-control" placeholder="e.g, Rupees" />
+                                            <input type="number" name="price" class="form-control" placeholder="e.g, Rupees" />
                                         </div>
-                                        <div class="col-sm-3 mb-3">
-                                            <br>
-                                            <button type="button" class="btn btn-primary btn-next" id="next">Next</button>
+                                    </div>
+                                </div>
+
+                                <div id="rows-container">
+                                    <div class="row gx-3 row-to-clone">
+                                        <div class="col-sm-3 mb-4">
+                                            <label class="form-label" name="size">Size</label>
+                                            <select class="form-select" name="size">
+                                                <option>M</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-3 mb-4">
+                                            <label class="form-label">Quantity</label>
+                                            <input type="number" name="quantity" class="form-control" placeholder="e.g, quantity.No" />
+                                        </div>
+                                        <div class="col-sm-3 mb-4">
+                                            <label class="form-label">Price</label>
+                                            <input type="number" name="price" class="form-control" placeholder="e.g, Rupees" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="rows-container">
+                                    <div class="row gx-3 row-to-clone">
+                                        <div class="col-sm-3 mb-4">
+                                            <label class="form-label" name="size">Size</label>
+                                            <select class="form-select" name="size">
+                                                <option>L</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-3 mb-4">
+                                            <label class="form-label">Quantity</label>
+                                            <input type="number" name="quantity" class="form-control" placeholder="e.g, quantity.No" />
+                                        </div>
+                                        <div class="col-sm-3 mb-4">
+                                            <label class="form-label">Price</label>
+                                            <input type="number" name="price" class="form-control" placeholder="e.g, Rupees" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="rows-container">
+                                    <div class="row gx-3 row-to-clone">
+                                        <div class="col-sm-3 mb-4">
+                                            <label class="form-label" name="size">Size</label>
+                                            <select class="form-select" name="size">
+                                                <option>XL</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-3 mb-4">
+                                            <label class="form-label">Quantity</label>
+                                            <input type="number" name="quantity" class="form-control" placeholder="e.g, quantity.No" />
+                                        </div>
+                                        <div class="col-sm-3 mb-4">
+                                            <label class="form-label">Price</label>
+                                            <input type="number" name="price" class="form-control" placeholder="e.g, Rupees" />
                                         </div>
                                     </div>
                                 </div>

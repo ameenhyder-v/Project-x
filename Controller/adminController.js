@@ -1,5 +1,6 @@
 const Users = require("../Model/userModel");
-const CategoryModel = require("../Model/categoryModel")
+const CategoryModel = require("../Model/categoryModel");
+const Product = require("../Model/productModel");
 
 
 const adminLogin = async (req, res) => {
@@ -43,7 +44,8 @@ const dashboard = async (req, res) => {
 
 const productList = async (req, res) => {
     try {
-        res.render("productList")
+        const allProducts = await Product.find();
+        res.render("productList", {allProducts: allProducts});
     } catch (error) {
         console.log(`error form productList loding: ${error}`)
     }
@@ -70,7 +72,7 @@ const orders = async (req, res) => {
 const allUsers = async (req, res) => {
     try {
         const allUsers = await Users.find();
-        console.log(allUsers)
+        // console.log(allUsers)
         res.render("users", {users: allUsers})
     } catch (error) {
         console.log(`error from the adminController.allUsers: ${error}`)

@@ -1,6 +1,7 @@
 const User = require("../Model/userModel")
 const otpContoller = require("../Controller/otpController")
 const otpModel = require('../Model/otpModel')
+const Variant = require("../Model/variantModel")
 const bcrypt = require("bcrypt");
 
 
@@ -53,6 +54,7 @@ const insertUser = async (req, res) => {
         if (existingUser) {
             req.flash("messageEmail", "Email is already in use!")
             return res.redirect("/registration");
+        
         }
 
 
@@ -103,16 +105,16 @@ const successGoogleLogin = async (req, res) => {
             console.log(isExists)
             if (isExists) {
                 req.session.userId = isExists._id
-                console.log(req.session.userId)
+                // console.log(req.session.userId)
                 return res.redirect("/")
             }
-            
+
 
             const saving = await userData.save()
             if (saving){
                 req.session.userId = saving._id
                 console.log(req.session.userId)
-                console.log("success");
+                // console.log("success");
                 
                 return res.redirect("/")
             }
@@ -198,14 +200,19 @@ const userVarify = async (req, res) => {
 
 const home = async (req, res) => {
     try {
-        res.render('home')
+        const variants = await Variant.find().populate("productId")
+        // console.log(variants);
+        res.render('home', { variants: variants});
     } catch (error) {
         console.log(`error from home: ${error}`);
     }
 }
 const productDetails = async (req, res) => {
     try {
-        res.render("productDetail")
+        const { variantId } = req.query;
+        const variant = await Variant.findOne({ _id: variantId }).populate("productId");
+        const variants = await Variant.find({productId:variant.productId})
+        res.render("productDetail", {variant: variant,variants:variants});
     } catch (error) {
         console.log(`error from productDetails: ${error}`);
     }
@@ -218,6 +225,8 @@ const allProducts = async (req, res) => {
         console.log(`error from allProducts: ${error}`)
     }
 }
+
+
 
 const shopingCart = async (req, res) => {
     try {

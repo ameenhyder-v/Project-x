@@ -23,9 +23,9 @@ userRoute.get("/resend-otp", checkState.isLogout, otpContoller.resendOtp )
 userRoute.post("/login", userController.userVarify);
 
 //for passport google authentication
-userRoute.get("/auth/google", passport.authenticate("google", {scope: ["email", "profile"]}));
-userRoute.get("/auth/google/callback", passport.authenticate("google", {successRedirect: "/success", failureRedirect: "/failure"}))
-userRoute.get("/success", userController.successGoogleLogin),
+userRoute.get("/auth/google", checkState.isLogout, passport.authenticate("google", {scope: ["email", "profile"]}));
+userRoute.get("/auth/google/callback", checkState.isLogout, passport.authenticate("google", {successRedirect: "/success", failureRedirect: "/failure"}))
+userRoute.get("/success", checkState.isLogout, userController.successGoogleLogin),
 userRoute.get("/failure", userController.failureGoolgeLogin)
 
 // userRoute.get("/otp", otpContoller.otp);

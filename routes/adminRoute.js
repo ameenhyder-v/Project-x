@@ -15,12 +15,15 @@ adminRoute.put("/blockUser", adminController.userControl);
 
 
 adminRoute.get("/dashboard",adminController.dashboard);
+
 adminRoute.get("/productList", adminController.productList);
 
 
 adminRoute.get("/addProduct" , adminController.addProduct)
 adminRoute.post("/adding-product", productController.addingProduct)
 adminRoute.get("/remove-product", productController.removeProductVariantFalse)
+
+
 
 
 adminRoute.get("/check-category", categoryController.checkCategory)
@@ -37,6 +40,12 @@ adminRoute.get("/delete-category", categoryController.deleteCategory)
 //ADD VARIANT
 adminRoute.post('/add-variant', upload.any(),variantController.addVriant);
 
+//VARIANT PAGE LOAD
+adminRoute.get("/load-variant", variantController.loadVariant)
 
+//EDIT VARIANT
+adminRoute.get("/edit-variant", variantController.editVariant)
+
+adminRoute.post('/block-product',productController.blockProduct)
 
 module.exports = adminRoute;

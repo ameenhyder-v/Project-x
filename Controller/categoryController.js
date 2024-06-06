@@ -67,7 +67,7 @@ const checkCategory = async (req, res) => {
     try {
         const {gender} = req.query
         const Data = await Category.find({ gender: gender }, {_id: 0, category: 1 });
-        console.log(Data);
+        // console.log(Data);
         if(Data){
             res.json(Data)
         }
