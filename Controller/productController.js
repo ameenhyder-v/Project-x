@@ -3,7 +3,7 @@ const categoryController = require("../Controller/categoryController");
 
 const productExists = async function(productName, gender,category) {
     const prod = await Product.findOne({ name: productName, gender: gender, category: category })
-    console.log(prod);
+    // console.log(prod);
     return prod
 }
 
@@ -72,7 +72,7 @@ const addingProduct = async (req, res) => {
 const removeProductVariantFalse = async () => {
     const removeProduct = await Product.deleteMany({isVariant: false})
     if (removeProduct){
-        console.log("success")
+        // console.log("success")
     }else{
         console.log("not working");
     }

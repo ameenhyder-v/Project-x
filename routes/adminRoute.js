@@ -11,6 +11,8 @@ adminRoute.set("views", "./views/admin")
 
 adminRoute.get("/login", adminController.adminLogin);
 adminRoute.post("/login", adminController.verifyAdmin);
+
+
 adminRoute.put("/blockUser", adminController.userControl);
 
 

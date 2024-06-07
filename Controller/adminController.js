@@ -21,9 +21,15 @@ const verifyAdmin = async (req, res) => {
 
   if (!emailRegex.test(username)) {
     return res.render("admin_login",{ message: "Invalid email format." });
-  }b
+  }
 
   if (username === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASS) {
+    const admin = {
+        name: username,
+        password: password
+    }
+
+    req.session.admin = admin
     return res.render("dashboard");
   } else {
     return res.render("admin_login",{ message: "Invalid username or password." });
