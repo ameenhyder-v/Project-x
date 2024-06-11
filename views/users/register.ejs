@@ -32,14 +32,14 @@
                 <% } %>
                 <div class="form-wrapper">
                     <input type="password" placeholder="Password" name="password" class="form-control" >
-                    <i class="zmdi zmdi-lock eye toggle-password" id="togglePassword1"></i>
+                    <i class=" fa fa-fw fa-eye-slash toggle-password" id="togglePassword1"></i>
                 </div>
                 <% if(typeof messagePasswordConfirm !== "undefined"){ %>
                     <p style="color: red;"> <%= messagePasswordConfirm %></p>
                 <% } %>
                 <div class="form-wrapper">
                     <input type="password" placeholder="Confirm Password"  name="psconfirm" class="form-control">
-                    <i class="zmdi zmdi-lock eye toggle-password" id="togglePassword2"></i>
+                    <i class="fa fa-fw fa-eye-slash toggle-password" id="togglePassword2"></i>
                 </div>
                 <div class="form-wrapper">
                     <!-- <label class="form-check ml-4">
@@ -47,11 +47,11 @@
                         <span>Agree to <a href="#">Terms & Condition</a></span>
                     </label> -->
                 </div>
-                <button class="logButton" type="submit">Register
+                <button class="logButton" type="submit" style="background-color: #8c5d77;">Register
                     <i class="zmdi zmdi-arrow-right"></i>
                 </button>
 
-                <p class="text-center mb-4 mt-4">Already have account? <a href="/login">Sign in</a></p>
+                <p class="text-center mb-4 mt-4">Already have account? <a href="/login" style="color: #8c5d77;">Sign in</a></p>
 
             </form>
         </div>
@@ -64,8 +64,8 @@
                 const inputField = this.previousElementSibling;
                 const fieldType = inputField.getAttribute('type') === 'password' ? 'text' : 'password';
                 inputField.setAttribute('type', fieldType);
-                this.classList.toggle('zmdi-lock');
-                this.classList.toggle('zmdi-unlock');
+                this.classList.toggle('fa-eye-slash');
+                this.classList.toggle('fa-eye');
             });
         });
     </script>
@@ -73,9 +73,6 @@
     <style>
         .eye {
             cursor: pointer;
-        }
-        .zmdi-unlock:before {
-            content: "\f3c1"; /* Use the correct unicode for the unlocked icon */
         }
     </style>
 

@@ -329,20 +329,20 @@
         const status = tag.textContent.trim();
         console.log(1)
         Swal.fire({
-            title: "Are you sure?",
+            title: "<span style='color: black;'> Are you sure?</span>",
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#ff0000",
             cancelButtonColor: "#d33",
-            confirmButtonText: `Yes, ${status} usser!`,
+            confirmButtonText: `Yes, ${status} user!`,
             coustomClass: {
                 popup: "swal2-popup-custom-color"
             }
           }).then((result) => {
             if (result.isConfirmed) {
               Swal.fire({
-                title: "Blocked!",
-                text: "user is blocked",
+                title: `<span style='color: black'> ${status}ed! </span>`,
+                text: `user is ${status}ed`,
                 icon: "success"
               });
 

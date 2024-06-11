@@ -1,14 +1,14 @@
 
 // const { text } = require("body-parser");
 // const OTP = require("../Model/otpModel");
-// const User = require("../Model/userModel");
+const User = require("../Model/userModel");
 const nodemailer = require("nodemailer");
 const SendmailTransport = require("nodemailer/lib/sendmail-transport");
 const otpModel = require("../Model/otpModel");
 require("dotenv").config();
 
 
-const sendMail = (email) => {
+const sendMail = async (email) => {
 
   const otp = generateOTP()
   console.log(email);
@@ -46,12 +46,13 @@ const sendMail = (email) => {
 }
 
 
-const resendOtp = async (req, res) => {
 
+//RESENDING OTP FUNCTION
+const resendOtp = async (req, res) => {
   try {
     email = req.session.email
 
-    const otpp = sendMail(email);
+    const otpp = await sendMail(email);
     const otp = parseInt(otpp);
     console.log(otp);
     // console.log(otpp);
@@ -63,17 +64,17 @@ const resendOtp = async (req, res) => {
     });
 
     const saveOtp = await save.save();
-    if(saveOtp){
+    if (saveOtp) {
       console.log("saved")
       // console.log(email)
       req.session.email = email;
       res.render("otp", { email: email });
-      console.log(req.session.email)
-      
+      // console.log(req.session.email)
+
     }
-    
+
   } catch (error) {
-      console.log(`Error from the otpController.resendOtp ${error.message}`)
+    console.log(`Error from the otpController.resendOtp ${error.message}`)
 
   }
 }
@@ -84,7 +85,119 @@ function generateOTP() {
 };
 
 
+
+
+//FORGOT OTP PAGE RENDERING
+const forgetPassOtp = async (req, res) => {
+  try {
+
+    const { email } = req.body
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email)) {
+      req.flash("message", "Invalid email format.")
+      return res.redirect("/forget-password");
+    }
+
+    const checkExists = await User.findOne({ email: email });
+  
+    if (!checkExists){
+      console.log("-----------------------")
+      req.flash("message", "Account not find Register insted")
+      return res.redirect("/login");
+    }
+
+    const sendingOtp = await sendMail(email)
+    const otp = parseInt(sendingOtp)
+    console.log(otp)
+    // console.log(email)
+
+    const existOtp = await otpModel.findOneAndDelete({ emailId: email });
+
+    const save = new otpModel({
+      emailId: email,
+      otp: otp,
+    });
+
+    const saveOtp = await save.save();
+    if (saveOtp) {
+
+      console.log("saved")
+      req.session.email = email;
+      res.render("forgetOtp", {email: email});
+
+      }
+      
+
+  } catch (error) {
+    console.log(`error from the otpController. forgetOtp rendering: ${error}`)
+  }
+}
+
+
+//RESENDING OTP for forget FUNCTION
+const forgetResendOtp = async (req, res) => {
+  try {
+    email = req.session.email
+
+    const otpp = await sendMail(email);
+    const otp = parseInt(otpp);
+    console.log(otp);
+    // console.log(otpp);
+
+    const existOtp = await otpModel.findOneAndDelete({ emailId: email });
+    const save = new otpModel({
+      emailId: email,
+      otp: otp,
+    });
+
+    const saveOtp = await save.save();
+    if (saveOtp) {
+      console.log("saved")
+      // console.log(email)
+      req.session.email = email;
+      res.render("forgetOtp", { email: email });
+
+    }
+
+  } catch (error) {
+    console.log(`Error from the otpController.resendOtp ${error.message}`)
+
+  }
+}
+
+//FORGET OTP VARIFICATION
+const otpVerify = async (req, res) => {
+  try {
+    const OTP = req.body.otp
+    const email = req.session.email;
+
+
+    console.log('otp oppp', OTP)
+
+    const findOtp = await otpModel.findOne({ emailId: email });
+
+
+    // console.log(OTP === findOtp.otp)
+
+    if (OTP !== findOtp.otp) {
+      res.send({ status: 0 })
+    } else {
+      res.send({ status: 1 })
+    }
+
+  } catch (error) {
+    console.log(`error form the otpController .otpVarify: ${error}`)
+  }
+
+}
+
+
+
 module.exports = {
   sendMail,
-  resendOtp
+  resendOtp,
+  forgetPassOtp,
+  otpVerify,
+  forgetResendOtp
 }

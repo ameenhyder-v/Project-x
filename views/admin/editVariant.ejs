@@ -88,6 +88,53 @@
              cropper = null;
          }
      }
+
+//UPDATING VARIANT 
+    async function updateVariant(variId){
+        const formElement = document.getElementById("variantForm");
+        const formData = new FormData(formElement);
+        const variantId = variId
+        
+        //console.log(Object.fromEntries(formData))
+
+
+        const response = await fetch(`/admin/update-variant?variantId=${variantId}`, {
+            method: "POST",
+            body: formData
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            if(data.fail){
+                Swal.fire({
+                    position: "center",
+                    icon: "warning",
+                    title: `<span style="color: red;"> ${data.fail} </span>`,
+                    showConfirmButton: false,
+                    timer: 1500
+                    
+                });
+            } else if (data.success) {
+                swal.fire({
+                    position: "center",
+                    icon: "success",
+                    title: `<span style="color: red;"> ${data.success} </span>`,
+                    showConfirmButton: false,
+                    timer: 1000
+                })
+            }
+            
+        } else {
+            swal.fire({
+                position: "center",
+                icon: "success",
+                title: `<span style="color: red;"> Something went wrong </span>`,
+                showConfirmButton: false,
+                timer: 1000
+            })
+        }
+
+    }
 </script>
 
 
@@ -332,7 +379,7 @@
                             <div class="card-body">
                                 <div class="input-upload">
                                     <img class="image-preview" src="/images/<%= image %>" alt="product image" />
-                                    <input class="form-control" type="file" name="Image<%= index %>" accept="image/jpeg, image/png" onchange="previewImage(event)" />
+                                    <input class="form-control" type="file" name="Image<%= index %>" accept="image/jpeg, image/png" value="<%= image %>" onchange="previewImage(event)" />
                                 </div>
                             </div>
                             <% }); %>
@@ -341,85 +388,29 @@
                         <div class="mb-3">
                             <label for="variant_name"
                                 class="form-label">Colour</label>
-                            <input type="text" class="form-control"
-                               
-                                placeholder="e.g., Color," name="colour" />
+                            <input type="text" class="form-control" value="<%= data.color %>" name="colour" />
                         </div>
 
                         <div id="rows-container">
-                            <div class="row gx-4 row-to-clone">
-                                <div class="col-sm-3 mb-3">
-                                    <label class="form-label" name="size">Size</label>
-                                    <select class="form-select" name="size">
-                                        <option>S</option>
-                                    </select>
+                            <% ['S', 'M', 'L', 'XL'].forEach((size, index) => { %>
+                                <% const stockItem = data.stock.find(item => item.size === size); %>
+                                <div class="row gx-4 row-to-clone">
+                                    <div class="col-sm-3 mb-3">
+                                        <label class="form-label">Size</label>
+                                        <select class="form-select" name="size">
+                                            <option><%= size %></option>
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-3 mb-3">
+                                        <label class="form-label">Quantity</label>
+                                        <input type="number" name="quantity" class="form-control" value="<%= stockItem ? stockItem.quantity : '' %>" placeholder="e.g., quantity" required/>
+                                    </div>
+                                    <div class="col-sm-3 mb-3">
+                                        <label class="form-label">Price</label>
+                                        <input type="number" name="price" class="form-control" value="<%= stockItem ? stockItem.price : '' %>" placeholder="e.g., Rupees" required/>
+                                    </div>
                                 </div>
-                                <div class="col-sm-3 mb-3">
-                                    <label class="form-label">Quantity</label>
-                                    <input type="number" name="quantity" class="form-control" placeholder="e.g, quantity.No" />
-                                </div>
-                                <div class="col-sm-3 mb-3">
-                                    <label class="form-label">Price</label>
-                                    <input type="number" name="price" class="form-control" placeholder="e.g, Rupees" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="rows-container">
-                            <div class="row gx-4 row-to-clone">
-                                <div class="col-sm-3 mb-3">
-                                    <label class="form-label" name="size">Size</label>
-                                    <select class="form-select" name="size">
-                                        <option>M</option>
-                                    </select>
-                                </div>
-                                <div class="col-sm-3 mb-3">
-                                    <label class="form-label">Quantity</label>
-                                    <input type="number" name="quantity" class="form-control" placeholder="e.g, quantity.No" />
-                                </div>
-                                <div class="col-sm-3 mb-3">
-                                    <label class="form-label">Price</label>
-                                    <input type="number" name="price" class="form-control" placeholder="e.g, Rupees" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="rows-container">
-                            <div class="row gx-4 row-to-clone">
-                                <div class="col-sm-3 mb-3">
-                                    <label class="form-label" name="size">Size</label>
-                                    <select class="form-select" name="size">
-                                        <option>L</option>
-                                    </select>
-                                </div>
-                                <div class="col-sm-3 mb-3">
-                                    <label class="form-label">Quantity</label>
-                                    <input type="number" name="quantity" class="form-control" placeholder="e.g, quantity.No" />
-                                </div>
-                                <div class="col-sm-3 mb-3">
-                                    <label class="form-label">Price</label>
-                                    <input type="number" name="price" class="form-control" placeholder="e.g, Rupees" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="rows-container">
-                            <div class="row gx-4 row-to-clone">
-                                <div class="col-sm-3 mb-3">
-                                    <label class="form-label" name="size">Size</label>
-                                    <select class="form-select" name="size">
-                                        <option>XL</option>
-                                    </select>
-                                </div>
-                                <div class="col-sm-3 mb-3">
-                                    <label class="form-label">Quantity</label>
-                                    <input type="number" name="quantity" class="form-control" placeholder="e.g, quantity.No" />
-                                </div>
-                                <div class="col-sm-3 mb-3">
-                                    <label class="form-label">Price</label>
-                                    <input type="number" name="price" class="form-control" placeholder="e.g, Rupees" />
-                                </div>
-                            </div>
+                            <% }); %>
                         </div>
                         
                     
@@ -429,8 +420,8 @@
                 </div>
                 <div class="modal-footer" style="background-color: rgb(68, 68, 68);">
                     <button type="button" class="btn btn-secondary" 
-                    data-bs-dismiss="modal" onclick="removeProduct()" >Close</button>
-                    <button type="button" class="btn btn-primary" onclick="addVariant()">Save changes</button>
+                    data-bs-dismiss="modal" >Close</button>
+                    <button type="button" class="btn btn-primary" onclick="updateVariant('<%= data._id %>')">Save changes</button>
                 </div>
             </form>
             <br>
@@ -451,3 +442,6 @@
         <button onclick="closeModal()">Cancel</button>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+

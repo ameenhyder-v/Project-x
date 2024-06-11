@@ -1,0 +1,34 @@
+<%- include('../partials/userpartials/header.ejs') %>
+
+<!-- login -->
+
+<div class="wrapper" style="background-image: url('images/bg-registration-form-1.jpg');">
+    <div class="inner">
+        <div class="image-holder">
+            <img src="images/registration-form-1.jpg" alt="">
+        </div>
+
+        <form class="p-t-23" method="post">
+            <br>
+            <h3>Forgot password</h3>
+            <p class="text-center small text-muted mb-2">Enter your registered  Email we will sent a OTP to change your  Password</p>
+            <hr><br>
+            <% if (typeof message !== "undefined") { %>
+                <h6  style="color: crimson;"> <%= message %> </h6> 
+            <% } %>
+            <div class="form-wrapper">
+                <input type="text" placeholder="Enter registerd Email" name="email" class="form-control">
+                <i class="zmdi zmdi-email"></i>
+            </div>
+            <button class="logButton" type="submit" style="background-color: #8c5d77;" >Submit
+                <i class="zmdi zmdi-arrow-right"></i>
+            </button>
+    
+            <p class="text-center mb-4 mt-4">Remember your Password? <a href="/login" style="color: #8c5d77;">Log-in here</a></p>
+           
+          </form>
+
+    </div>
+</div>
+
+<%- include('../partials/userpartials/footer.ejs') %>

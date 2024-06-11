@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { boolean } = require("webidl-conversions");
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -16,11 +15,10 @@ const userSchema = new mongoose.Schema({
   isBlocked: {
     type: Boolean,
     default: false
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now(),
-  },
+  }
+},
+{
+  timestamps:true
 });
 
 

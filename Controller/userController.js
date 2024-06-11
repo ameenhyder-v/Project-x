@@ -21,6 +21,15 @@ const register = async (req, res) => {
     }
 }
 
+
+
+//FINDING USERE IS ALREADY EXISTS USING EMAIL
+const userExists = async function(email){
+    return await User.findOne({ email: email });
+}
+
+
+//CREATING USER
 const insertUser = async (req, res) => {
     try {
         const { username, email, password, psconfirm } = req.body;
@@ -49,7 +58,7 @@ const insertUser = async (req, res) => {
             return res.redirect("/registration");
         }
 
-        const existingUser = await User.findOne({ email });
+        const existingUser = await userExists(email)
 
         if (existingUser) {
             req.flash("messageEmail", "Email is already in use!")
@@ -70,7 +79,7 @@ const insertUser = async (req, res) => {
         req.session.email = email;
         req.session.userData = userData;
 
-        const otpp = otpContoller.sendMail(email);
+        const otpp = await otpContoller.sendMail(email);
         const otp = parseInt(otpp);
         console.log(otp);
         console.log(otpp);
@@ -90,6 +99,7 @@ const insertUser = async (req, res) => {
     }
 };
 
+//GOOGLE AUTHENTICATION
 const successGoogleLogin = async (req, res) => {
     try {
         if (!req.user){
@@ -101,8 +111,8 @@ const successGoogleLogin = async (req, res) => {
                 name: displayName,
                 email: email
             });
-            const isExists = await User.findOne({email: email})
-            console.log(isExists)
+            const isExists = await userExists(email);
+            // console.log(isExists)
             if (isExists) {
                 req.session.userId = isExists._id
                 // console.log(req.session.userId)
@@ -113,14 +123,9 @@ const successGoogleLogin = async (req, res) => {
             const saving = await userData.save()
             if (saving){
                 req.session.userId = saving._id
-                console.log(req.session.userId)
-                // console.log("success");
-                
+
                 return res.redirect("/")
             }
-
-            // console.log(`name ${displayName},     email ${email}`)
-
         }
         
     } catch (error) {
@@ -133,12 +138,14 @@ const failureGoolgeLogin = async (req, res) => {
     res.redirect("/login")
 }
 
+
+//OTP VARIFICATION WHEN CREATING ACCOUNT
 const otpVerify = async (req, res) => {
     // console.log(req.body);
     // console.log(req.session);
     try {
 
-        console.log('req,body: ',req.body);
+        // console.log('req,body: ',req.body);
 
 
         const OTP = req.body.otp
@@ -169,7 +176,8 @@ const userLogin = async (req, res) => {
     try {
         const message = req.flash("message")
         const messagePassword = req.flash("messagePassword")
-        res.render("login", { message, messagePassword })
+        const success = req.flash("success");
+        res.render("login", { message, messagePassword, success })
     } catch (error) {
         console.log(`error from userLogin: ${error}`);
     }
@@ -190,7 +198,7 @@ const userVarify = async (req, res) => {
                 res.render("login")
             }else {
                 req.session.userId = Data._id;
-                res.render("home");
+                res.redirect("/");
             }
         }
     } catch (error) {
@@ -200,13 +208,20 @@ const userVarify = async (req, res) => {
 
 const home = async (req, res) => {
     try {
-        const variants = await Variant.find().populate("productId")
-        // console.log(variants);
+        const allVariants = await Variant.find().populate("productId")
+        // console.log(allVariants);
+
+        const variants = allVariants.filter(Element => {
+            return Element.productId.isBlocked == false
+        })
+        
         res.render('home', { variants: variants});
     } catch (error) {
         console.log(`error from home: ${error}`);
     }
 }
+
+
 const productDetails = async (req, res) => {
     try {
         const { variantId } = req.query;
@@ -217,6 +232,7 @@ const productDetails = async (req, res) => {
         console.log(`error from productDetails: ${error}`);
     }
 }
+
 
 const allProducts = async (req, res) => {
     try {
@@ -236,9 +252,73 @@ const shopingCart = async (req, res) => {
     }
 }
 
+//FORGOT PASSWORD PAGE RENDERING
+const forgetPass = async(req, res) => {
+    try {
+        
+        const message = req.flash("message")
+
+        res.render("forgetPass", {message})
+        
+    } catch (error) {
+        console.log(`error form the getting userController.forgotPass: ${error}`)
+    }
+}
 
 
+//CHANGE PASSWORD PAGE LOAD
+const changePassword = async (req, res) => {
+    try {
 
+        const email = req.session.email
+        const messagePassword = req.flash("messagePassword")
+        const messagePasswordConfirm = req.flash("messagePasswordConfirm")
+        const message = req.flash("message");
+        res.render("changePassword", {email, messagePassword, messagePasswordConfirm, message})
+
+
+    } catch (error) {
+        console.log(`error from the user controller. changePassword loading: ${error}`)
+    }
+}
+
+//UPDATING PASSWORD
+const updatePassword = async (req, res) => {
+    try {
+
+        const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+        const { password, psconfirm } = req.body;
+        const email = req.session.email;
+        console.log(`password:${password}      ---------     psConfirm: ${psconfirm}, email : ${email}`)
+        if (!email) {
+            req.flash("message", "try again.....");
+            res.redirect("/forget-password")
+        }
+
+        if (!passwordRegex.test(password)) {
+            req.flash("messagePassword", "Password must be at least 8 characters long and include at least one uppercase letter and one number.")
+            return res.redirect("/change-password");
+        }
+
+        if (password !== psconfirm) {
+            req.flash("messagePasswordConfirm", "Passwords do not match.")
+            return res.redirect("/change-password");
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const user = await User.findOneAndUpdate({ email: email }, { $set: { password: hashedPassword } })
+        if (user) {
+            req.flash("success", "Password Changed");
+            res.redirect("/login")
+        }else {
+            req.flash("message", "try again.....");
+            res.redirect("/forget-password")
+        }
+    } catch (error) {
+        console.log(`error form the userController . updatePassword${error}`)
+    }
+}
 
 module.exports = {
     register,
@@ -251,5 +331,9 @@ module.exports = {
     otpVerify,
     userVarify,
     successGoogleLogin,
-    failureGoolgeLogin
+    failureGoolgeLogin,
+    forgetPass,
+    userExists,
+    updatePassword,
+    changePassword,
 };
