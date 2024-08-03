@@ -24,7 +24,7 @@ const register = async (req, res) => {
 
 
 //FINDING USERE IS ALREADY EXISTS USING EMAIL
-const userExists = async function(email){
+const userExists = async function (email) {
     return await User.findOne({ email: email });
 }
 
@@ -63,7 +63,7 @@ const insertUser = async (req, res) => {
         if (existingUser) {
             req.flash("messageEmail", "Email is already in use!")
             return res.redirect("/registration");
-        
+
         }
 
 
@@ -102,10 +102,10 @@ const insertUser = async (req, res) => {
 //GOOGLE AUTHENTICATION
 const successGoogleLogin = async (req, res) => {
     try {
-        if (!req.user){
+        if (!req.user) {
             res.redirect("/failure")
-        }else {
-            const { displayName, email,} = req.user;
+        } else {
+            const { displayName, email, } = req.user;
 
             const userData = new User({
                 name: displayName,
@@ -115,21 +115,21 @@ const successGoogleLogin = async (req, res) => {
             // console.log(isExists)
             if (isExists) {
                 req.session.userId = isExists._id
-                // console.log(req.session.userId)
+                console.log(req.session.userId)
                 return res.redirect("/")
             }
 
 
             const saving = await userData.save()
-            if (saving){
+            if (saving) {
                 req.session.userId = saving._id
-
+                console.log(req.session.userId)
                 return res.redirect("/")
             }
         }
-        
+
     } catch (error) {
-        
+
     }
 }
 
@@ -149,7 +149,7 @@ const otpVerify = async (req, res) => {
 
 
         const OTP = req.body.otp
-        console.log('otp oppp',OTP)
+        console.log('otp oppp', OTP)
 
         const findOtp = await otpModel.findOne({ emailId: req.session.email });
 
@@ -179,7 +179,7 @@ const userLogin = async (req, res) => {
         const success = req.flash("success");
         res.render("login", { message, messagePassword, success })
     } catch (error) {
-        console.log(`error from userLogin: ${error}`);
+        console.log(`error from userLogin:--------------- ${error}`);
     }
 }
 
@@ -187,16 +187,20 @@ const userVarify = async (req, res) => {
     try {
         const { username, password } = req.body;
         const Data = await User.findOne({ $or: [{ name: username }, { email: username }] })
+        if(Data.isBlocked == true){
+            req.flash("message", "You are currently blocked by the admin")
+            res.redirect("/login")
+        }
         if (!Data) {
-            req.flash( "message", "User Name or Email incorect" )
+            req.flash("message", "User Name or Email incorect")
             res.redirect("/login")
 
         } else {
             const comparePsw = await bcrypt.compare(password, Data.password);
             if (!comparePsw) {
                 req.flash("messagePassword", "Incorrect Password")
-                res.render("login")
-            }else {
+                res.redirect("/login")
+            } else {
                 req.session.userId = Data._id;
                 res.redirect("/");
             }
@@ -214,8 +218,8 @@ const home = async (req, res) => {
         const variants = allVariants.filter(Element => {
             return Element.productId.isBlocked == false
         })
-        
-        res.render('home', { variants: variants});
+
+        res.render('home', { variants: variants });
     } catch (error) {
         console.log(`error from home: ${error}`);
     }
@@ -226,8 +230,8 @@ const productDetails = async (req, res) => {
     try {
         const { variantId } = req.query;
         const variant = await Variant.findOne({ _id: variantId }).populate("productId");
-        const variants = await Variant.find({productId:variant.productId})
-        res.render("productDetail", {variant: variant,variants:variants});
+        const variants = await Variant.find({ productId: variant.productId })
+        res.render("productDetail", { variant: variant, variants: variants });
     } catch (error) {
         console.log(`error from productDetails: ${error}`);
     }
@@ -236,7 +240,15 @@ const productDetails = async (req, res) => {
 
 const allProducts = async (req, res) => {
     try {
-        res.render("allProducts")
+
+        const allVariants = await Variant.find().populate("productId")
+        // console.log(allVariants);
+
+        const variants = allVariants.filter(Element => {
+            return Element.productId.isBlocked == false
+        })
+
+        res.render("allProducts", {variants});
     } catch (error) {
         console.log(`error from allProducts: ${error}`)
     }
@@ -244,22 +256,16 @@ const allProducts = async (req, res) => {
 
 
 
-const shopingCart = async (req, res) => {
-    try {
-        res.render("shoping-cart")
-    } catch (error) {
-        console.log(`error from shoping cart: ${error}`)
-    }
-}
+
 
 //FORGOT PASSWORD PAGE RENDERING
-const forgetPass = async(req, res) => {
+const forgetPass = async (req, res) => {
     try {
-        
+
         const message = req.flash("message")
 
-        res.render("forgetPass", {message})
-        
+        res.render("forgetPass", { message })
+
     } catch (error) {
         console.log(`error form the getting userController.forgotPass: ${error}`)
     }
@@ -274,7 +280,7 @@ const changePassword = async (req, res) => {
         const messagePassword = req.flash("messagePassword")
         const messagePasswordConfirm = req.flash("messagePasswordConfirm")
         const message = req.flash("message");
-        res.render("changePassword", {email, messagePassword, messagePasswordConfirm, message})
+        res.render("changePassword", { email, messagePassword, messagePasswordConfirm, message })
 
 
     } catch (error) {
@@ -311,7 +317,7 @@ const updatePassword = async (req, res) => {
         if (user) {
             req.flash("success", "Password Changed");
             res.redirect("/login")
-        }else {
+        } else {
             req.flash("message", "try again.....");
             res.redirect("/forget-password")
         }
@@ -326,7 +332,6 @@ module.exports = {
     productDetails,
     userLogin,
     allProducts,
-    shopingCart,
     insertUser,
     otpVerify,
     userVarify,

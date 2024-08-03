@@ -1,9 +1,8 @@
 const Category = require("../Model/categoryModel")
 
-const updateCategory = async (req, res) => {
+const addCategory = async (req, res) => {
     try {
         const { category, gender, description } = req.body;
-        const categoryData = await Category.find();
         const genderArray = ["Male", "Female"]
 
 
@@ -13,17 +12,20 @@ const updateCategory = async (req, res) => {
         }
 
         if (!gender || !genderArray.includes(gender)) {
-            return res.render("categories", { Data: categoryData, message: "Please seclect a gender" })
+            req.flash("message", "Please seclect a gender")
+            return res.redirect("/admin/categories")
         }
 
         if (!description || description.trim() === "") {
-            return res.render("categories", { Data: categoryData, message: "Please fill the description field" })
+            req.flash("message", "Please fill the descriprion field!")
+            return res.redirect("/admin/categories")
         }
 
         const existingCategory = await Category.findOne({ category: category, gender: gender });
 
         if (existingCategory) {
-            return res.render("categories", { Data: categoryData, message: "Category with the same name and gender already exists" });
+            req.flash("message", "Category already existe same name and same gender")
+            return res.redirect("/admin/categories")
         }
 
         const newCategory = new Category({
@@ -88,9 +90,62 @@ const getingId = async function (gender, category){
     }
 }
 
+const getCatEdit = async (req, res) => {
+    try {
+        const categoryId = req.query.categoryId;
+        const category = await Category.findById(categoryId);
+        res.json(category);
+    } catch (error) {
+        console.log(`error from the category controller getCatEdit`)
+        res.json({ error: 'An error occurred while fetching the category data.' });
+    }
+}
+
+
+const updateCategory = async (req, res) => {
+    try {
+        const { categoryId, category, gender, description } = req.body;
+        console.log(categoryId, "----------", category, "----------", gender, "-----------", description)
+        const genderArray = ["Male", "Female"];
+
+        if (!category || category.trim() === "") {
+            return res.status(400).json({ message: "Fill the field of category", categoryData });
+        }
+
+        if (!gender || !genderArray.includes(gender)) {
+            return res.status(400).json({ message: "Please select a gender", categoryData });
+        }
+
+        if (!description || description.trim() === "") {
+            return res.status(400).json({ message: "Please fill the description field", categoryData });
+        }
+
+        const existingCategory = await Category.findOne({ category: category, gender: gender });
+
+        if (existingCategory) {
+            return res.status(400).json({ message: "Category with the same name and gender already exists" });
+        }
+
+        const updatedata = await Category.findByIdAndUpdate(categoryId, { category: category, gender: gender, description: description });
+
+        if (!updatedata){
+            return res.status(400).json({ message: "Something went wrong! Try again" })
+        }
+
+        res.status(200).json({ message: "Category updated successfully" });
+
+    } catch (error) {
+        console.log(`Error from the category controller updateCategory - ${error}`);
+        res.status(500).json({ message: "An unexpected error occurred" });
+    }
+}
+
+
 module.exports = {
-    updateCategory,
+    addCategory,
     deleteCategory,
     checkCategory,
-    getingId
+    getingId,
+    getCatEdit,
+    updateCategory
 }

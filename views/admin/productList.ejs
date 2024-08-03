@@ -248,8 +248,10 @@
                                     <a href="/admin/load-variant?productId=<%= product._id %>" class="btn btn-sm font-sm rounded btn-brand"> <i class="material-icons md-edit"></i> Variants </a>
                                 </div>
                                 <div class="col-lg-2 col-sm-2 col-4 col-action text-end">
-                                    <a href="#" class="btn btn-sm font-sm rounded btn-brand" > <i class="material-icons md-edit"></i> Edit </a>
-                                    <a href="#" class="btn btn-sm font-sm btn-light rounded"> <i class="material-icons md-delete_forever"></i> Delete </a>
+                                    <a href="#" class="btn btn-sm font-sm rounded btn-brand editProdLink" data-product-id="<%= product._id %>">
+                                        <i class="material-icons md-edit"></i> Edit
+                                    </a>
+                                    <button class="btn btn-sm font-sm btn-light text-danger rounded" onclick="deleteProduct('<%= product._id %>')"> <i class="material-icons md-delete_forever text-danger"></i> Delete </button>
                                 </div>
                             </div>
                             <!-- row .// -->
@@ -259,27 +261,268 @@
                 <!-- card-body end// -->
             </div>
             <!-- card end// -->
+            <!-- !PAGINATION  -->
             <div class="pagination-area mt-30 mb-50">
                 <nav aria-label="Page navigation example">
                     <ul class="pagination justify-content-start">
-                        <li class="page-item active"><a class="page-link" href="#">01</a></li>
-                        <li class="page-item"><a class="page-link" href="#">02</a></li>
-                        <li class="page-item"><a class="page-link" href="#">03</a></li>
-                        <li class="page-item"><a class="page-link dot" href="#">...</a></li>
-                        <li class="page-item"><a class="page-link" href="#">16</a></li>
-                        <li class="page-item">
-                            <a class="page-link" href="#"><i class="material-icons md-chevron_right"></i></a>
-                        </li>
+                        <% for(let i = 1; i <= totalPages; i++) { %>
+                            <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                                <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                            </li>
+                        <% } %>
+                        <% if (currentPage < totalPages) { %>
+                            <li class="page-item">
+                                <a class="page-link" href="?page=<%= currentPage + 1 %>"><i class="material-icons md-chevron_right"></i></a>
+                            </li>
+                        <% } %>
                     </ul>
                 </nav>
             </div>
         </section>
+
+
+        <!-- modal part -->
+        <div class="modal fade dark" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
+            <div class="modal-dialog" style="max-width: 600px;">
+                <div class="modal-content" style="background-color: rgb(68, 68, 68);">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editProductModalLabel">Edit Product</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" style="background-color: rgb(68, 68, 68);">
+                        <form id="edit-product-form">
+                            <input type="text" name="productId" class="d-none" id="product_Id" />
+                            <div class="mb-4">
+                                <label for="productNameModal" class="form-label">Product Name</label>
+                                <input type="text" placeholder="Type here" class="form-control" id="productNameModal" required name="productName"/>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label">Full description</label>
+                                <textarea placeholder="Type here" class="form-control" rows="4" name="description" required id="descriptionModal"></textarea>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label">Brand Name</label>
+                                <input type="text" placeholder="Brand Name" class="form-control" id="brand_nameModal" name="brandName">
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label">Material</label>
+                                <input type="text" placeholder="Material" class="form-control" id="materialModal" name="material">
+                            </div>
+                            <div class="mb-4">
+                                <label class=" text-danger h6">Make sure the category and subcatogory are corroct!</label>
+                            </div>
+                            <div class="row gx-2">
+                                <div class="col-sm-6 mb-3">
+                                    <label class="form-label">Gender</label>
+                                    <select class="form-select" onchange="categoryFinding()" name="gender" id="genderModal">
+                                        <option disabled selected hidden>choose..</option>
+                                        <option>Male</option>
+                                        <option>Female</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-6 mb-3">
+                                    <label class="form-label">Sub-category</label>
+                                    <select class="form-select" name="category" id="categoryModal">
+                                        <option disabled selected hidden>choose..</option> 
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="tagsModal" class="form-label">Tags</label>
+                                <input type="text" class="form-control" placeholder="New/Arrival" name="tags" id="tagsModal">
+                            </div>
+                            <div class="d-grid">
+                                <button class="btn btn-light rounded font-sm mr-5 text-body hover-up" type="button" data-bs-dismiss="modal">Cancel</button>
+                                <button class="btn btn-md rounded font-sm hover-up" type="button" onclick="updateProduct(event)" >Update Product</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
 
 <%- include("../partials/adminpartials/adminFooter.ejs") %>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 <script>
+
+    function categoryFinding() {
+        const selectedGender = document.getElementById('genderModal');
+        const selectedOption = selectedGender.value;
+    
+        if (selectedOption) {
+            fetch(`/admin/check-category?gender=${selectedOption}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Success:', data);
+                    const selectElement = document.getElementById('categoryModal');
+                    selectElement.innerHTML = '';
+                    data.forEach(item => {
+                        const option = document.createElement('option');
+                        option.text = item.category;
+                        selectElement.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('There was a problem with the fetch operation:', error);
+                });
+        } else {
+            alert('Please select a gender');
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.editProdLink').forEach(function(link) {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                const productId = this.getAttribute('data-product-id');
+    
+                fetch(`/admin/edit-this-product?productId=${productId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const product = data.data; 
+                        document.getElementById("product_Id").value = product._id
+                        document.getElementById('productNameModal').value = product.name;
+                        document.getElementById('descriptionModal').value = product.description;
+                        document.getElementById('brand_nameModal').value = product.brand;
+                        document.getElementById('materialModal').value = product.material;
+                        document.getElementById('genderModal').value = product.gender;
+                        document.getElementById('categoryModal').value = product.category;
+                        document.getElementById('tagsModal').value = product.tags;
+    
+                        var myModal = new bootstrap.Modal(document.getElementById('editProductModal'));
+                        myModal.show();
+                    })
+                    .catch(error => {
+                        console.error('Error fetching product data:', error);
+                    });
+            });
+        });
+    });
+    
+
+    async function updateProduct(event) {
+        event.preventDefault();
+        
+        try {
+            const editForm = document.getElementById("edit-product-form");
+            const formData = new FormData(editForm);
+    
+            // Convert FormData to URLSearchParams
+            const params = new URLSearchParams();
+            for (const [key, value] of formData.entries()) {
+                params.append(key, value);
+            }
+    
+            // Extract productId from form data
+            const productId = formData.get('productId'); // Ensure this is included in your form
+    
+            const response = await fetch(`/admin/update-product`, {
+                method: "PATCH",
+                body: params,
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
+    
+            const data = await response.json();
+    
+            if (response.ok) {
+                Swal.fire({
+                    title: 'Success!',
+                    text: data.message,
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.reload();
+                    }
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: data.message,
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.reload();
+                    }
+                });
+            }
+        } catch (error) {
+            Swal.fire({
+                title: 'Error!',
+                text: 'An unexpected error occurred.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.reload();
+                }
+            });
+         }
+    }
+
+    async function deleteProduct(productId) {
+        try {
+            const response = await fetch(`/admin/delete-product?productId=${productId}`, {
+                method: "DELETE",
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
+    
+            const data = await response.json();
+    
+            if (response.ok) {
+                Swal.fire({
+                    title: 'Success!',
+                    text: data.message,
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.reload();
+                    }
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: data.message,
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.reload();
+                    }
+                });
+            }
+        } catch (error) {
+            Swal.fire({
+                title: 'Error!',
+                text: 'An unexpected error occurred.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.reload();
+                }
+            });
+        }
+    }
+    
+    
+
+
     function blockProduct(productId) {
         
         axios.post(`/admin/block-product?id=${productId}`)

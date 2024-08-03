@@ -1,0 +1,189 @@
+<%- include("../partials/userpartials/header.ejs") %>
+
+<div class="container my-5">
+    <div class="card">
+        <div class="card-header">
+            <h1>Order Details for Order #<%= order.orderId %></h1>
+        </div>
+        <div class="card-body">
+            <h4 class="card-title">Items</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Photo</th>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% order.orderedItems.forEach(item => { %>
+                            <tr>
+                                <td>
+                                    <% if (item.variantId && item.variantId.image && item.variantId.image[0]) { %>
+                                        <img src="/images/<%= item.variantId.image[0] %>" alt="photo" width="100">
+                                    <% } %>
+                                </td>
+                                <td><%= item.product_name %></td>
+                                <td>₹ <%= item.price %></td>
+                                <td><%= item.quantity %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+
+            <h4 class="card-title mt-4">Billing Information</h4>
+            <p><strong>Name:</strong> <%= order.shippingAddress.name %></p>
+            <p><strong>Email:</strong> <%= user.email %></p>
+            <p><strong>Address:</strong> <%= order.shippingAddress.address %>, <%= order.shippingAddress.city %>, <%= order.shippingAddress.state %>, <%= order.shippingAddress.country %> - <%= order.shippingAddress.pincode %></p>
+            <p><strong>Mobile:</strong> <%= order.shippingAddress.mobile %></p>
+            <p><strong>Date:</strong> <%= new Date(order.createdAt).toLocaleDateString() %></p>
+            <p class="text-danger"><strong class="text-dark">Status:</strong> <%= order.orderStatus %></p>
+            <p><strong>Total:</strong> ₹<%= order.totalAmount %></p>
+
+
+
+            <% if (order.orderStatus == 'canceled') { %>
+                <p class="text-danger">The order is canceled</p>
+                <a href="/userProfile" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+            <% } else if (order.orderStatus == 'Delivered') { %>
+                <aside>
+                    <button type="button" onclick="returnOrder('<%= order._id %>')" class="btn btn-secondary">
+                        <i class="fas fa-undo"></i> Return Order
+                    </button>
+                </aside>
+            <% } else if (order.orderStatus == 'Pending') { %>
+                <div class="d-flex justify-content-between align-items-center">
+                    <button type="submit" onclick="cancelOrder('<%= order._id %>')" class="btn btn-danger">Cancel Order</button>
+                </div>
+            <% } else if(order.orderStatus == 'returned') { %>
+                <p class="text-danger">The order is Returned</p>
+                <a href="/userProfile" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+            <% } else if (order.orderStatus == 'cannot return') { %>
+                <p class="text-danger">This order cannot return</p>
+                <a href="/orderPage" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    function cancelOrder(orderId) {
+        Swal.fire({
+            title: "Do you want to cancel the order?",
+            showCancelButton: true,
+            confirmButtonText: 'Yes',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                axios.post(`/cancelOrder?id=${orderId}`)
+                    .then((response) => {
+                        if (response.data.success == 1) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Order Canceled',
+                                confirmButtonText: 'OK'
+                            })
+                            .then((response)=> {
+                                if(response.isConfirmed){
+                                    window.location.href = '/orderPage';
+                                }
+                            })
+                        } else if (response.data.cancel) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Amount added to the Wallet',
+                                confirmButtonText: 'OK'
+                            }).then(result => {
+                                if (result.isConfirmed) {
+                                    window.location.href = '/orderPage';
+                                }
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
+                Swal.fire("changed!", "", "success");
+            } else if (result.isDenied) {
+                Swal.fire("Changes are not Saved", "", "info");
+            }
+        });
+    }
+
+    function returnOrder(orderId) {
+        Swal.fire({
+            icon: 'question',
+            title: 'Do you want to return the order?',
+            text: 'Are you sure you want to return the order?',
+            showCancelButton: true,
+            confirmButtonText: 'Yes',
+        }).then(result => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Reason for Return',
+                    input: 'textarea',
+                    inputPlaceholder: 'Enter your reason for returning the order...',
+                    showCancelButton: true,
+                    confirmButtonText: 'Submit',
+                    preConfirm: (reason) => {
+                        if (!reason) {
+                            Swal.showValidationMessage('Please enter a reason for returning the order');
+                        }
+                        return reason;
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const reason = result.value;
+                        fetch(`/returnOrder?id=${orderId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ orderId: orderId, reason: reason })
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not okay');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Request sent successfully',
+                                    text: 'Your return request has been sent successfully. The order will be returned after admin acceptance.',
+                                    confirmButtonText: 'OK'
+                                }).then(response => {
+                                    if (response.isConfirmed) {
+                                        window.location.href = '/userProfile#pills-order';
+                                    }
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+                    }
+                });
+            }
+        });
+    }
+</script>
+
+<%- include("../partials/userpartials/footer.ejs") %>

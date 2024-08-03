@@ -1,5 +1,47 @@
 <%- include('../partials/adminpartials/adminHeader.ejs') %>
 
+<style>
+    .swal2-success-title {
+        color: green; 
+    }
+    .swal2-success-icon {
+        border-color: green; 
+        color: green; 
+    }
+
+    /* Error Styles */
+    .swal2-error-title {
+        color: red; 
+    }
+    .swal2-error-icon {
+        border-color: red; 
+        color: red; 
+    }
+
+    .pagination .page-link {
+        color: #007bff; /* Default text color */
+        background-color: #f8f9fa; /* Default background color */
+        border-color: #dee2e6; /* Border color */
+    }
+    
+    .pagination .page-item.active .page-link {
+        color: #fff; /* Active text color */
+        background-color: #007bff; /* Active background color */
+        border-color: #007bff; /* Active border color */
+    }
+    
+    .pagination .page-link:hover {
+        color: #0056b3; /* Hover text color */
+        background-color: #e9ecef; /* Hover background color */
+        border-color: #dee2e6; /* Hover border color */
+    }
+    
+    .pagination .page-link:focus {
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Focus shadow */
+    }
+    
+</style>
+
 <div class="screen-overlay"></div>
 <aside class="navbar-aside" id="offcanvas_aside">
     <div class="aside-top">
@@ -280,10 +322,7 @@
                                                         class="material-icons md-more_horiz"></i>
                                                 </a>
                                                 <div class="dropdown-menu">
-                                                    <a class="dropdown-item"
-                                                        href="#">View detail</a>
-                                                    <a class="dropdown-item"
-                                                        href="#">Edit info</a>
+                                                    <a class="dropdown-item text-primary editCatLink" href="#" data-category-id="<%= category._id %>">Edit info</a>
                                                     <a
                                                         class="dropdown-item text-danger"
                                                         href="#" onclick="deletCategory('<%= category._id %>')">Delete</a>
@@ -296,7 +335,33 @@
 
                                 </tbody>
                             </table>
+
+
                         </div>
+                        <!-- Pagination controls -->
+                        <nav aria-label="Page navigation example" class="d-flex justify-content-center mt-4">
+                            <ul class="pagination pagination-sm">
+                                <% if (currentPage > 1) { %>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=<%= currentPage - 1 %>" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                                <% } %>
+                                <% for (let i = 1; i <= totalPages; i++) { %>
+                                <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                                    <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                                </li>
+                                <% } %>
+                                <% if (currentPage < totalPages) { %>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=<%= currentPage + 1 %>" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                <% } %>
+                            </ul>
+                        </nav>
                     </div>
                     <!-- .col// -->
                 </div>
@@ -308,38 +373,30 @@
     </section>
     <!-- content-main end// -->
 
-    
-    <%- include('../partials/adminpartials/adminFooter.ejs') %>
 
-     <!-- modal part -->
-     <div class="modal fade dark" id="editCategory" tabindex="-1"
-     aria-labelledby="variantModalLabel" aria-hidden="true">
-     <div class="modal-dialog " style="max-width: 600px;">
-         <div class="modal-content"
-             style="background-color: rgb(68, 68, 68);">
-             <div class="modal-header ">
-                 <h5 class="modal-title" id="variantModalLabel">Edit Category</h5>
-                 <button type="button" class="btn-close" data-bs-dismiss="modal"  aria-label="Close"></button>
-             </div>
-             <div class="modal-body"
-                 style="background-color: rgb(68, 68, 68);">
-                 <form id="edit-catogory">
+    <!-- modal part -->
+<div class="modal fade dark" id="editCategory" tabindex="-1" aria-labelledby="variantModalLabel" aria-hidden="true">
+    <div class="modal-dialog" style="max-width: 600px;">
+        <div class="modal-content" style="background-color: rgb(68, 68, 68);">
+            <div class="modal-header">
+                <h5 class="modal-title" id="variantModalLabel">Edit Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="background-color: rgb(68, 68, 68);">
+                <form id="edit-category">
                     <div class="mb-4">
                         <% if (typeof message !== "undefined") { %>
-                        <label class="form-label" style="color: red;">
-                            <%= message %> </label>
+                        <label class="form-label" style="color: red;"><%= message %></label>
                         <% } %>
                     </div>
                     <div class="mb-4">
-                        <label for="product_name"
-                            class="form-label">Name</label>
-                        <input type="text" name="category"
-                            placeholder="Type here" class="form-control"
-                            id="product_name" />
+                        <input type="text" name="categoryId" class="d-none" id="category_Id" />
+                        <label for="category_name" class="form-label">Name</label>
+                        <input type="text" name="category" placeholder="Type here" class="form-control" id="category_name" />
                     </div>
                     <div class="mb-4">
                         <label class="form-label">Gender</label>
-                        <select class="form-select" name="gender">
+                        <select class="form-select" name="gender" id="category_gender">
                             <option value="selectHere"></option>
                             <option>Male</option>
                             <option>Female</option>
@@ -347,21 +404,99 @@
                     </div>
                     <div class="mb-4">
                         <label class="form-label">Description</label>
-                        <textarea placeholder="Type here"
-                            name="description"
-                            class="form-control"></textarea>
+                        <textarea placeholder="Type here" name="description" class="form-control" id="category_description"></textarea>
                     </div>
                     <div class="d-grid">
-                        <button class="btn btn-primary"
-                            type="submit">Create category</button>
+                        <button class="btn btn-primary" type="submit" id="updateButton" onclick="updateCategory(event)">Update Category</button>
                     </div>
-                 </form>
-                 </div>
-             </div>
- 
-         </div>
-     </div>
- </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.editCatLink').forEach(function(link) {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const categoryId = this.getAttribute('data-category-id');
+        
+                    fetch(`/admin/edit-category-get?categoryId=${categoryId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            document.getElementById("category_Id").value = data._id
+                            document.getElementById('category_name').value = data.category;
+                            document.getElementById('category_gender').value = data.gender;
+                            document.getElementById('category_description').value = data.description;
+        
+                            var myModal = new bootstrap.Modal(document.getElementById('editCategory'));
+                            myModal.show();
+                        })
+                        .catch(error => {
+                            console.error('Error fetching category data:', error);
+                        });
+                });
+            });
+        });
+
+
+        async function updateCategory(event) {
+            event.preventDefault();
+            const editForm = document.getElementById("edit-category");
+            const formData = new FormData(editForm);
+        
+            try {
+                const params = new URLSearchParams();
+                for (const [key, value] of formData.entries()) {
+                    params.append(key, value);
+                }
+
+                const response = await fetch("/admin/update-category", {
+                    method: "POST",
+                    body: params,
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                });
+        
+                const data = await response.json();
+        
+                if (response.ok) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: data.message,
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.reload();
+                        }
+                    })
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: data.message,
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An unexpected error occurred.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        }
+        
+    </script>
+    
+    
+    <%- include('../partials/adminpartials/adminFooter.ejs') %>
+
+     
 
 
     <!-- sweet alert script cdn -->

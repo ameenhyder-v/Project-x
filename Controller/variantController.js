@@ -96,15 +96,6 @@ const editVariant = async (req, res) => {
     }
 }
 
-// ! DELETING EXISTING IMAGE FROM STORAGE
-// async function deleteImageAsync(filename) {
-//     try {
-//         fs.unlinkl
-//     } catch (error) {
-//         console.log(`there is error while deleting image: ${error}`)
-//     }
-// }
-
 
 //! UPDATING VARIANT 
 const updateVariant = async (req, res) => {
@@ -144,7 +135,6 @@ const updateVariant = async (req, res) => {
             return res.status(200).json({ fail: "Somthing worng happend" });
         }
 
-        console.log(stock);
         findVariant.color = colour;
         findVariant.stock = stock;
 
@@ -152,16 +142,16 @@ const updateVariant = async (req, res) => {
         if (req.files && req.files.length > 0) {
             req.files.forEach( item => {
                 if (item.fieldname === 'Image0') {
-                    fs.unlink(`images/${findVariant.image[0]}`).catch(console.error);;
+                    fs.unlink(`images/${findVariant.image[0]}`);
                     findVariant.image[0] = item.filename
                 } else if (item.fieldname === 'Image1') {
-                    fs.unlink(`images/${findVariant.image[1]}`).catch(console.error);;
+                    fs.unlink(`images/${findVariant.image[1]}`);
                     findVariant.image[1] = item.filename
                 } else if (item.fieldname === 'Image2') {
-                    fs.unlink(`images/${findVariant.image[2]}`).catch(console.error);;
+                    fs.unlink(`images/${findVariant.image[2]}`);
                     findVariant.image[2] = item.filename
                 } else {
-                    fs.unlink(`images/${findVariant.image[3]}`).catch(console.error);;
+                    fs.unlink(`images/${findVariant.image[3]}`);
                     findVariant.image[3] = item.filename
                 }
             });
@@ -171,8 +161,9 @@ const updateVariant = async (req, res) => {
         // Save the updated variant
         const saveVariant = await findVariant.save();
         if (saveVariant) {
+            productId = saveVariant.productId
             console.log("success");
-            res.status(200).json({ success: "success" });
+            res.status(200).json({ success: "success", productId: productId });
         } else {
             return res.status(200).json({ fail: "Update failed" });
         }

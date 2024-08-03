@@ -1,0 +1,524 @@
+<%- include("../partials/userpartials/header.ejs") %>
+
+
+    <!-- Icon Font CSS -->
+    <link rel="stylesheet" href="css/plugins/pe-icon-7-stroke.css" />
+    <link rel="stylesheet" href="css/plugins/font-awesome.min.css" />
+
+    <!-- Plugins CSS -->
+    <link rel="stylesheet" href="css/plugins/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/plugins/animate.min.css" />
+    <link rel="stylesheet" href="css/plugins/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="css/plugins/odometer.min.css" />
+    <link rel="stylesheet" href="css/plugins/select2.min.css" />
+    <link rel="stylesheet" href="css/plugins/ion.rangeSlider.min.css" />
+
+    <link rel="stylesheet" href="css/style.min.css">
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+
+    <!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+
+    <!-- My Account Section Start -->
+    <div class="section section-padding " style="background-color: aliceblue;">
+        <div class="container">
+            <div class="row gy-4">
+                <div class="col-xl-3 col-md-4">
+                    <!-- My Account Menu Start -->
+                    <div class="my-account-menu">
+                        <ul class="nav account-menu-list flex-column">
+                            <li>
+                                <a class="active" data-bs-toggle="pill" href="#pills-dashboard"><i
+                                        class="fa fa-tachometer"></i>
+                                    Dashboard</a>
+                            </li>
+                            <li>
+                                <a data-bs-toggle="pill" href="#pills-order"><i class="fa fa-shopping-cart"></i>
+                                    Order</a>
+                            </li>
+                            <li>
+                                <a data-bs-toggle="pill" href="#pills-download"><i class="fa fa-cloud-download"></i>
+                                    Download</a>
+                            </li>
+                            <li>
+                                <a data-bs-toggle="pill" href="#pills-payment"><i class="fa fa-credit-card"></i>
+                                    Payment Method</a>
+                            </li>
+                            <li>
+                                <a data-bs-toggle="pill" href="#pills-address"><i class="fa fa-map-marker"></i>
+                                    Address</a>
+                            </li>
+                            <li>
+                                <a data-bs-toggle="pill" href="#pills-account"><i class="fa fa-user"></i> Account
+                                    Details</a>
+                            </li>
+                            <li>
+                                <a href="login.html"><i class="fa fa-sign-out"></i>
+                                    Logout</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- My Account Menu End -->
+                </div>
+                <div class="col-xl-9 col-md-8">
+                    <!-- Tab content start -->
+                    <div class="tab-content my-account-tab">
+                        <div class="tab-pane fade show active" id="pills-dashboard">
+                            <div class="my-account-dashboard account-wrapper">
+                                <h4 class="account-title">Dashboard</h4>
+                                <div class="welcome-dashboard">
+                                    <p>
+                                        Hello,
+                                        <strong>
+                                            <%= userData.name %>
+                                        </strong>
+                                    </p>
+                                </div>
+                                <p>
+                                    From your account dashboard. you can
+                                    easily check & view your recent orders,
+                                    manage your shipping and billing
+                                    addresses and edit your password and
+                                    account details.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="pills-order">
+                            <div class="my-account-order account-wrapper">
+                                <h4 class="account-title">Orders</h4>
+                                <div class="account-table text-center table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th class="no">No</th>
+                                                <th class="name">Name</th>
+                                                <th class="date">Date</th>
+                                                <th class="status">
+                                                    Status
+                                                </th>
+                                                <th class="total">Total</th>
+                                                <th class="action">
+                                                    Action
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% orders.forEach((order, index)=> { %>
+
+                                                <tr>
+                                                    <td>
+                                                        <%= index+1 %>
+                                                    </td>
+                                                    <td>
+                                                        <%= order.orderId %>
+                                                    </td>
+                                                    <% const options={ weekday: 'short' , day: 'numeric' ,
+                                                        month: 'short' }; const formattedDate=new
+                                                        Date(order.orderedItems[0].orderedDate).toLocaleDateString('en-US',
+                                                        options); %>
+                                                        <td>
+                                                            <%= formattedDate %>
+                                                        </td>
+                                                        <td><%= order.orderedItems[0].orderStatus %></td>
+                                                        <td>₹ <%= order.totalAmount %>.0</td>
+                                                        <td>
+                                                            <a href="/order-summary?orderId=<%= order._id %>">View</a>
+                                                        </td>
+                                                </tr>
+
+                                                <% }) %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="pills-download">
+                            <div class="my-account-download account-wrapper">
+                                <h4 class="account-title">Download</h4>
+                                <div class="account-table text-center table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th class="name">
+                                                    Product
+                                                </th>
+                                                <th class="date">Date</th>
+                                                <th class="status">
+                                                    Expire
+                                                </th>
+                                                <th class="action">
+                                                    Download
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Mostarizing Oil</td>
+                                                <td>Aug 22, 2020</td>
+                                                <td>Yes</td>
+                                                <td>
+                                                    <a href="#">Download File</a>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Katopeno Altuni</td>
+                                                <td>July 22, 2020</td>
+                                                <td>Never</td>
+                                                <td>
+                                                    <a href="#">Download File</a>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="pills-payment">
+                            <div class="my-account-payment account-wrapper">
+                                <h4 class="account-title">
+                                    Payment Method
+                                </h4>
+                                <p>
+                                    You Can't Saved Your Payment Method yet.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="pills-address">
+                            <div class="my-account-address account-wrapper">
+                                <div class="row">
+                                    <% userAddress.forEach(address=> { %>
+                                        <div class="col-md-6">
+                                            <div class="account-address">
+                                                <h4 class="account-title">
+                                                    Shipping address
+                                                </h4>
+                                                <h6 class="name">
+                                                    <%= address.name %>
+                                                </h6>
+                                                <p>
+                                                    <%= address.address %>,<%= address.city %>
+                                                            <br>
+                                                            <%= address.state %>
+                                                                <br />
+                                                                <%= address.country %>
+                                                </p>
+                                                <p>pin: <%= address.pincode %>
+                                                </p>
+                                                <p>Mobile: <%= address.mobile %>
+                                                </p>
+                                                <a class="btn btn-primary btn-hover-dark" href="#"><i
+                                                        class="fa fa-edit"></i>
+                                                    Edit Address</a>
+                                            </div>
+                                        </div>
+                                        <% }) %>
+
+                                </div>
+                                <div style="margin-top: 4rem;">
+                                    <a class="btn btn-primary btn-hover-dark" href="/add-address"><i
+                                            class="fa fa-edit"></i>
+                                        Add Address</a>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="pills-account">
+                            <div class="my-account-details account-wrapper">
+                                <h4 class="account-title">
+                                    Account Details
+                                </h4>
+
+                                <div class="account-details">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="single-form editform" style="display: block;">
+                                                <h4 class="name"> <%= userData.name %> </h4>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12 editform" id="aaa" style="display: block;">
+                                            <div class="single-form">
+                                                <h6 class="name"> <%= userData.email %> </h6>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <button class="btn btn-primary btn-sm float-right" id="editButton"  style="margin-right: 20rem; margin-top: 1.5rem;">edit</button>
+                                        </div>
+                                        
+                                        <form id="editForm" class="editform" style="display: none;"  onsubmit="return editUserDetail(event)">
+                                            <div class="col-md-6">
+                                                <div class="single-form">
+                                                    <input type="text" name="name" value="<%= userData.name %> " />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <div class="single-form">
+                                                    <input type="text" name="email" value="<%= userData.email %> "/>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6" >
+                                                <button class="btn btn-primary btn-hover-dark" type="submit" style="margin-right: 18rem; margin-top: 1.5rem;"> save </button>
+                                            </div>
+                                        </form>
+                                        
+                                        <% if (userData.password === undefined) { %>
+                                            <div class="single-form checkbox-checkbox">
+                                                <input type="checkbox" id="showPasswordFields" />
+                                                <label for="showPasswordFields">
+                                                    you have no password! Add new password? click here!
+                                                </label>
+                                            </div>
+                                            
+                                            <form id="addPassword">
+                                                <div id="passwordFields" style="display: none;">
+                                                    <div class="col-md-6">
+                                                        <div class="single-form">
+                                                            <input type="password" name="newPass" placeholder="New Password" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="single-form">
+                                                            <input type="password" name="confirmPass" placeholder="Confirm Password" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="single-form">
+                                                            <button class="btn btn-primary btn-hover-dark"  onclick="addPassword(event)">
+                                                                Add Password
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                            
+                                        <% } else { %>
+                                            <div class="single-form checkbox-checkbox">
+                                                <input type="checkbox" id="showPasswordFields" />
+                                                <label for="showPasswordFields">
+                                                    Change Your Password? click here!
+                                                </label>
+                                            </div>
+                                            
+                                            <form id="ChangePassword">
+                                                <div id="passwordFields" style="display: none;">
+                                                    <div class="col-md-12">
+                                                        <div class="single-form">
+                                                            <input type="password" name="currentPass" placeholder="Current Password" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="single-form">
+                                                            <input type="password" name="newPass" placeholder="New Password" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="single-form">
+                                                            <input type="password" name="confirmPass" placeholder="Confirm Password" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="single-form">
+                                                            <button class="btn btn-primary btn-hover-dark" onclick="changePassword(event)">
+                                                                Changes Password
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tab content End -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- My Account Section End -->
+
+    <%- include("../partials/userpartials/footer.ejs") %>
+
+    <script>
+        document.getElementById("editButton").addEventListener("click", () => {
+                    const emails = document.querySelectorAll('.editform')
+                    const editButton = document.getElementById("editButton")
+
+                    editButton.textContent = editButton.textContent == "edit" ? "cancel" : "edit"
+                    emails.forEach(email => {
+                        email.style.display = email.style.display == 'none' ? 'block' : 'none'
+                    })
+                    
+        })
+
+
+        async function editUserDetail(event) {
+            event.preventDefault();
+            const form = document.getElementById("editForm");
+            const formData = new FormData(form);
+        
+            const formObject = {};
+            formData.forEach((value, key) => {
+                formObject[key] = value;
+            });
+        
+            try {
+                const response = await fetch(`/edit-user`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formObject)
+                });
+        
+                const data = await response.json();
+        
+                if (data.success == true) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: data.message,
+                        icon: 'success',
+                        confirmButtonText: 'Ok'
+                    }).then(() => {
+                        window.location.reload(); 
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: data.message,
+                        icon: 'error',
+                        confirmButtonText: 'Ok'
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: error.message,
+                    icon: 'error',
+                    confirmButtonText: 'Ok'
+                });
+            }
+        }
+        
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const checkbox = document.getElementById('showPasswordFields');
+            const passwordFields = document.getElementById('passwordFields');
+    
+            checkbox.addEventListener('change', function () {
+                if (checkbox.checked) {
+                    passwordFields.style.display = 'block';
+                } else {
+                    passwordFields.style.display = 'none';
+                }
+            });
+        });
+
+
+        async function changePassword(event){
+            event.preventDefault()
+            let changePassForm = document.getElementById("ChangePassword");
+            let formData = new FormData(changePassForm);
+
+            const formObject = {};
+            formData.forEach((value, key) => {
+                formObject[key] = value;
+            });
+
+            try {
+                const response = await fetch("/change-user-password", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formObject)
+                })
+                const data = await response.json();
+        
+                if (data.success == true) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: data.message,
+                        icon: 'success',
+                        confirmButtonText: 'Ok'
+                    }).then(() => {
+                        window.location.reload(); 
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: data.message,
+                        icon: 'error',
+                        confirmButtonText: 'Ok'
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: error.message,
+                    icon: 'error',
+                    confirmButtonText: 'Ok'
+                });
+            }
+        }
+
+
+        async function addPassword(event) {
+            event.preventDefault();
+            let addPassForm = document.getElementById("addPassword");
+            let formData = new FormData(addPassForm);
+
+            const formObject = {};
+            formData.forEach((value, key) => {
+                formObject[key] = value;
+            });
+
+            try {
+                const response = await fetch("/add-password", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formObject)
+                });
+
+                const data = await response.json();
+        
+                if (data.success == true) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: data.message,
+                        icon: 'success',
+                        confirmButtonText: 'Ok'
+                    }).then(() => {
+                        window.location.reload(); 
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: data.message,
+                        icon: 'error',
+                        confirmButtonText: 'Ok'
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: error.message,
+                    icon: 'error',
+                    confirmButtonText: 'Ok'
+                });
+            }
+        }
+        
+    </script>

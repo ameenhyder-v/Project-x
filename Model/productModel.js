@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { type } = require("os");
 
 const productSchema = new mongoose.Schema({
     name: {
@@ -37,6 +36,10 @@ const productSchema = new mongoose.Schema({
     isVariant: { 
         type: Boolean,
         default: false
+    },
+    tags: {
+        type: String,
+        required: true
     },
     variant: {
         type: [mongoose.Schema.Types.ObjectId],

@@ -260,17 +260,18 @@
                                       <i  class="material-icons md-delete_forever"></i>
                                     Delete </a>
 
-                                <% if (variant.isListed) { %>
-                                    <a href="#"
-                                        class="btn btn-sm font-sm btn-light rounded" onclick="blockVariant('<%= variant._id %>')">
-                                        Unlist </a>
-
-                                <% } else { %>
-                                    <a href="#"
-                                    class="btn btn-sm font-sm btn-danger rounded" onclick="blockVariant('<%= variant_id %>')">
-                                      <i  class="material-icons md-delete_forever"></i>
-                                    list </a>
-                                <% } %>
+                                    <% if (variant.isListed == true) { %>
+                                        <a href="#"
+                                           class="btn btn-sm font-sm btn-light rounded" onclick="blockVariant('<%= variant._id %>')">
+                                            Unlist
+                                        </a>
+                                    <% } else if (variant.isListed == false) { %>
+                                        <a href="#"
+                                           class="btn btn-sm font-sm btn-danger rounded" onclick="blockVariant('<%= variant._id %>')">
+                                            <i class="material-icons md-delete_forever"></i>
+                                            List
+                                        </a>
+                                    <% } %>
                             </div>
                         </div>
                         <!-- card-product  end// -->
@@ -313,7 +314,7 @@
     <script>
         function blockVariant(vId) {
         
-            axios.post(`/admin/block-variant?vId=${vId}`)
+            axios.patch(`/admin/block-variant?vId=${vId}`)
                 .then(response => {
                     if (response.data.success) {
                         console.log(response.data.success);

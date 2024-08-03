@@ -1,0 +1,531 @@
+<%- include('../partials/userpartials/header.ejs') %>
+
+
+
+    <link rel="stylesheet" href="css/plugins/pe-icon-7-stroke.css" />
+    <link rel="stylesheet" href="css/plugins/font-awesome.min.css" />
+
+    <!-- Plugins CSS -->
+    <link rel="stylesheet" href="css/plugins/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/plugins/animate.min.css" />
+    <link rel="stylesheet" href="css/plugins/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="css/plugins/odometer.min.css" />
+    <link rel="stylesheet" href="css/plugins/select2.min.css" />
+    <link rel="stylesheet" href="css/plugins/ion.rangeSlider.min.css" />
+
+    <link rel="stylesheet" href="css/style.min.css">
+    <style>
+        .checkout-shipping {
+            display: none;
+        }
+
+        .address-cards {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 1.25rem; /* 20px equivalent to 1.25rem */
+}
+
+.card {
+    border: 1px solid #ccc;
+    border-radius: 0.8rem; /* 8px equivalent to 0.8rem */
+    padding: 1rem;
+    text-align: center;
+    width: 20rem; /* 320px equivalent to 20rem */
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+.card h3 {
+    margin: 0 0 0.625rem 0; /* 10px equivalent to 0.625rem */
+}
+
+.card p {
+    margin: 0.3125rem 0; /* 5px equivalent to 0.3125rem */
+}
+
+.select-button {
+    background-color: #007bff;
+    border: none;
+    color: white;
+    padding: 0.625rem 1.25rem; /* 10px and 20px equivalent */
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 1rem; /* 16px equivalent to 1rem */
+    margin: 0.625rem 0; /* 10px equivalent to 0.625rem */
+    border-radius: 0.3125rem; /* 5px equivalent to 0.3125rem */
+    cursor: pointer;
+}
+
+.select-button:hover {
+    background-color: #0056b3;
+}
+    </style>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Checkout Section Start -->
+    <div class="section section-padding " style="background-color: rgb(255, 255, 255);">
+        <div class="container">
+
+            <div class="checkout-info">
+                <p class="info-header">
+                    <i class="fa fa-exclamation-circle"></i> Have a coupon?
+                    <a data-bs-toggle="collapse" href="#coupon">Click here to enter your code</a>
+                </p>
+
+                <div class="collapse" id="coupon">
+                    <div class="card-body">
+                        <form action="#">
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="single-form">
+                                        <input type="email" placeholder="Coupon code" />
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="single-form">
+                                        <button class="btn btn-primary btn-hover-dark">
+                                            Coupon
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <form action="#">
+                <div class="row">
+                    <div class="col-lg-7">
+                        <!-- Checkout Form Start -->
+                        <div class="checkout-form ">
+                            <div class="checkout-title">
+                                <h4 >Billing & Shiping Details</h4>
+                            </div>
+                            <hr>
+                            <div class="checkoutAddress">
+                                <h4>Select Shipping Address</h4>
+                                <% let i = 1 %>
+                                <% addresses.forEach(address => { %>
+                                    <div class="address-cards">
+                                        <div class="card">
+                                            <label for="address<%= i %>">
+                                                <h3>📍Address <%= i %></h3>
+                                                <h4><%= address.name %></h4>
+                                                <p><%= address.address %>, <%= address.city %></p>
+                                                <p><%= address.state %>, <%= address.country %></p>
+                                                <p>Pin: <%= address.pincode %></p>
+                                                <p>Mob: <%= address.mobile %></p>
+                                            </label>
+                                            <input type="radio" id="address<%= i %>" name="address" value="<%= address._id %>">
+                                        </div>
+                                    </div>
+                                    <% i += 1 %>
+                                <% }) %>
+                            </div>
+                            
+            </form>
+            <div class="single-form checkbox-checkbox">
+                <input type="checkbox" id="shipping" />
+                <label for="shipping">
+                    <span></span> Ship to a different
+                    address?</label>
+            </div>
+
+
+            <form action="/adding-address" method="post">
+
+                <div class="checkout-shipping">
+                    <div class="row">
+                        <p id="errorMessage"></p>
+                        <div class="single-form col-sm-6">
+                            <input type="text" placeholder="name" name="name" id="name" required />
+                        </div>
+                        <p id="usernameError"></p>
+                        <div class="single-form ">
+                            <input type="text" placeholder="street address" name="address" id="address" required />
+                        </div>
+                        <p id="emailError"></p>
+
+                        <div class="single-form">
+                            <input type="text" placeholder="coutnry" name="country" id="country" required />
+                        </div>
+                        <div class="single-form">
+                            <input type="text" placeholder="state" name="state" id="state" required />
+                        </div>
+
+                        <p id="passwordError" style="color: red;font-size: 12px;"> </p>
+
+                        <div class="single-form">
+                            <input type="text" placeholder="city" name="city" id="city" required />
+                        </div>
+                        <div class="single-form col-sm-6">
+                            <input type="number" placeholder="pincode" name="pincode" id="pincode" required />
+                        </div>
+                        <div class="single-form col-sm-6">
+                            <input type="number" placeholder="mobile number" name="mobile" id="mobile" required />
+                        </div>
+                        <div class="single-form">
+                            <button class="btn btn-primary btn-hover-dark" id="buttonAdd">
+                                Add New Address
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+        <!-- Checkout Form End -->
+    </div>
+    <div class="col-lg-5">
+        <div class="checkout-order">
+            <div class="checkout-title">
+                <h4 class="title">Your Order</h4>
+            </div>
+
+            <div class="checkout-order-table table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th class="Product-name">
+                                Product
+                            </th>
+                            <th class="Product-price">
+                                Total
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% cartItems.forEach(item => { %>
+                            <tr>
+                                <td class="Product-name">
+                                    <p>
+                                        <%= item.variantId.productId.name %> (<%= item.size %> x <%= item.quantity %>)
+                                    </p>
+                                </td>
+                                <td class="Product-price">
+                                    <p>₹<%= item.variantId.stock.find(stock => stock.size.trim() === item.size.trim()).price %></p>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td class="Product-name">
+                                <p>Subtotal</p>
+                            </td>
+                            <td class="Product-price">
+                                <p>₹<%= totalAmount %></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="Product-name">
+                                <p>Shipping</p>
+                            </td>
+                            <td class="Product-price">
+                                <ul class="shipping-list">
+                                    <!-- <li class="radio">
+                                                    <input type="radio" name="shipping" id="radio1" checked />
+                                                    <label for="radio1"><span></span>
+                                                        Flat Rate</label>
+                                                </li> -->
+                                    <li class="radio">
+                                        <input type="radio" name="shipping" id="radio1" checked />
+                                        <label for="radio2"><span></span>
+                                            Free
+                                            Shipping</label>
+                                    </li>
+                                    <!-- <li class="radio">
+                                                    <input type="radio" name="shipping" id="radio3" />
+                                                    <label for="radio3"><span></span>
+                                                        Local
+                                                        Pickup</label>
+                                                </li> -->
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="Product-name">
+                                <p>Total</p>
+                            </td>
+                            <td class="total-price">
+                                <p>₹<%= totalAmount %></p>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="checkout-payment">
+                <ul>
+                    <!-- <li>
+                                    <div class="single-payment">
+                                        <div class="payment-radio radio">
+                                            <input type="radio" name="radio" id="bank" />
+                                            <label for="bank"><span></span> Direct
+                                                bank transfer
+                                            </label>
+
+                                            <div class="payment-details">
+                                                <p>
+                                                    Please send a Check
+                                                    to Store name with
+                                                    Store Street, Store
+                                                    Town, Store State,
+                                                    Store Postcode,
+                                                    Store Country.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="single-payment">
+                                        <div class="payment-radio radio">
+                                            <input type="radio" name="radio" id="check" />
+                                            <label for="check"><span></span> Check
+                                                payments
+                                            </label>
+
+                                            <div class="payment-details">
+                                                <p>
+                                                    Please send a check
+                                                    to Store Name, Store
+                                                    Street, Store Town,
+                                                    Store State /
+                                                    County, Store
+                                                    Postcode.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li> -->
+                    <li>
+                        <div class="single-payment">
+                            <div class="payment-radio radio">
+                                <input type="radio" name="radio" id="cash" checked="checked" />
+                                <label for="cash"><span></span> Cash on
+                                    Delivery</label>
+
+                                <div class="payment-details">
+                                    <p>
+                                        Pay with cash upon
+                                        delivery.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    <!-- <li>
+                                    <div class="single-payment">
+                                        <div class="payment-radio radio">
+                                            <input type="radio" name="radio" id="paypal" />
+                                            <label for="paypal"><span></span> Paypal
+                                                <img class="payment" src="assets/images/payment-2.html" alt="" />
+                                                <a href="#">What is PayPal?</a></label>
+
+                                            <div class="payment-details">
+                                                <p>
+                                                    Pay via PayPal; you
+                                                    can pay with your
+                                                    credit card if you
+                                                    don't have a PayPal
+                                                    account.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li> -->
+                </ul>
+
+                <div class="single-form">
+                    <button class="btn btn-primary btn-hover-dark d-block" onclick="placeOrder(event)">
+                        Place Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    </form>
+    </div>
+    </div>
+    <!-- Checkout Section End -->
+
+    <%- include('../partials/userpartials/footer.ejs') %>
+
+        <script>
+            //Enabling the user to add new address
+            document.getElementById('shipping').addEventListener('change', function () {
+                var shippingFields = document.querySelector('.checkout-shipping');
+                var shippingAddress = document.querySelector('.checkoutAddress')
+                if (this.checked) {
+                    shippingFields.style.display = 'block';
+                    shippingAddress.style.display = "none"
+
+                } else {
+                    shippingFields.style.display = 'none';
+                    shippingAddress.style.display = "block"
+                }
+            });
+
+
+            const validateForm = () => {
+                const name = document.getElementById("name").value;
+                const country1 = document.getElementById("country").value;
+                const address = document.getElementById("address").value;
+                const city = document.getElementById("city").value;
+                const state = document.getElementById("state").value;
+                const pincode = document.getElementById("pincode").value;
+                const mobile = document.getElementById("mobile").value;
+
+
+                // Regex patterns for validation
+                const nameRegex = /^[A-Za-z ]+$/; // Only letters and spaces
+                const countryRegex = /^[A-Za-z ]+$/; // Only letters and spaces
+                const addressRegex = /^[0-9A-Za-z .,/-]+$/; // Alphanumeric with specific characters
+                const cityRegex = /^[A-Za-z ]+$/; // Only letters and spaces
+                const stateRegex = /^[A-Za-z ]+$/; // Only letters and spaces
+                const pincodeRegex = /^\d{6}$/; //digit numeric pincode
+                const mobileRegex = /^\d{10}$/; // Ten-digit numeric mobile number
+
+
+                // Validating each field 
+                const isValidName = nameRegex.test(name);
+                const isValidCountry = countryRegex.test(country1);
+                const isValidAddress = addressRegex.test(address);
+                const isValidCity = cityRegex.test(city);
+                const isValidState = cityRegex.test(state);
+                const isValidPincode = pincodeRegex.test(pincode);
+                const isValidMobile = mobileRegex.test(mobile);
+
+                const sweetAlert = (Something) => {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: `Please enter a valid ${Something} (letters and spaces only!`,
+                    });
+                };
+
+                // Display validation messages if any field is invalid
+                if (!isValidName || !name) {
+                    sweetAlert("NAME");
+                    return false;
+                }
+                if (!isValidAddress) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: "Please enter a valid address!",
+                    });
+                    return false;
+                }
+                if (!isValidCountry || !country) {
+                    sweetAlert("COUNTRY");
+                    return false;
+                }
+
+                if (!isValidCity) {
+                    sweetAlert("CITY");
+                    return false;
+                }
+                if (!isValidState) {
+                    sweetAlert("STATE");
+                    return false;
+                }
+                if (!isValidPincode) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: "Please enter a valid PINCODE (exactly SIX digits)!",
+                    });
+                    return false;
+                }
+                if (!isValidMobile) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: "Please enter a valid MOBILE NUMBER (exactly TEN digits)!",
+                    });
+                    return false;
+                }
+
+                return true;
+            };
+
+            const form = document.getElementById("Form");
+            const button = document.getElementById("buttonAdd");
+            button.addEventListener("click", (event) => {
+
+                const state = validateForm();
+                if (state == true) {
+                    form.submit();
+                } else {
+                    event.preventDefault();
+                }
+            });
+
+
+
+            //PLACE ORDER 
+            function placeOrder(event) {
+                event.preventDefault();
+                const selectedAddress = document.querySelector('input[name="address"]:checked').value;
+                console.log(selectedAddress);
+                fetch('/place-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ addressId: selectedAddress }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === 'Order placed successfully') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: data.message,
+                            showConfirmButton: true,
+                        }).then(() => {
+                            // Redirect or refresh page if needed
+                            alert(data.orderId)
+                            window.location.href = `/order-summary?orderId=${data.orderId}`; // Adjust the URL as necessary
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message,
+                            showConfirmButton: true,
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'An error occurred while placing the order. Please try again later.',
+                        showConfirmButton: true,
+                    });
+                });
+            }
+        </script>
+
+        <!-- SWEET ALERT LINK -->
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <!-- Modernizer & jQuery JS -->
+        <script src="/assets/js/vendor/modernizr-3.11.2.min.js"></script>
+        <script src="/assets/js/vendor/jquery-3.5.1.min.js"></script>
