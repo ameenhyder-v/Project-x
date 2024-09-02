@@ -57,17 +57,13 @@
                 </a>
             </li>
 
-            <li class="menu-item has-submenu">
-                <a class="menu-link" href="#">
-                    <i class="icon material-icons md-person"></i>
-                    <span class="text">Account</span>
+            <li class="menu-item">
+                <a class="menu-link" href="/admin/coupon">
+                    <i class="icon material-icons md-local_offer"></i>
+                    <span class="text">Coupon Management</span>
                 </a>
-                <div class="submenu">
-                    <a href="page-account-login.html">User login</a>
-                    <a href="page-account-register.html">User registration</a>
-                    <a href="page-error-404.html">Error 404</a>
-                </div>
             </li>
+            
             <li class="menu-item">
                 <a class="menu-link" href="page-reviews.html">
                     <i class="icon material-icons md-comment"></i>
@@ -234,10 +230,10 @@
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>Seller</th>
+                                <th>Users</th>
                                 <th>Email</th>
                                 <th>Status</th>
-                                <th>Registered</th>
+                                <th>Joined At</th>
                                 <th class="text-end">Action</th>
                             </tr>
                         </thead>
@@ -281,7 +277,20 @@
 
                                     <% } %>
                                 </td>
-                                <td><%= user.createdAt %></td>
+                                <% function formatDate(date) { 
+                                    const options = { 
+                                        weekday: 'short', 
+                                        year: 'numeric',
+                                        month: 'short', 
+                                        day: 'numeric', 
+                                        hour: 'numeric', 
+                                        minute: 'numeric', 
+                                        hour12: true,
+                                    };
+                                    return new Intl.DateTimeFormat('en-US', options).format(new Date(date)); 
+                                } %>
+                                
+                                <td><%= formatDate(user.createdAt) %></td>
                                 <td class="text-end">
                                     <a href="/admin/userDetails"
                                         class="btn btn-sm btn-brand rounded font-sm mt-15">View
@@ -301,20 +310,23 @@
         <div class="pagination-area mt-15 mb-50">
             <nav aria-label="Page navigation example">
                 <ul class="pagination justify-content-start">
-                    <li class="page-item active"><a class="page-link"
-                            href="#">01</a></li>
-                    <li class="page-item"><a class="page-link"
-                            href="#">02</a></li>
-                    <li class="page-item"><a class="page-link"
-                            href="#">03</a></li>
-                    <li class="page-item"><a class="page-link dot"
-                            href="#">...</a></li>
-                    <li class="page-item"><a class="page-link"
-                            href="#">16</a></li>
+                    <% if (currentPage > 1) { %>
                     <li class="page-item">
-                        <a class="page-link" href="#"><i
-                                class="material-icons md-chevron_right"></i></a>
+                        <a class="page-link" href="?page=<%= currentPage - 1 %>"><i class="material-icons md-chevron_left"></i></a>
                     </li>
+                    <% } %>
+    
+                    <% for (let i = 1; i <= totalPages; i++) { %>
+                    <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                        <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                    </li>
+                    <% } %>
+    
+                    <% if (currentPage < totalPages) { %>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<%= currentPage + 1 %>"><i class="material-icons md-chevron_right"></i></a>
+                    </li>
+                    <% } %>
                 </ul>
             </nav>
         </div>

@@ -2,7 +2,17 @@ const Address = require("../Model/addressModel");
 const Cart = require("../Model/cartModel");
 const cartContoller = require("../Controller/cartController");
 const Variant = require("../Model/variantModel");
+const User = require("../Model/userModel")
 const Order = require("../Model/orderModel");
+require('dotenv').config();
+const crypto = require('crypto')
+
+//REQUIRING RAZORPAY
+const razorpay = require('razorpay');
+const razorpayInstance = new razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+});
 
 
 //? LOAD CHECK OUT PAGE 
@@ -45,9 +55,9 @@ const checkOut = async (req, res) => {
 const placeOrder = async (req, res) => {
     try {
         const userId = req.session.userId;
-        const { addressId } = req.body;
+        const { addressId, paymentMethod } = req.body;
+        console.log(paymentMethod, "----------------")
 
-        // Check if userId and addressId are provided
         if (!addressId) {
             return res.status(400).json({ message: 'Address ID is required' });
         }
@@ -77,7 +87,7 @@ const placeOrder = async (req, res) => {
 
         const totalAmount = await cartContoller.subTotal(userId);
         
-        // Retrieve shipping address
+        // Retrieving the shipping address
         const address = await Address.findById(addressId);
         if (!address) {
             return res.status(400).json({ message: 'Invalid address ID' });
@@ -101,6 +111,8 @@ const placeOrder = async (req, res) => {
             };
         });
 
+        const userData = await User.findById(userId)
+
         // Create an order
         const order = new Order({
             userId,
@@ -115,7 +127,8 @@ const placeOrder = async (req, res) => {
                 mobile: address.mobile
             },
             totalAmount: totalAmount,
-            paymentMethod: 'COD'
+            paymentMethod: paymentMethod,
+            paymentStatus: 'Pending'
         });
 
         await order.save();
@@ -143,8 +156,28 @@ const placeOrder = async (req, res) => {
         // Clear the cart
         await Cart.findOneAndUpdate({ userId: userId }, { $set: { cartItems: [] } });
 
-        res.status(200).json({ message: 'Order placed successfully', orderId});
+        if(paymentMethod === "COD"){
+            console.log("cod")
+            res.status(200).json({ message: 'Ordered by COD', orderId });
+        }else if(paymentMethod === "razor"){
+            console.log("with razor")
 
+            const razorpayOrder = await razorpayInstance.orders.create({
+                amount: totalAmount * 100,
+                currency: 'INR',
+                receipt: `RECIPT_IS${order._id}`
+            });
+            console.log(razorpayOrder, 'thus s ushdf')
+            res.status(200).json({
+                message: 'Ordered by Razor',
+                razorpayOrderId: razorpayOrder.id,
+                userName: userData.name,
+                orderId: order._id,
+                amount: totalAmount,
+                currency: 'INR',
+                key: process.env.RAZORPAY_KEY_ID
+            });
+        }
     } catch (error) {
         console.error("Error in placeOrder:", error);
         res.status(500).json({ message: 'An error occurred while placing the order', error: error.message });
@@ -153,25 +186,41 @@ const placeOrder = async (req, res) => {
 
 
 
+const confirmPayment = async (req, res) => {
+    try {
+        const { orderId, razorpayPaymentId, razorpayOrderId, razorpaySignature } = req.body;
+        const order = await Order.findById(orderId);
 
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        // Create a HMAC using the orderId and razorpayPaymentId
+        const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
+        hmac.update(`${razorpayOrderId}|${razorpayPaymentId}`);
+        const generatedSignature = hmac.digest('hex');
+
+        // Verify the payment signature
+        if (generatedSignature === razorpaySignature) {
+            // Payment is successful and verified
+            order.paymentStatus = 'Confirmed'
+            order.orderStatus = 'Pending';
+            console.log("after saving " , order)
+            await order.save();
+
+            res.status(200).json({ message: 'Success', orderId: order._id });
+        } else {
+            console.log("else is working")
+            res.status(400).json({ message: 'Invalid signature' });
+        }
+    } catch (error) {
+        console.log(`error from the checkout contoeller confirm payment = ${error}`)
+    }
+}
 
 
 module.exports = {
     checkOut,
     placeOrder,
+    confirmPayment,
 }
-
-
-
-    // .then(response => {
-    //     if (!response.ok) {
-    //         throw new Error('Network response was not ok');
-    //     }
-    //     return response.json();
-    // })
-    // .then(data => {
-    //     console.log('Success:', data);
-    // })
-    // .catch(error => {
-    //     console.error('Error:', error);
-    // });

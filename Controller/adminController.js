@@ -2,6 +2,7 @@ const Users = require("../Model/userModel");
 const CategoryModel = require("../Model/categoryModel");
 const Product = require("../Model/productModel");
 const Order = require("../Model/orderModel");
+const ReturnRequest = require("../Model/returnRequestModel");
 
 
 const adminLogin = async (req, res) => {
@@ -15,42 +16,50 @@ const adminLogin = async (req, res) => {
 
 
 const verifyAdmin = async (req, res) => {
-    const { username, password } = req.body;
+    try{
 
-    // validation of email and password regex form
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const { username, password } = req.body;
 
-    if (!emailRegex.test(username)) {
-        req.flash("error", "Invalid email format.")
-        return res.redirect("/admin/login");
-    }
+        // validation of email and password regex form
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (username === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASS) {
-        const adminPass = "&admin@3312"
-
-        req.session.admin = adminPass
-        return res.render("dashboard");
-    } else {
-        if (username !== process.env.ADMIN_EMAIL){
-            req.flash("error", "Invalid Email.")
-            return res.redirect("/admin/login");
+        if (!emailRegex.test(username)) {
+            req.flash("error", "Invalid email format.")
+            return res.redirect("/admin");
         }
-        
-        req.flash("error", "Password not match.")
-        return res.redirect("/admin/login");
+
+        if (username.trim() === process.env.ADMIN_EMAIL && password.trim() === process.env.ADMIN_PASS) {
+            const adminPass = "&admin@3312"
+
+            req.session.admin = adminPass;
+            res.redirect("/admin/dashboard")
+            
+        } else {
+            if (username !== process.env.ADMIN_EMAIL) {
+                req.flash("error", "Invalid Email.")
+                return res.redirect("/admin");
+            }
+
+            req.flash("error", "Password not match.")
+            return res.redirect("/admin");
+        }
+    } catch (error){
+        console.log(`error from the admin controller VarifyAdmin fn:  ${error.message}`)
     }
+    
 }
 
 const dashboard = async (req, res) => {
     try {
 
-        res.render("dashboard");
+        const returnRequests = await ReturnRequest.find()
+            .populate('user', 'name');
+
+        return res.render("dashboard", { returnMessage: returnRequests });
     } catch (error) {
         console.log(`error from dashboaer: ${error}`);
     }
 };
-
-
 
 
 const productList = async (req, res) => {
@@ -124,7 +133,7 @@ const orderDetail = async (req, res) => {
 
             orderItems = order.orderedItems;
             userData = order.userId;
-            console.log(userData)
+            // console.log(order.orderStatus)
         
         //todo for getting first product image - ( order.orderedItems[0].variantId.image[0] )
 
@@ -137,11 +146,41 @@ const orderDetail = async (req, res) => {
 
 const allUsers = async (req, res) => {
     try {
-        const allUsers = await Users.find();
-        // console.log(allUsers)
-        res.render("users", { users: allUsers })
+        const page = parseInt(req.query.page) || 1;
+        const limit = 7;
+        const skip = (page - 1) * limit;
+
+        const totalUsers = await Users.countDocuments(); 
+        const allUsers = await Users.find().skip(skip).limit(limit);
+
+        const totalPages = Math.ceil(totalUsers / limit);
+
+        res.render("users", {
+            users: allUsers,
+            currentPage: page,
+            totalPages: totalPages,
+        });
     } catch (error) {
-        console.log(`error from the adminController.allUsers: ${error}`)
+        console.log(`Error from the adminController.allUsers: ${error}`);
+    }
+};
+
+const updateOrderStatus = async (req, res) => {
+    try {
+        const { orderId } = req.query;
+        const { status } = req.body
+        
+        const updateOrder = await Order.findByIdAndUpdate(orderId, { orderStatus: status }, { new: true });
+
+        if (!updateOrder) {
+            return res.status(404).json({ success: false, message: 'Order not found' });
+        }
+
+        return res.status(200).json({ success: true, message: 'Order status updated successfully', order: updateOrder });
+
+        
+    } catch (error) {
+        console.log(`error from the admin controller - updateOrderStatus - ${error}`)
     }
 }
 
@@ -193,6 +232,53 @@ const categories = async (req, res) => {
     }
 }
 
+const rejectReturn = async (req, res) => {
+    try {
+        const { orderId } = req.body;
+
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.json({ success: false, message: "Order not found." });
+        }
+        const returnRequest = await ReturnRequest.findOneAndDelete({ orderDataId: orderId });
+        if (!returnRequest) {
+            return res.json({ success: false, message: "Return request not found." });
+        }
+
+        order.orderStatus = "Cannot Return";
+        await order.save();
+
+        return res.json({ success: true, message: "Order return request has been rejected. Status updated to 'Cannot Return'." });
+
+    } catch (error) {
+        console.log(`Error from the adminController.rejectReturn fn: ${error.message}`);
+        res.json({ success: false, message: "Server error. Could not reject return request." });
+    }
+};
+
+
+const acceptReturn = async (req, res) => {
+    try {
+        const { orderId } = req.body;
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.json({ success: false, message: "Order not found." });
+        }
+        const returnRequest = await ReturnRequest.findOneAndDelete({ orderDataId: orderId });
+        if (!returnRequest) {
+            return res.json({ success: false, message: "Return request not found." });
+        }
+
+        order.orderStatus = "Returned";
+        await order.save();
+
+        return res.json({ success: true, message: "Order return request has been accepted. Status updated to 'Returned'." });
+
+    } catch (error) {
+        console.log(`error form the adminController.acceptReturn fn : ${error.message}`)
+    }
+}
+
 module.exports = {
     verifyAdmin,
     dashboard,
@@ -204,5 +290,8 @@ module.exports = {
     userDetails,
     categories,
     userControl,
-    orderDetail
+    orderDetail,
+    updateOrderStatus,
+    rejectReturn,
+    acceptReturn
 };

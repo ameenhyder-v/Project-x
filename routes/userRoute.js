@@ -1,14 +1,17 @@
-const express = require("express")
+const express = require("express");
 const userRoute = express();
 const userController = require("../Controller/userController")
 const otpContoller = require("../Controller/otpController");
-const checkState = require("../middleware/userAuth")
+const checkState = require("../middleware/userAuth");
 const passport = require("passport");
 const cartContoller = require("../Controller/cartController");
 const upload = require("../middleware/multer");
-const accountController = require("../Controller/accountController")
-const checkoutController = require("../Controller/checkoutController")
-const productController = require("../Controller/productController")
+const accountController = require("../Controller/accountController");
+const checkoutController = require("../Controller/checkoutController");
+const productController = require("../Controller/productController");
+const wishlistController = require("../Controller/wishlist-controller");
+const OrderController = require("../Controller/orderController")
+const couponController = require("../Controller/coupon-controller")
 require("../passport")
 
 
@@ -20,24 +23,24 @@ userRoute.set("views", "./views/users")
 
 userRoute.get("/", userController.home)
 
-//FOR USER REGISTRATION
+//! FOR USER REGISTRATION
 userRoute.get("/registration", checkState.isLogout,userController.register);
 userRoute.post("/registration", userController.insertUser);
 userRoute.post("/otpVerify", userController.otpVerify);
 userRoute.get("/resend-otp", checkState.isLogout, otpContoller.resendOtp)
 
 
-//FOR USER LOGIN
+//! FOR USER LOGIN
 userRoute.get("/login", userController.userLogin);
 userRoute.post("/login", userController.userVarify);
 
-//for passport google authentication
+//! for passport google authentication
 userRoute.get("/auth/google", checkState.isLogout, passport.authenticate("google", {scope: ["email", "profile"]}));
 userRoute.get("/auth/google/callback", checkState.isLogout, passport.authenticate("google", {successRedirect: "/success", failureRedirect: "/failure"}))
 userRoute.get("/success", checkState.isLogout, userController.successGoogleLogin),
 userRoute.get("/failure", userController.failureGoolgeLogin)
 
-//FORGOT PASSWORD
+//! FORGOT PASSWORD
 userRoute.get("/forget-password",  userController.forgetPass);
 userRoute.post("/forget-password",  otpContoller.forgetPassOtp);
 userRoute.post("/forgetOtpVerify", otpContoller.otpVerify);
@@ -47,6 +50,9 @@ userRoute.post("/change-password",  userController.updatePassword);
 
 //! VIEW ALL PRODUCT
 userRoute.get("/allProducts", checkState.isLogin, userController.allProducts);
+userRoute.get("/women-products", userController.womenAllProducts)
+userRoute.get("/men-products", userController.menAllProducts)
+
 
 //! ADD TO CART
 userRoute.post("/addToCart", checkState.isLogin, cartContoller.addToCart);
@@ -56,8 +62,9 @@ userRoute.get("/productDetail", checkState.isLogin, userController.productDetail
 
 //! SHOPING CART
 userRoute.get("/shoping-cart", checkState.isLogin, cartContoller.shopingCart);
-userRoute.patch("/add-quantity", upload.none(),cartContoller.addQuantity)
-userRoute.patch("/delete-quantity", upload.none(), cartContoller.decreaseQuantity)
+userRoute.patch("/add-quantity", upload.none(),cartContoller.addQuantity);
+userRoute.patch("/delete-quantity", upload.none(), cartContoller.decreaseQuantity);
+userRoute.patch("/remove-item", checkState.isLogin, cartContoller.removeItem);
 
 
 
@@ -70,19 +77,33 @@ userRoute.post("/add-password", checkState.isLogin, accountController.addPasswor
 
 userRoute.get("/add-address",checkState.isLogin, accountController.addAddress);
 userRoute.post("/add-address",checkState.isLogin, accountController.addingAddress);
+userRoute.get("/get-address", checkState.isLogin, accountController.getAddressForEdit);
+userRoute.post("/update-address", checkState.isLogin, accountController.updateAddress);
+userRoute.delete("/delete-address", checkState.isLogin, accountController.deleteAddress);
+userRoute.get("/logout", checkState.isLogin, accountController.logout);
 
+//! HANDLING ORDER SECTION 
 userRoute.get("/my-orders", checkState.isLogin, accountController.allOrders)
 userRoute.get("/order-summary", checkState.isLogin, accountController.orderSummary)
+userRoute.post("/returnOrder", checkState.isLogin, OrderController.returnOrder)
 
 
 //! USER CHECK-OUT SECTION
 userRoute.post("/adding-address", checkState.isLogin, accountController.addAddressFromCheckout);
 userRoute.get("/checkout", checkState.isLogin, checkoutController.checkOut);
 userRoute.post("/place-order", checkState.isLogin, checkoutController.placeOrder);
+userRoute.post("/confirm-payment", checkoutController.confirmPayment)
 
 //! SORTING AND FILTERING 
 userRoute.patch("/sort", checkState.isLogin, productController.sort);
 userRoute.patch("/alphaSort", checkState.isLogin, productController.AlphaSort);
+
+//! USER'S WISH-LIST
+userRoute.get("/wishlist", wishlistController.loadWishlist);
+userRoute.post("/wishlist/add", checkState.isLogin, wishlistController.addToWishlist)
+userRoute.post("/wishlist/remove", checkState.isLogin, wishlistController.removeWishItem)
+
+userRoute.get("/get-all-coupon", checkState.isLogin, couponController.getAllCoupons)
 
 
 

@@ -3,7 +3,7 @@ const Category = require("../Model/categoryModel")
 const addCategory = async (req, res) => {
     try {
         const { category, gender, description } = req.body;
-        const genderArray = ["Male", "Female"]
+        const genderArray = ["Male", "Female", "Kids"]
 
 
 
@@ -105,8 +105,7 @@ const getCatEdit = async (req, res) => {
 const updateCategory = async (req, res) => {
     try {
         const { categoryId, category, gender, description } = req.body;
-        console.log(categoryId, "----------", category, "----------", gender, "-----------", description)
-        const genderArray = ["Male", "Female"];
+        const genderArray = ["Male", "Female", "Kids"];
 
         if (!category || category.trim() === "") {
             return res.status(400).json({ message: "Fill the field of category", categoryData });

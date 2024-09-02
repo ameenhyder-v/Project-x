@@ -8,6 +8,12 @@ const addToCart = async (req, res) => {
         const userId = req.session.userId;
         // const quantity = 1;
         let userCart = await Cart.findOne({ userId });
+        const variant = await Variant.findById(variantId)
+        // console.log(variant)
+        const stockItem = variant.stock.find(item => item.size === size.trim());
+        if (stockItem.quantity <= 0){
+            return res.status(200).json()
+        }
         
         if (!userCart) {
             if (!userId) {
@@ -71,6 +77,11 @@ const shopingCart = async (req, res) => {
     try {
         const userId = req.session.userId;
 
+        if (!userId) {
+            return res.status(400).json({ error: "User not found" });
+        }
+
+        // Fetch the user's cart with populated variant and product data
         const cartData = await Cart.findOne({ userId }).populate({
             path: "cartItems.variantId",
             populate: {
@@ -79,22 +90,30 @@ const shopingCart = async (req, res) => {
             }
         });
 
-       cartData.cartItems.forEach(item=>{
-            //console.log(item.variantId);
-            const cart = item
-            const size = item.size.trim()
-            const variant = item.variantId
-            const product = item.variantId.productId
-    
-        })
-        const subTotalAmount = await subTotal(userId)
+        // Handle case where cart is empty
+        if (!cartData || !cartData.cartItems.length) {
+            return res.render("shopping-cart", { cartData: { cartItems: [] }, subTotalAmount: 0, message: "Your cart is empty." });
+        }
 
-        
-        res.render("shoping-cart", { cartData, subTotalAmount })
+        // Optionally, process items if needed (e.g., for logging or further operations)
+        cartData.cartItems.forEach(item => {
+            const size = item.size.trim();
+            const variant = item.variantId;
+            const product = item.variantId.productId;
+            // Add additional processing if needed
+        });
+
+        // Calculate the subtotal amount
+        const subTotalAmount = await subTotal(userId);
+
+        // Render the shopping cart page with cart data and subtotal amount
+        res.render("shopping-cart", { cartData, subTotalAmount });
+
     } catch (error) {
-        console.log(`error from shoping cart: ${error}`)
+        console.error(`Error from shopping cart: ${error}`);
+        return res.status(500).json({ error: "An error occurred while fetching the shopping cart" });
     }
-}
+};
 
 
 //? ADDING QUNTITY FROM CART PAGE
@@ -151,7 +170,6 @@ const addQuantity = async (req, res) => {
 }
 
 
-
 //? DECREASING QUANTITY FROM CART PAGE
 const decreaseQuantity = async (req, res) => {
     try {
@@ -193,7 +211,38 @@ const decreaseQuantity = async (req, res) => {
     }
 }
 
+const removeItem = async (req, res) => {
+    try {
+        const { variantId, size } = req.body;
+        const userId = req.session.userId ;
 
+        console.log(userId, "---------userId")
+        console.log("VId ===", variantId,  "           size ====", size);
+
+        const cart = await Cart.findOne({ userId: userId });
+
+        if (!cart) {
+            return res.status(404).json({ error: "Cart not found." });
+        }
+
+        const itemIndex = cart.cartItems.findIndex(item =>
+            item.variantId.toString() === variantId && item.size.trim() === size
+        );
+
+        if (itemIndex === -1) {
+            console.log('nothing found');
+            return res.status(404).json({ error: "Item not found in cart." });
+        }
+        console.log('Match found at index:', itemIndex);
+
+        cart.cartItems.splice(itemIndex, 1);
+        await cart.save();
+
+        res.status(200).json({ success: "Item removed from cart." });        
+    } catch (error) {
+        console.log(`error from the cart controller removeItem :  ${error.message}`)
+    }
+}
 
 
 
@@ -202,5 +251,6 @@ module.exports = {
     shopingCart,
     addQuantity,
     decreaseQuantity,
-    subTotal
+    subTotal,
+    removeItem
 }

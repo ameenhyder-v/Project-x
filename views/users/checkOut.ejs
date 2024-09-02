@@ -66,12 +66,22 @@
 }
     </style>
 
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
 
     <!-- Checkout Section Start -->
     <div class="section section-padding " style="background-color: rgb(255, 255, 255);">
         <div class="container">
+            <% if (cartItems.length === 0) { %>
+                <div class="checkout-empty">
+                    <h2>Your cart is empty.</h2>
+                    <p>Please add items to your cart before proceeding to checkout.</p>
+                    <a href="/allProducts" class="btn btn-primary">Continue Shopping</a>
+                </div>
+            <% } else { %>
 
             <div class="checkout-info">
                 <p class="info-header">
@@ -309,22 +319,31 @@
                                         </div>
                                     </div>
                                 </li> -->
-                    <li>
-                        <div class="single-payment">
-                            <div class="payment-radio radio">
-                                <input type="radio" name="radio" id="cash" checked="checked" />
-                                <label for="cash"><span></span> Cash on
-                                    Delivery</label>
-
-                                <div class="payment-details">
-                                    <p>
-                                        Pay with cash upon
-                                        delivery.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </li>
+                                <li>
+                                    <div class="single-payment">
+                                        <div class="payment-radio radio">
+                                            <input type="radio" name="payment" id="cash" value="COD" checked="checked" />
+                                            <label for="cash"><span></span> Cash on Delivery</label>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="single-payment">
+                                        <div class="payment-radio radio">
+                                            <input type="radio" name="payment" id="Razor" value="razor" />
+                                            <label for="Razor"><span></span> Razorpay</label>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="single-payment">
+                                        <div class="payment-radio radio">
+                                            <input type="radio" name="payment" id="wallet" value="wallet" />
+                                            <label for="wallet"><span></span> Wallet</label>
+                                        </div>
+                                    </div>
+                                </li>
+                                
                     <!-- <li>
                                     <div class="single-payment">
                                         <div class="payment-radio radio">
@@ -357,6 +376,7 @@
     </div>
     </div>
     </form>
+    <% } %>
     </div>
     </div>
     <!-- Checkout Section End -->
@@ -416,7 +436,6 @@
                     });
                 };
 
-                // Display validation messages if any field is invalid
                 if (!isValidName || !name) {
                     sweetAlert("NAME");
                     return false;
@@ -476,21 +495,50 @@
 
 
 
-            //PLACE ORDER 
+            <!-- ! PLACE ORDER  -->
             function placeOrder(event) {
                 event.preventDefault();
-                const selectedAddress = document.querySelector('input[name="address"]:checked').value;
-                console.log(selectedAddress);
+                const selectedAddress = document.querySelector('input[name="address"]:checked');
+                const selectedPayment = document.querySelector('input[name="payment"]:checked').value;
+
+            
+                if (!selectedAddress) {
+                    Toastify({
+                        text: "Please select an address!",
+                        duration: 3000,
+                        close: true,
+                        gravity: "top", 
+                        position: "right", 
+                        backgroundColor: "linear-gradient(to right, #FF0000, #FF6347)",
+                        stopOnFocus: true,
+                    }).showToast();
+                    return;
+                }
+                if (!selectedPayment) {
+                    Toastify({
+                        text: "Please select a payment!",
+                        duration: 3000,
+                        close: true,
+                        gravity: "top", 
+                        position: "right", 
+                        backgroundColor: "linear-gradient(to right, #FF0000, #FF6347)",
+                        stopOnFocus: true,
+                    }).showToast();
+                    return;
+                }
+            
+                console.log(selectedAddress.value);
+            
                 fetch('/place-order', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ addressId: selectedAddress }),
+                    body: JSON.stringify({ addressId: selectedAddress.value , paymentMethod: selectedPayment}),
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.message === 'Order placed successfully') {
+                    if (data.message === 'Ordered by COD') {
                         Swal.fire({
                             icon: 'success',
                             title: 'Success',
@@ -498,9 +546,78 @@
                             showConfirmButton: true,
                         }).then(() => {
                             // Redirect or refresh page if needed
-                            alert(data.orderId)
                             window.location.href = `/order-summary?orderId=${data.orderId}`; // Adjust the URL as necessary
                         });
+                    }else if(data.message === "Ordered by Razor"){
+                        const options = {
+                            key: data.key,
+                            amount: data.amount * 100,
+                            name: 'Coza store',
+                            order_id: data.razorpayOrderId,
+                            handler: function (response) {
+                                fetch('/confirm-payment', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        orderId: data.orderId,
+                                        razorpayPaymentId: response.razorpay_payment_id,
+                                        razorpayOrderId: response.razorpay_order_id,
+                                        razorpaySignature: response.razorpay_signature
+                                    })
+                                })
+                                    .then(response => {
+                                        if (!response.ok) {
+                                            throw new Error('Network response was not ok')
+                                        }
+                                        return response.json()
+                                    })
+                                    .then(data => {
+                                        if (data.message === 'Success') {
+                                            Swal.fire({
+                                                icon: 'success',
+                                                title: 'Order Confirmed!',
+                                                text: 'Your order has been successfully placed.',
+                                                confirmButtonText: 'OK'
+                                            })
+                                                .then(() => {
+                                                    console.log('Order Confirmed');
+                                                    window.location.href = `/order-summary?orderId=${data.orderId}`;
+                                                });
+                                        } else if (data.message === 'Payment not confirmed') {
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: 'Payment not confirmed!',
+                                                text: 'Payment not confirmed. Please contact support.',
+                                                confirmButtonText: 'OK'
+                                            });
+                                        } else {
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: 'Payment Failed!',
+                                                text: 'Your payment was successful but order placement failed. Please contact support.',
+                                                confirmButtonText: 'OK'
+                                            });
+        
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.log(error)
+                                    })
+        
+                            },
+                            prefill: {
+                                name: 'Ameen Hyder',
+                                email: 'email@email.com',
+                                contact: '9867876598'
+                            },
+                            theme: {
+                                color: "#3399cc"
+                            }
+                        }
+                        const rzpl = new Razorpay(options);
+                        rzpl.open();
                     } else {
                         Swal.fire({
                             icon: 'error',
@@ -520,11 +637,14 @@
                     });
                 });
             }
+            
         </script>
 
         <!-- SWEET ALERT LINK -->
 
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!--   For linking the razor pay     -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
         <!-- Modernizer & jQuery JS -->
         <script src="/assets/js/vendor/modernizr-3.11.2.min.js"></script>

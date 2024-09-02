@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="css/plugins/ion.rangeSlider.min.css" />
 
     <link rel="stylesheet" href="css/style.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
@@ -37,7 +39,7 @@
                                     Dashboard</a>
                             </li>
                             <li>
-                                <a data-bs-toggle="pill" href="#pills-order"><i class="fa fa-shopping-cart"></i>
+                                <a  href="/my-orders"><i class="fa fa-shopping-cart"></i>
                                     Order</a>
                             </li>
                             <li>
@@ -57,7 +59,7 @@
                                     Details</a>
                             </li>
                             <li>
-                                <a href="login.html"><i class="fa fa-sign-out"></i>
+                                <a href="/logout"><i class="fa fa-sign-out"></i>
                                     Logout</a>
                             </li>
                         </ul>
@@ -85,56 +87,6 @@
                                     addresses and edit your password and
                                     account details.
                                 </p>
-                            </div>
-                        </div>
-
-                        <div class="tab-pane fade" id="pills-order">
-                            <div class="my-account-order account-wrapper">
-                                <h4 class="account-title">Orders</h4>
-                                <div class="account-table text-center table-responsive">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th class="no">No</th>
-                                                <th class="name">Name</th>
-                                                <th class="date">Date</th>
-                                                <th class="status">
-                                                    Status
-                                                </th>
-                                                <th class="total">Total</th>
-                                                <th class="action">
-                                                    Action
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <% orders.forEach((order, index)=> { %>
-
-                                                <tr>
-                                                    <td>
-                                                        <%= index+1 %>
-                                                    </td>
-                                                    <td>
-                                                        <%= order.orderId %>
-                                                    </td>
-                                                    <% const options={ weekday: 'short' , day: 'numeric' ,
-                                                        month: 'short' }; const formattedDate=new
-                                                        Date(order.orderedItems[0].orderedDate).toLocaleDateString('en-US',
-                                                        options); %>
-                                                        <td>
-                                                            <%= formattedDate %>
-                                                        </td>
-                                                        <td><%= order.orderedItems[0].orderStatus %></td>
-                                                        <td>₹ <%= order.totalAmount %>.0</td>
-                                                        <td>
-                                                            <a href="/order-summary?orderId=<%= order._id %>">View</a>
-                                                        </td>
-                                                </tr>
-
-                                                <% }) %>
-                                        </tbody>
-                                    </table>
-                                </div>
                             </div>
                         </div>
 
@@ -194,7 +146,7 @@
                         <div class="tab-pane fade" id="pills-address">
                             <div class="my-account-address account-wrapper">
                                 <div class="row">
-                                    <% userAddress.forEach(address=> { %>
+                                    <% userAddress.forEach(address => { %>
                                         <div class="col-md-6">
                                             <div class="account-address">
                                                 <h4 class="account-title">
@@ -204,23 +156,22 @@
                                                     <%= address.name %>
                                                 </h6>
                                                 <p>
-                                                    <%= address.address %>,<%= address.city %>
-                                                            <br>
-                                                            <%= address.state %>
-                                                                <br />
-                                                                <%= address.country %>
+                                                    <%= address.address %>, <%= address.city %><br>
+                                                    <%= address.state %><br>
+                                                    <%= address.country %>
                                                 </p>
-                                                <p>pin: <%= address.pincode %>
-                                                </p>
-                                                <p>Mobile: <%= address.mobile %>
-                                                </p>
-                                                <a class="btn btn-primary btn-hover-dark" href="#"><i
-                                                        class="fa fa-edit"></i>
-                                                    Edit Address</a>
+                                                <p>Pin: <%= address.pincode %></p>
+                                                <p>Mobile: <%= address.mobile %></p>
+                                                <button class="btn btn-sm font-sm rounded btn-primary btn-hover-dark" onclick="editAddress('<%= address._id %>')" data-bs-toggle="modal" data-bs-target="#editAddressModal">
+                                                    <i class="fa fa-edit"></i> Edit
+                                                </button>
+
+                                                <button class="btn btn-md-sm btn-danger btn-hover-dark" onclick="deleteAddress('<%= address._id %>')">
+                                                    <i class="fa fa-trash"></i> Delete
+                                                </button>
                                             </div>
                                         </div>
-                                        <% }) %>
-
+                                    <% }) %>
                                 </div>
                                 <div style="margin-top: 4rem;">
                                     <a class="btn btn-primary btn-hover-dark" href="/add-address"><i
@@ -348,7 +299,178 @@
 
     <%- include("../partials/userpartials/footer.ejs") %>
 
+    <!-- Modal Structure -->
+    <div class="modal fade" id="editAddressModal" tabindex="-1" aria-labelledby="editAddressModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editAddressModalLabel">Edit Address</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="login-register-wrapper">
+                        <h4 class="title">Edit Address</h4>
+                        <form id="editAddressForm">
+                            <p id="errorMessage" class="text-danger"></p>
+                            <div class="single-form">
+                                <input type="text" placeholder="Name" name="name" id="modalName" required />
+                            </div>
+                            <div class="single-form">
+                                <input type="text" placeholder="Street Address" name="address" id="modalAddress" required />
+                            </div>
+                            <div class="single-form">
+                                <input type="text" placeholder="Country" name="country" id="modalCountry" required />
+                            </div>
+                            <div class="single-form">
+                                <input type="text" placeholder="State" name="state" id="modalState" required />
+                            </div>
+                            <div class="single-form">
+                                <input type="text" placeholder="City" name="city" id="modalCity" required />
+                            </div>
+                            <div class="single-form">
+                                <input type="number" placeholder="Pincode" name="pincode" id="modalPincode" required />
+                            </div>
+                            <div class="single-form">
+                                <input type="number" placeholder="Mobile Number" name="mobile" id="modalMobile" required />
+                            </div>
+                            <div class="single-form">
+                                <button type="submit" class="btn btn-primary btn-hover-dark" style="width: 15rem;">Save Changes</button>
+                                <button type="button" class="btn btn-dark btn-hover-danger" style="width: 15rem;" data-bs-dismiss="modal">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script>
+        function editAddress(addressId) {
+            // Use fetch to get the current address details and populate the modal fields
+            fetch(`/get-address?addressId=${addressId}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('modalName').value = data.name;
+                    document.getElementById('modalAddress').value = data.address;
+                    document.getElementById('modalCountry').value = data.country;
+                    document.getElementById('modalState').value = data.state;
+                    document.getElementById('modalCity').value = data.city;
+                    document.getElementById('modalPincode').value = data.pincode;
+                    document.getElementById('modalMobile').value = data.mobile;
+                    document.getElementById('editAddressForm').dataset.addressId = addressId; 
+                })
+                .catch(error => console.error('Error fetching address details:', error));
+        }
+
+<!-- ! SUBMISSION EDIT ADDRESS FORM -->
+        document.getElementById('editAddressForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent the default form submission
+        
+            const addressId = document.getElementById('editAddressForm').dataset.addressId; // Get the addressId from a data attribute
+        
+            const formData = {
+                name: document.getElementById('modalName').value,
+                address: document.getElementById('modalAddress').value,
+                country: document.getElementById('modalCountry').value,
+                state: document.getElementById('modalState').value,
+                city: document.getElementById('modalCity').value,
+                pincode: document.getElementById('modalPincode').value,
+                mobile: document.getElementById('modalMobile').value
+            };
+        
+            try {
+                const response = await fetch(`/update-address?addressId=${addressId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+        
+                const result = await response.json();
+                const errorMessageElement = document.getElementById('errorMessage');
+
+        
+                if (response.ok) {
+                    errorMessageElement.textContent = '';
+                    const myModal = bootstrap.Modal.getInstance(document.getElementById('editAddressModal'));
+                    if (myModal) {
+                        myModal.hide();
+                    }
+                    Toastify({
+                        text: "Category updated successfully!",
+                        duration: 2000,
+                        backgroundColor: "green",
+                        close: true
+                    }).showToast();
+                    
+        
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000); 
+                } else {
+                    console.error('Error updating address', result);
+                    if (result.errors) {
+                        errorMessageElement.textContent = result.errors.join(', ');
+                    } else {
+                        errorMessageElement.textContent = result.error;
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('errorMessage').textContent = 'An unexpected error occurred. Please try again.';
+            }
+        });
+
+
+        function deleteAddress(addressId) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const response = await fetch(`/delete-address?addressId=${addressId}`, {
+                            method: 'DELETE'
+                        });
+        
+                        const resultJson = await response.json();
+        
+                        if (response.ok) {
+                            Swal.fire(
+                                'Deleted!',
+                                resultJson.message, 
+                                'success'
+                            ).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire(
+                                'Error!',
+                                resultJson.error || 'Failed to delete address.',
+                                'error'
+                            );
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        Swal.fire(
+                            'Error!',
+                            'An unexpected error occurred. Please try again.',
+                            'error'
+                        );
+                    }
+                }
+            });
+        }
+        
+
         document.getElementById("editButton").addEventListener("click", () => {
                     const emails = document.querySelectorAll('.editform')
                     const editButton = document.getElementById("editButton")
@@ -370,6 +492,8 @@
             formData.forEach((value, key) => {
                 formObject[key] = value;
             });
+            console.log(formObject);
+
         
             try {
                 const response = await fetch(`/edit-user`, {

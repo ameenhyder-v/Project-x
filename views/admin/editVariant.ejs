@@ -36,7 +36,7 @@
      let cropper;
         let currentInput;
         let croppedFiles = new Map();
-        const targetFileSize = 2 * 1024 * 1024; // 1MB in bytes
+        const targetFileSize = 2 * 1024 * 1024;
 
         function previewImage(event) {
             const input = event.target;
@@ -52,7 +52,7 @@
                         cropper.destroy();
                     }
                     cropper = new Cropper(cropperImage, {
-                        aspectRatio: 3 / 4, // Portrait aspect ratio
+                        aspectRatio: 3 / 4,
                         viewMode: 1,
                     });
                 };
@@ -146,13 +146,13 @@
                     showConfirmButton: false,
                     timer: 1500
                 });
-                window.location.href = `/admin/productlist`
+                window.location.href = `/admin/load-variant?productId=${data.productId}`
             }
             
         } else {
             swal.fire({
                 position: "center",
-                icon: "success",
+                icon: "warning",
                 title: `<span style="color: red;"> Something went wrong </span>`,
                 showConfirmButton: false,
                 timer: 1000
@@ -218,17 +218,13 @@
                 </a>
             </li>
 
-            <li class="menu-item has-submenu">
-                <a class="menu-link" href="#">
-                    <i class="icon material-icons md-person"></i>
-                    <span class="text">Account</span>
+            <li class="menu-item">
+                <a class="menu-link" href="/admin/coupon">
+                    <i class="icon material-icons md-local_offer"></i>
+                    <span class="text">Coupon Management</span>
                 </a>
-                <div class="submenu">
-                    <a href="page-account-login.html">User login</a>
-                    <a href="page-account-register.html">User registration</a>
-                    <a href="page-error-404.html">Error 404</a>
-                </div>
             </li>
+            
             <li class="menu-item">
                 <a class="menu-link" href="page-reviews.html">
                     <i class="icon material-icons md-comment"></i>

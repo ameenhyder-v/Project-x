@@ -10,7 +10,6 @@ const accountLoad = async (req, res) => {
         const userData = await User.findOne({_id: userId});
         const userAddress = await Address.find({userId: userId});
         const orders = await Order.find({userId});
-        console.log(orders)
         
         res.render("userAccount", {userData, userAddress, orders})
     } catch (error) {
@@ -26,7 +25,6 @@ const allOrders = async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 5;
 
-        console.log(userId);
 
         const orders = await Order.find({ userId })
             .sort({ _id: -1 })
@@ -35,7 +33,6 @@ const allOrders = async (req, res) => {
 
         const totalOrders = await Order.countDocuments({ userId });
 
-        console.log(orders);
 
         res.render("allOrders", { orders, page, limit, totalOrders });
     } catch (error) {
@@ -56,142 +53,264 @@ const addAddress = async (req, res) => {
     }
 }
 
+//? ADDING ADDRESS TO THE DB
 const addingAddress = async (req, res) => {
-    const { name, address, country, state, city, pincode, mobile } = req.body
-
-
-    const  userId  = req.session.userId;
-    if (!userId){
-        req.flash("message", "There is no user found")
-        return res.redirect("/add-address")
-    }
-
-    const addressData = new Address({
-        userId: userId,
-        name: name ,
-        address: address,
-        country: country,
-        state: state,
-        city: city,
-        pincode:pincode,
-        mobile:mobile
-    })
-
-
-
-    // Validating name
-    if (!addressData.name || addressData.name.trim().length < 3 || addressData.name.trim().length > 50) {
-        req.flash("message", "Name must be between 3 and 50 characters.")
-        return res.redirect("/add-address");
-    }
-    // Validating address
-    if (!addressData.address || addressData.address.trim().length < 10 || addressData.address.trim().length > 50) {
-        req.flash("message", "Address must be between 10 and 50 characters.");
-        return res.redirect("/add-address")
-    }
-    
-    // Validating country
-    if (!addressData.country || addressData.country.trim().length < 4 || addressData.country.trim().length > 50) {
-        req.flash("message", "Country must be between 4 and 50 characters.");
-        return res.redirect("/add-address")
-    }
-
-    // Validateing state
-    if (!addressData.state || addressData.state.trim().length < 4 || addressData.state.trim().length > 30) {
-        req.flash("message", "State must be between 4 and 30 characters.");
-        return res.redirect("/add-address")
-    }
-    
-
-    // Validateing city
-    if (!addressData.city || addressData.city.trim().length < 4 || addressData.city.trim().length > 50) {
-        req.flash("message", "City must be between 4 and 30 characters.");
-        return res.redirect("/add-address")
-    }
-
-    // Validateing pincode
-    if (!addressData.pincode || !/^[0-9]{6}$/.test(addressData.pincode)) {
-        errors.pincode = 'Pincode must be 6 digits numbers.';
-    }
-
-    // Validateing mobile
-    if (!addressData.mobile || !/^[0-9]{10}$/.test(addressData.mobile)) {
-        errors.mobile = 'Mobile must be exactly 10 digits.';
-    }
-    
-    const save = await addressData.save();
-    if(save) {
-        console.log(save)
-        res.redirect("/my-account")
-    }
-
-}
-
-
-
-const addAddressFromCheckout = async (req, res) => {
-    const { name, address, country, state, city, pincode, mobile } = req.body
-
-
+    const { name, address, country, state, city, pincode, mobile } = req.body;
     const userId = req.session.userId;
-    if (!userId) {
-        req.flash("message", "There is no user found")
-        return res.redirect("/add-address")
+
+    try {
+        if (!userId) {
+            req.flash("message", "There is no user found");
+            return res.redirect("/add-address");
+        }
+
+        const addressData = new Address({
+            userId: userId,
+            name: name,
+            address: address,
+            country: country,
+            state: state,
+            city: city,
+            pincode: pincode,
+            mobile: mobile
+        });
+
+        // Validating name
+        if (!addressData.name || addressData.name.trim().length < 3 || addressData.name.trim().length > 50) {
+            req.flash("message", "Name must be between 3 and 50 characters.");
+            return res.redirect("/add-address");
+        }
+
+        // Validating address
+        if (!addressData.address || addressData.address.trim().length < 10 || addressData.address.trim().length > 50) {
+            req.flash("message", "Address must be between 10 and 50 characters.");
+            return res.redirect("/add-address");
+        }
+
+        // Validating country
+        if (!addressData.country || addressData.country.trim().length < 4 || addressData.country.trim().length > 50) {
+            req.flash("message", "Country must be between 4 and 50 characters.");
+            return res.redirect("/add-address");
+        }
+
+        // Validating state
+        if (!addressData.state || addressData.state.trim().length < 4 || addressData.state.trim().length > 30) {
+            req.flash("message", "State must be between 4 and 30 characters.");
+            return res.redirect("/add-address");
+        }
+
+        // Validating city
+        if (!addressData.city || addressData.city.trim().length < 4 || addressData.city.trim().length > 30) {
+            req.flash("message", "City must be between 4 and 30 characters.");
+            return res.redirect("/add-address");
+        }
+
+        // Validating pincode
+        if (!addressData.pincode || !/^[0-9]{6}$/.test(addressData.pincode)) {
+            req.flash("message", "Pincode must be 6 digits numbers.");
+            return res.redirect("/add-address");
+        }
+
+        // Validating mobile
+        if (!addressData.mobile || !/^[0-9]{10}$/.test(addressData.mobile)) {
+            req.flash("message", "Mobile must be exactly 10 digits.");
+            return res.redirect("/add-address");
+        }
+
+        const save = await addressData.save();
+        if (save) {
+            res.redirect("/my-account");
+        }
+    } catch (error) {
+        console.error("error from the account controller adding address -  ", error);
+        req.flash("message", "An error occurred while adding the address. Please try again.");
+        res.redirect("/add-address");
     }
+};
 
-    const addressData = new Address({
-        userId: userId,
-        name: name,
-        address: address,
-        country: country,
-        state: state,
-        city: city,
-        pincode: pincode,
-        mobile: mobile
-    })
+//!  GETTING ADDRESS FOR EDIT 
+const getAddressForEdit = async (req, res) => {
+    try {
+        const userId = req.session.userId;
+        const { addressId } = req.query;
 
 
+        const address = await Address.findById(addressId);
 
-    if (!addressData.name || addressData.name.trim().length < 3 || addressData.name.trim().length > 50) {
-        req.flash("message", "Name must be between 3 and 50 characters.")
-        return res.redirect("/add-address");
+        if (!address || address.userId.toString() !== userId) {
+            return res.status(404).json({ message: 'Address not found!' });
+        }
+
+        res.json(address);
+    } catch (error) {
+        console.log(`Error from the account controller getAddressForEdit - ${error}`);
+        res.status(404).json({ message: 'Internal server error' });
     }
-    if (!addressData.address || addressData.address.trim().length < 10 || addressData.address.trim().length > 50) {
-        req.flash("message", "Address must be between 10 and 50 characters.");
-        return res.redirect("/add-address")
+};
+
+
+//! UPDATEING ADDRESS 
+const updateAddress = async (req, res) => {
+    try {
+        const userId = req.session.userId;
+        const { addressId } = req.query;
+        const { name, address, country, state, city, pincode, mobile } = req.body;
+
+        // Validation
+        let errors = [];
+
+        if (!name || name.trim().length < 3 || name.trim().length > 50) {
+            errors.push("Name must be between 3 and 50 characters.");
+        }
+
+        if (!address || address.trim().length < 10 || address.trim().length > 50) {
+            errors.push("Address must be between 10 and 50 characters.");
+        }
+
+        if (!country || country.trim().length < 4 || country.trim().length > 50) {
+            errors.push("Country must be between 4 and 50 characters.");
+        }
+
+        if (!state || state.trim().length < 4 || state.trim().length > 30) {
+            errors.push("State must be between 4 and 30 characters.");
+        }
+
+        if (!city || city.trim().length < 4 || city.trim().length > 30) {
+            errors.push("City must be between 4 and 30 characters.");
+        }
+
+        if (!pincode || !/^[0-9]{6}$/.test(pincode)) {
+            errors.push("Pincode must be 6 digits.");
+        }
+
+        if (!mobile || !/^[0-9]{10}$/.test(mobile)) {
+            errors.push("Mobile must be exactly 10 digits.");
+        }
+
+        if (errors.length > 0) {
+            return res.status(400).json({ errors });
+        }
+
+        // Update address in the database
+        const updatedAddress = await Address.findByIdAndUpdate(addressId, {
+            name,
+            address,
+            country,
+            state,
+            city,
+            pincode,
+            mobile
+        }, { new: true });
+
+        if (!updatedAddress) {
+            return res.status(400).json({ errors: "Failed to update address." });
+        }
+
+        res.status(200).json({ message: "Address updated successfully."});
+
+    } catch (error) {
+        console.log(`Error from the account controller updating the address: ${error}`);
+        res.status(500).json({ error: "Internal server error." });
     }
+};
 
-    if (!addressData.country || addressData.country.trim().length < 4 || addressData.country.trim().length > 50) {
-        req.flash("message", "Country must be between 4 and 50 characters.");
-        return res.redirect("/add-address")
+
+//! ADDING ADDRESS FROM CHECKOUT PAGE 
+const addAddressFromCheckout = async (req, res) => {
+    const { name, address, country, state, city, pincode, mobile } = req.body;
+    const userId = req.session.userId;
+
+    try {
+        if (!userId) {
+            req.flash("message", "There is no user found");
+            return res.redirect("/add-address");
+        }
+
+        const addressData = new Address({
+            userId: userId,
+            name: name,
+            address: address,
+            country: country,
+            state: state,
+            city: city,
+            pincode: pincode,
+            mobile: mobile
+        });
+
+        // Validating name
+        if (!addressData.name || addressData.name.trim().length < 3 || addressData.name.trim().length > 50) {
+            req.flash("message", "Name must be between 3 and 50 characters.");
+            return res.redirect("/add-address");
+        }
+
+        // Validating address
+        if (!addressData.address || addressData.address.trim().length < 10 || addressData.address.trim().length > 50) {
+            req.flash("message", "Address must be between 10 and 50 characters.");
+            return res.redirect("/add-address");
+        }
+
+        // Validating country
+        if (!addressData.country || addressData.country.trim().length < 4 || addressData.country.trim().length > 50) {
+            req.flash("message", "Country must be between 4 and 50 characters.");
+            return res.redirect("/add-address");
+        }
+
+        // Validating state
+        if (!addressData.state || addressData.state.trim().length < 4 || addressData.state.trim().length > 30) {
+            req.flash("message", "State must be between 4 and 30 characters.");
+            return res.redirect("/add-address");
+        }
+
+        // Validating city
+        if (!addressData.city || addressData.city.trim().length < 4 || addressData.city.trim().length > 30) {
+            req.flash("message", "City must be between 4 and 30 characters.");
+            return res.redirect("/add-address");
+        }
+
+        // Validating pincode
+        if (!addressData.pincode || !/^[0-9]{6}$/.test(addressData.pincode)) {
+            req.flash("message", "Pincode must be 6 digits numbers.");
+            return res.redirect("/add-address");
+        }
+
+        // Validating mobile
+        if (!addressData.mobile || !/^[0-9]{10}$/.test(addressData.mobile)) {
+            req.flash("message", "Mobile must be exactly 10 digits.");
+            return res.redirect("/add-address");
+        }
+
+        const save = await addressData.save();
+        if (save) {
+            res.redirect("/checkout");
+        }
+    } catch (error) {
+        console.error( "error form the account controller adding address from the checkout -  ",error);
+        req.flash("message", "An error occurred while adding the address. Please try again.");
+        res.redirect("/add-address");
     }
+};
 
-    if (!addressData.state || addressData.state.trim().length < 4 || addressData.state.trim().length > 30) {
-        req.flash("message", "State must be between 4 and 30 characters.");
-        return res.redirect("/add-address")
+const deleteAddress = async (req, res) => {
+    try {
+        const { userId } = req.session;
+        const { addressId } = req.query;
+
+        const address = await Address.findOne({ _id: addressId, userId });
+
+        if (!address) {
+            return res.status(400).json({ error: 'Address not found or does not belong to the user.' });
+        }
+
+        const deleted =  await Address.deleteOne({ _id: addressId });
+
+        if (deleted){
+            return res.status(200).json({ message: 'Address deleted successfully.' });
+        }
+    } catch (error) {
+        console.log(`error from the account controller delete address - ${error}`);
+        res.status(400).json({ error: 'An error occurred while deleting the address. Please try again.' });
     }
-
-
-    if (!addressData.city || addressData.city.trim().length < 4 || addressData.city.trim().length > 50) {
-        req.flash("message", "City must be between 4 and 30 characters.");
-        return res.redirect("/add-address")
-    }
-
-    if (!addressData.pincode || !/^[0-9]{6}$/.test(addressData.pincode)) {
-        errors.pincode = 'Pincode must be 6 digits numbers.';
-    }
-
-    if (!addressData.mobile || !/^[0-9]{10}$/.test(addressData.mobile)) {
-        errors.mobile = 'Mobile must be exactly 10 digits.';
-    }
-
-    const save = await addressData.save();
-    if (save) {
-        console.log(save)
-        res.redirect("/checkout")
-    }
-
-}
+};
 
 
 const orderSummary = async (req, res) => {
@@ -208,14 +327,7 @@ const orderSummary = async (req, res) => {
                 }
             });
 
-        if (!order) {
-            console.log("order not getting")
-        }
-
         const user = await User.findById(userId);
-        if (!user) {
-            console.log("user not find")
-        }
 
         res.render("orderSummary", { order, user });
 
@@ -227,40 +339,40 @@ const orderSummary = async (req, res) => {
 const updateUserProfile = async (req, res) => {
     try {
         const userId = req.session.userId;
-        const { name1, email1 } = req.body;
+        const { name, email } = req.body;
 
-        const name = name1.trim()
-        const email = email1.trim()
+        const name1 = name.trim();
 
+        const email1 = email.trim();
 
-        //? name validation
+        //? Name validation
         const nameRegex = /^[A-Za-z\s]+$/;
-        const isValidName = nameRegex.test(name);
+        const isValidName = nameRegex.test(name1);
         if (!isValidName) {
             return res.json({ success: false, message: "Invalid name. Name should contain only letters and spaces." });
         }
 
-        //? if name already exists
-        const nameAlreadyExists = await User.findOne({ name });
+        //? Check if name already exists
+        const nameAlreadyExists = await User.findOne({ name: name1 });
         if (nameAlreadyExists && nameAlreadyExists._id.toString() !== userId) {
             return res.json({ success: false, message: "This name is already taken." });
         }
 
-        //? email validation
+        //? Email validation
         const emailRegex = /\S+@\S+\.\S+/;
-        const isValidEmail = emailRegex.test(email);
+        const isValidEmail = emailRegex.test(email1);
         if (!isValidEmail) {
             return res.json({ success: false, message: "Invalid email format." });
         }
 
-        //? if email already exists
-        const emailAlreadyExists = await User.findOne({ email });
+        //? Check if email already exists
+        const emailAlreadyExists = await User.findOne({ email: email1 });
         if (emailAlreadyExists && emailAlreadyExists._id.toString() !== userId) {
             return res.json({ success: false, message: "This email is already taken." });
         }
 
-        //? then updating 
-        const updatedUser = await User.findByIdAndUpdate( userId, { name, email }, { new: true, runValidators: true });
+        //? Updating user details
+        const updatedUser = await User.findByIdAndUpdate(userId, { name: name1, email: email1 }, { new: true, runValidators: true });
 
         if (!updatedUser) {
             return res.json({ success: false, message: "User not found." });
@@ -268,10 +380,11 @@ const updateUserProfile = async (req, res) => {
 
         return res.json({ success: true, message: "User details updated successfully." });
     } catch (error) {
-        console.error(error);
+        console.error("Error occurred: ", error.message);
         res.json({ success: false, message: "Server error." });
     }
 };
+
 
 
 const changePassword = async (req, res) => {
@@ -357,6 +470,20 @@ const addPassword = async (req, res) => {
 };
 
 
+const logout = async (req, res) => {
+    try {
+        req.session.destroy((err) => {
+            if (err) {
+                console.log("Error from the account controller logout:", err);
+            }
+            res.redirect("/");
+        });
+    } catch (error) {
+        console.log("Unexpected error from the account controller logout:", error);
+    }
+};
+
+
 
 module.exports = {
     accountLoad,
@@ -367,5 +494,9 @@ module.exports = {
     updateUserProfile,
     changePassword,
     addPassword,
-    allOrders
+    allOrders,
+    getAddressForEdit,
+    updateAddress,
+    deleteAddress,
+    logout
 }

@@ -94,7 +94,7 @@ const blockProduct = async (req, res) => {
             res.send({ success: false })
         }
     } catch (error) {
-        console.log("Error in block Product", error.message)
+        console.log("Error in block Product controller block product", error.message)
     }
 }
 

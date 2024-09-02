@@ -41,13 +41,14 @@
             <p><strong>Mobile:</strong> <%= order.shippingAddress.mobile %></p>
             <p><strong>Date:</strong> <%= new Date(order.createdAt).toLocaleDateString() %></p>
             <p class="text-danger"><strong class="text-dark">Status:</strong> <%= order.orderStatus %></p>
+            <p ><strong class="text-dark">Payment:</strong> <%= order.paymentStatus %></p>
             <p><strong>Total:</strong> ₹<%= order.totalAmount %></p>
 
 
 
             <% if (order.orderStatus == 'canceled') { %>
                 <p class="text-danger">The order is canceled</p>
-                <a href="/userProfile" class="btn btn-primary">
+                <a href="/my-orders" class="btn btn-primary">
                     <i class="fas fa-arrow-left"></i> Back
                 </a>
             <% } else if (order.orderStatus == 'Delivered') { %>
@@ -62,12 +63,12 @@
                 </div>
             <% } else if(order.orderStatus == 'returned') { %>
                 <p class="text-danger">The order is Returned</p>
-                <a href="/userProfile" class="btn btn-primary">
+                <a href="/my-orders" class="btn btn-primary">
                     <i class="fas fa-arrow-left"></i> Back
                 </a>
             <% } else if (order.orderStatus == 'cannot return') { %>
                 <p class="text-danger">This order cannot return</p>
-                <a href="/orderPage" class="btn btn-primary">
+                <a href="/my-orders" class="btn btn-primary">
                     <i class="fas fa-arrow-left"></i> Back
                 </a>
             <% } %>
@@ -128,7 +129,7 @@
     function returnOrder(orderId) {
         Swal.fire({
             icon: 'question',
-            title: 'Do you want to return the order?',
+            title: 'Return the order?',
             text: 'Are you sure you want to return the order?',
             showCancelButton: true,
             confirmButtonText: 'Yes',
@@ -143,13 +144,17 @@
                     preConfirm: (reason) => {
                         if (!reason) {
                             Swal.showValidationMessage('Please enter a reason for returning the order');
+                            return false; // Prevents proceeding if validation fails
                         }
                         return reason;
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {
                         const reason = result.value;
-                        fetch(`/returnOrder?id=${orderId}`, {
+                        const submitButton = document.querySelector('.swal2-confirm');
+                        submitButton.disabled = true; // Disable the button to prevent multiple submissions
+    
+                        fetch(`/returnOrder?`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
@@ -171,19 +176,34 @@
                                     confirmButtonText: 'OK'
                                 }).then(response => {
                                     if (response.isConfirmed) {
-                                        window.location.href = '/userProfile#pills-order';
+                                        window.location.href = `/order-summary?orderId=${orderId}`;
                                     }
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Return Request Failed',
+                                    text: data.message || 'Something went wrong! Please try again later.',
                                 });
                             }
                         })
                         .catch(error => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: 'Something went wrong! Please try again later.',
+                            });
                             console.log(error);
+                        })
+                        .finally(() => {
+                            submitButton.disabled = false; // Re-enable the button after request completes
                         });
                     }
                 });
             }
         });
     }
+    
 </script>
 
 <%- include("../partials/userpartials/footer.ejs") %>

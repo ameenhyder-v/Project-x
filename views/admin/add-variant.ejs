@@ -1,0 +1,485 @@
+<%- include("../partials/adminpartials/adminHeader.ejs") %>
+
+<!-- todo this have to do  -->
+
+<style>
+    .container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px; /* Adjust the gap as needed */
+    }
+    .input-upload img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+    }
+    /* Modal styles */
+    
+    .modal-content {
+        margin: 10% auto;
+        padding: 20px;
+        width: 80%;
+        max-width: 600px;
+        background-color: #363636;
+    }
+    .cropper-container {
+        width: 100%;
+        max-height: 400px;
+        margin-bottom: 10px;
+    }
+</style>
+
+<!--? croper js  -->
+<link href="https://unpkg.com/cropperjs/dist/cropper.css" rel="stylesheet"/>
+<script src="https://unpkg.com/cropperjs"></script>
+
+<script>
+     // Image Priview and cropperjs
+     let cropper;
+        let currentInput;
+        let croppedFiles = new Map();
+        const targetFileSize = 2 * 1024 * 1024;
+
+        function previewImage(event) {
+            const input = event.target;
+            const file = input.files[0];
+            currentInput = input; 
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const cropperImage = document.getElementById('cropperImage');
+                    cropperImage.src = e.target.result;
+                    document.getElementById('cropperModal').style.display = 'block';
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+                    cropper = new Cropper(cropperImage, {
+                        aspectRatio: 3 / 4, // Portrait aspect ratio
+                        viewMode: 1,
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function cropImage() {
+            if (cropper) {
+                cropper.getCroppedCanvas().toBlob(function(blob) {
+                    adjustQuality(blob, 1, targetFileSize, function(adjustedBlob) {
+                        const croppedImageSrc = URL.createObjectURL(adjustedBlob);
+                        const imagePreview = currentInput.previousElementSibling;
+                        if (imagePreview && imagePreview.tagName === 'IMG') {
+                            imagePreview.src = croppedImageSrc;
+                        }
+                        const dataTransfer = new DataTransfer();
+                        const file = new File([adjustedBlob], `croppedImage${Date.now()}.jpg`, { type: "image/jpeg" });
+                        dataTransfer.items.add(file);
+                        currentInput.files = dataTransfer.files;
+
+                        croppedFiles.set(currentInput.name, file);
+                        closeModal();
+                    });
+                }, 'image/jpeg');
+            }
+        }
+
+        function adjustQuality(blob, quality, targetSize, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+
+                    canvas.toBlob(function(newBlob) {
+                        if (newBlob.size <= targetSize || quality <= 0.1) {
+                            callback(newBlob);
+                        } else {
+                            adjustQuality(blob, quality - 0.1, targetSize, callback);
+                        }
+                    }, 'image/jpeg', quality);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(blob);
+        }
+
+        function closeModal() {
+            document.getElementById('cropperModal').style.display = 'none';
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+        }
+
+        <!-- //? ADDING VARIANT  -->
+        async function addVariant() {
+            const productId = document.getElementById("productId").innerText.trim();
+            const formData = new FormData(document.getElementById("variantForm"));
+        
+            console.log(`Product ID: ${productId}`);
+            console.log('Form Data:', Object.fromEntries(formData));
+        
+            try {
+                const response = await fetch(`/admin/add-new-variant?productId=${productId}`, {
+                    method: "POST",
+                    body: formData
+                });
+        
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.fail) {
+                        Swal.fire({
+                            position: "center",
+                            icon: "warning",
+                            title: `<span style="color: red;">${data.fail}</span>`,
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    } else if (data.success) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Successfully Added",
+                            text: "New variant added",
+                            confirmButtonText: "Ok"
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Navigate to the variant addition page to potentially add more variants
+                                window.location.href = `/admin/load-variant?productId=${data.productId}`;
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            position: "center",
+                            icon: "warning",
+                            title: `<span style="color: red;">Adding variant not working</span>`,
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    }
+                } else {
+                    Swal.fire({
+                        position: "center",
+                        icon: "error",
+                        title: "Server Error",
+                        text: `<span style="color: red;">${data.fail}</span>`,
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                }
+            } catch (error) {
+                console.error('Error in addVariant:', error);
+                Swal.fire({
+                    position: "center",
+                    icon: "error",
+                    title: "Network Error",
+                    text: "Please check your connection and try again.",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            }
+        }
+    
+</script>
+
+
+<div class="screen-overlay"></div>
+<aside class="navbar-aside" id="offcanvas_aside">
+    <div class="aside-top">
+        <a href="index.html" class="brand-wrap">
+            <img src="/assets/imgs/theme/logo.svg" class="logo"
+                alt="Nest Dashboard" />
+        </a>
+        <div>
+            <button class="btn btn-icon btn-aside-minimize"><i
+                    class="text-muted material-icons md-menu_open"></i></button>
+        </div>
+    </div>
+    <nav>
+        <ul class="menu-aside">
+            <li class="menu-item">
+                <a class="menu-link" href="/admin/dashboard">
+                    <i class="icon material-icons md-home"></i>
+                    <span class="text">Dashboard</span>
+                </a>
+            </li>
+            <li class="menu-item active">
+                <a class="menu-link" href="/admin/productlist">
+                    <i class="icon material-icons md-shopping_bag"></i>
+                    <span class="text">Products</span>
+                </a>
+            </li>
+
+            <li class="menu-item">
+                <a class="menu-link" href="/admin/addProduct">
+                    <i class="icon material-icons md-shopping_cart"></i>
+                    <span class="text">Add product</span>
+                </a>
+            </li>
+
+            <li class="menu-item">
+                <a class="menu-link" href="/admin/orders">
+                    <i class="icon material-icons md-list_alt"></i>
+                    <span class="text">Orders</span>
+                </a>
+            </li>
+
+            <li class="menu-item">
+                <a class="menu-link" href="/admin/users">
+                    <i class="icon material-icons md-people"></i>
+                    <span class="text">Users</span>
+                </a>
+            </li>
+
+            <li class="menu-item">
+                <a class="menu-link" href="/admin/Categories">
+                    <i class="icon material-icons md-layers"></i>
+                    <span class="text">Categories</span>
+                </a>
+            </li>
+
+            <li class="menu-item">
+                <a class="menu-link" href="/admin/coupon">
+                    <i class="icon material-icons md-local_offer"></i>
+                    <span class="text">Coupon Management</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a class="menu-link" href="page-reviews.html">
+                    <i class="icon material-icons md-comment"></i>
+                    <span class="text">Reviews</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a class="menu-link" href="page-brands.html"> <i
+                        class="icon material-icons md-stars"></i> <span
+                        class="text">Brands</span> </a>
+            </li>
+            <li class="menu-item">
+                <a class="menu-link" disabled href="#">
+                    <i class="icon material-icons md-pie_chart"></i>
+                    <span class="text">Statistics</span>
+                </a>
+            </li>
+        </ul>
+        <hr />
+        <ul class="menu-aside">
+            <li class="menu-item has-submenu">
+                <a class="menu-link" href="#">
+                    <i class="icon material-icons md-settings"></i>
+                    <span class="text">Settings</span>
+                </a>
+                <div class="submenu">
+                    <a href="page-settings-1.html">Setting sample 1</a>
+                    <a href="page-settings-2.html">Setting sample 2</a>
+                </div>
+            </li>
+            <li class="menu-item">
+                <a class="menu-link" href="page-blank.html">
+                    <i class="icon material-icons md-local_offer"></i>
+                    <span class="text"> Starter page </span>
+                </a>
+            </li>
+        </ul>
+        <br />
+        <br />
+    </nav>
+</aside>
+<main class="main-wrap">
+    <header class="main-header navbar">
+        <div class="col-search">
+            <form class="searchform">
+                <div class="input-group">
+                    <input list="search_terms" type="text" class="form-control"
+                        placeholder="Search term" />
+                    <button class="btn btn-light bg" type="button"><i
+                            class="material-icons md-search"></i></button>
+                </div>
+                <datalist id="search_terms">
+                    <option value="Products"></option>
+                    <option value="New orders"></option>
+                    <option value="Apple iphone"></option>
+                    <option value="Ahmed Hassan"></option>
+                </datalist>
+            </form>
+        </div>
+        <div class="col-nav">
+            <button class="btn btn-icon btn-mobile me-auto"
+                data-trigger="#offcanvas_aside"><i
+                    class="material-icons md-apps"></i></button>
+            <ul class="nav">
+                <li class="nav-item">
+                    <a class="nav-link btn-icon" href="#">
+                        <i
+                            class="material-icons md-notifications animation-shake"></i>
+                        <span class="badge rounded-pill">3</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link btn-icon darkmode" href="#"> <i
+                            class="material-icons md-nights_stay"></i> </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="requestfullscreen nav-link btn-icon"><i
+                            class="material-icons md-cast"></i></a>
+                </li>
+                <li class="dropdown nav-item">
+                    <a class="dropdown-toggle" data-bs-toggle="dropdown"
+                        href="#" id="dropdownLanguage" aria-expanded="false"><i
+                            class="material-icons md-public"></i></a>
+                    <div class="dropdown-menu dropdown-menu-end"
+                        aria-labelledby="dropdownLanguage">
+                        <a class="dropdown-item text-brand" href="#"><img
+                                src="/assets/imgs/theme/flag-us.png"
+                                alt="English" />English</a>
+                        <a class="dropdown-item" href="#"><img
+                                src="/assets/imgs/theme/flag-fr.png"
+                                alt="Français" />Français</a>
+                        <a class="dropdown-item" href="#"><img
+                                src="/assets/imgs/theme/flag-jp.png"
+                                alt="Français" />日本語</a>
+                        <a class="dropdown-item" href="#"><img
+                                src="/assets/imgs/theme/flag-cn.png"
+                                alt="Français" />中国人</a>
+                    </div>
+                </li>
+                <li class="dropdown nav-item">
+                    <a class="dropdown-toggle" data-bs-toggle="dropdown"
+                        href="#" id="dropdownAccount" aria-expanded="false">
+                        <img class="img-xs rounded-circle"
+                            src="/assets/imgs/people/avatar-2.png"
+                            alt="User" /></a>
+                    <div class="dropdown-menu dropdown-menu-end"
+                        aria-labelledby="dropdownAccount">
+                        <a class="dropdown-item" href="#"><i
+                                class="material-icons md-perm_identity"></i>Edit
+                            Profile</a>
+                        <a class="dropdown-item" href="#"><i
+                                class="material-icons md-settings"></i>Account
+                            Settings</a>
+                        <a class="dropdown-item" href="#"><i
+                                class="material-icons md-account_balance_wallet"></i>Wallet</a>
+                        <a class="dropdown-item" href="#"><i
+                                class="material-icons md-receipt"></i>Billing</a>
+                        <a class="dropdown-item" href="#"><i
+                                class="material-icons md-help_outline"></i>Help
+                            center</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item text-danger" href="#"><i
+                                class="material-icons md-exit_to_app"></i>Logout</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </header>
+    <section class="content-main">
+        <div class="content-header">
+            <div>
+                <p class="d-none" id="productId"><%= productId %></p>
+                <h2 class="content-title card-title">Add New Variant</h2>
+            </div>
+        </div>
+            </header>
+
+            <form id="variantForm">
+                <div class="mb-3">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h4>Add Images</h4>
+                        </div>
+                        <div class="container">
+                            <div class="card-body">
+                                <div class="input-upload">
+                                    <img  class="image-preview" src="/assets/imgs/theme/upload.svg" alt="product image" />
+                                    <input class="form-control"
+                                        type="file" name="Image0" accept="image/jpeg, image/png," onchange="previewImage(event)" required/>
+                                </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="input-upload">
+                                        <img  class="image-preview" src="/assets/imgs/theme/upload.svg" alt="product image"/>
+                                        <input class="form-control"
+                                            type="file" name="Image1" accept="image/jpeg, image/png," onchange="previewImage(event)" required/>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="input-upload">
+                                        <img  class="image-preview" src="/assets/imgs/theme/upload.svg" alt="product image" />
+                                        <input class="form-control"
+                                            type="file" name="Image2" accept="image/jpeg, image/png," onchange="previewImage(event)" required/>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="input-upload">
+                                        <img  class="image-preview" src="/assets/imgs/theme/upload.svg" alt="product image" />
+                                        <input class="form-control"
+                                            type="file" name="Image3" accept="image/jpeg, image/png" onchange="previewImage(event)" required/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="variant_name"
+                                class="form-label">Colour</label>
+                            <input type="text" class="form-control" name="colour"  placeholder="enter product's colour"/>
+                        </div>
+
+                        <div id="rows-container" class="col-12">
+                            <% ['S', 'M', 'L', 'XL'].forEach((size, index) => { %>
+                                <div class="row gx-4 row-to-clone">
+                                    <div class="col-4 mb-3">
+                                        <label class="form-label">Size</label>
+                                        <select class="form-select" name="size">
+                                            <option><%= size %></option>
+                                        </select>
+                                    </div>
+                                    <div class="col-4 mb-3">
+                                        <label class="form-label">Quantity</label>
+                                        <input type="number" name="quantity" class="form-control" placeholder="e.g., quantity" required/>
+                                    </div>
+                                    <div class="col-4 mb-3">
+                                        <label class="form-label">Price</label>
+                                        <input type="number" name="price" class="form-control" placeholder="e.g., Rupees" required/>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                        
+                    
+                    <ul class="list-group mt-3" id="variantList">
+                        <!-- Variant items will be appended here -->
+                    </ul>
+                </div>
+                <div class="modal-footer" style="background-color: rgb(68, 68, 68);">
+                    <button type="button" class="btn btn-secondary" 
+                    data-bs-dismiss="modal" >Close</button>
+                    <button type="button" class="btn btn-primary" onclick="addVariant()">Save Variant</button>
+                </div>
+            </form>
+            <br>
+            <br>
+            <br>
+            <br>
+
+<%- include("../partials/adminpartials/adminFooter.ejs") %>
+
+
+<!-- Modal for cropping -->
+<div id="cropperModal" class="modal">
+    <div class="modal-content">
+        <div class="cropper-container">
+            <img id="cropperImage" src="" alt="Image for cropping" />
+        </div>
+        <button onclick="cropImage()">Crop</button>
+        <button onclick="closeModal()">Cancel</button>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+

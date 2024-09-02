@@ -80,7 +80,9 @@
                                 <div class="rs1-select2 bor8 bg0">
                                     <select class="js-select2" id="productSelect" name="size" onchange="changePrice()">
                                         <% variant.stock.forEach(element => { %>
-                                        <option value="<%= element.price %>"> <%= element.size %></option>
+                                            <option value="<%= element.price %>" data-quantity="<%= element.quantity %>">
+                                                <%= element.size %>
+                                            </option>
                                         <% }) %>
                                     </select>
                                     <div class="dropDownSelect2"></div>
@@ -113,23 +115,26 @@
 
                         <div class="flex-w flex-r-m p-b-10">
                             <div class="size-204 flex-w flex-m respon6-next">
-                                
-
                                 <button onclick="addToCart('<%= variant._id %>')" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04 js-addcart-detail">
                                     Add to cart
                                 </button>
+                                
+                                <p id="outOfStockMessage" style="color: red; display: none;">This size is out of stock</p>
                             </div>
                         </div>
                     </div>
 
                     <!--  -->
                     <div class="flex-w flex-m p-l-100 p-t-40 respon7">
-                        <div class="flex-m bor9 p-r-10 m-r-11">
-                            <a href="#"
-                                class="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2 js-addwish-detail tooltip100"
-                                data-tooltip="Add to Wishlist">
-                                <i class="zmdi zmdi-favorite"></i>
-                            </a>
+                        <div class="flex-m bor9 p-r-10 m-r-11" >
+                            <% let isInWishlist = wishList.wishlistItems.includes(variant._id.toString()); %>
+                            <button onclick="addToWishOrRemove('<%= variant._id %>', event)"
+                                class="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2"
+                                data-tooltip="<%= isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' %>">
+                                <i class="zmdi zmdi-favorite" style="color: <%= isInWishlist ? 'red' : '' %>"></i>
+                            </button>
+                        
+
                         </div>
 
                         <a href="#"
@@ -749,14 +754,31 @@ console.log(selectedParam)
 </script>
 
 <script>
-    function changePrice(){
+    function changePrice() {
         const selectElement = document.getElementById('productSelect');
-
-    // Get the value of the selected option
-    const selectedPrice = selectElement.value;
-        document.getElementById('productPrice').textContent = `₹ ${selectedPrice}`
+        const addToCartButton = document.querySelector('.js-addcart-detail');
+        const outOfStockMessage = document.getElementById('outOfStockMessage');
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        const selectedPrice = selectedOption.value;
+        const selectedQuantity = selectedOption.getAttribute('data-quantity');
     
+        document.getElementById('productPrice').textContent = `₹ ${selectedPrice}`;
+    
+        if (selectedQuantity > 0) {
+            addToCartButton.style.display = 'inline-block';
+            outOfStockMessage.style.display = 'none';
+            addToCartButton.disabled = false;
+            addToCartButton.textContent = "Add to cart";
+        } else {
+            addToCartButton.style.display = 'none';
+            outOfStockMessage.style.display = 'block';
+            outOfStockMessage.textContent = "This size is out of stock";
+        }
     }
+    
+
+    window.onload = changePrice;
+    
 
 
     async function addToCart(vId) {
@@ -790,9 +812,8 @@ console.log(selectedParam)
                 });
             }else if (responseData.fail){
                 Swal.fire({
-                    title: 'Success!',
-                    text: `${responseData.fail}`,
-                    icon: 'success'
+                    title: `${responseData.fail}`,
+                    icon: 'warning'
                 });
             }
 
@@ -805,4 +826,99 @@ console.log(selectedParam)
         }
 
     }
+
+    function addToWishOrRemove(variantId, event) {
+        event.preventDefault(); // Prevent default action if necessary
+        
+        // Get the icon element within the button
+        const iconElement = event.currentTarget.querySelector('i');
+    
+        fetch('/wishlist/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ variantId: variantId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                iconElement.style.color = 'red';
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Added to Wishlist',
+                    text: data.message,
+                    confirmButtonText: 'OK'
+                });
+            } else if (data.exists) {
+                Swal.fire({
+                    title: 'Already in Wishlist',
+                    text: data.message,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes,',
+                    cancelButtonText: 'No,'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Send another fetch to remove the item from the wishlist
+                        fetch('/wishlist/remove', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ variantId: variantId })
+                        })
+                        .then(response => response.json())
+                        .then(removeData => {
+                            if (removeData.success) {
+                                iconElement.style.color = '';
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Removed from Wishlist',
+                                    text: removeData.message,
+                                    confirmButtonText: 'OK'
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: removeData.message,
+                                    confirmButtonText: 'OK'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'An error occurred while removing from wishlist.',
+                                confirmButtonText: 'OK'
+                            });
+                        });
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message,
+                    confirmButtonText: 'OK'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred while adding to wishlist.',
+                confirmButtonText: 'OK'
+            });
+        });
+    }
+    
+    
 </script>

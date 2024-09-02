@@ -1,6 +1,10 @@
 
 <%- include("../partials/adminpartials/adminHeader.ejs") %>
 
+<!-- sweet alert link -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
 
 <div class="screen-overlay"></div>
@@ -58,17 +62,13 @@
                 </a>
             </li>
 
-            <li class="menu-item has-submenu">
-                <a class="menu-link" href="#">
-                    <i class="icon material-icons md-person"></i>
-                    <span class="text">Account</span>
+            <li class="menu-item">
+                <a class="menu-link" href="/admin/coupon">
+                    <i class="icon material-icons md-local_offer"></i>
+                    <span class="text">Coupon Management</span>
                 </a>
-                <div class="submenu">
-                    <a href="page-account-login.html">User login</a>
-                    <a href="page-account-register.html">User registration</a>
-                    <a href="page-error-404.html">Error 404</a>
-                </div>
             </li>
+            
             <li class="menu-item">
                 <a class="menu-link" href="page-reviews.html">
                     <i class="icon material-icons md-comment"></i>
@@ -204,7 +204,7 @@
                 <p>of <%=variants[0].productId.name %></p>
             </div>
             <div>
-                <a href="#" class="btn btn-primary btn-sm rounded">Create
+                <a href="/admin/add-new-variant?productId='<%=productId%>'" class="btn btn-primary btn-sm rounded">Create
                     new</a>
             </div>
         </div>
@@ -254,11 +254,7 @@
                                     class="btn btn-sm font-sm rounded btn-brand">
                                     <i class="material-icons md-edit"></i> Edit
                                 </a>
-                                <a href="#"
-                                    class="btn btn-sm font-sm btn-light rounded">
-                                    
-                                      <i  class="material-icons md-delete_forever"></i>
-                                    Delete </a>
+                                <button class="btn btn-sm font-sm btn-light rounded" onclick="deleteVariant(event, '<%= variant._id %>')"> <i  class="material-icons md-delete_forever"></i> Delete </button>
 
                                     <% if (variant.isListed == true) { %>
                                         <a href="#"
@@ -310,30 +306,81 @@
     <%- include("../partials/adminpartials/adminFooter.ejs") %>
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    
 
-    <script>
-        function blockVariant(vId) {
-        
-            axios.patch(`/admin/block-variant?vId=${vId}`)
-                .then(response => {
-                    if (response.data.success) {
-                        console.log(response.data.success);
-                        let button = document.getElementById(`block-btn-${vId}`);
-                        if (button.classList.contains('btn-outline-danger')) {
-                            button.classList.remove('btn-outline-danger');
-                            button.classList.add('btn-brand');
-                            button.innerHTML = '<i class="material-icons md-check_circle"></i> Unblock';
-                        } else {
-                            button.classList.remove('btn-brand');
-                            button.classList.add('btn-outline-danger');
-                            button.innerHTML = '<i class="material-icons md-block"></i> Block';
-                        }
+<script>
+    <!--//! block variant -->
+    function blockVariant(vId) {
+    
+        axios.patch(`/admin/block-variant?vId=${vId}`)
+            .then(response => {
+                if (response.data.success) {
+                    console.log(response.data.success);
+                    let button = document.getElementById(`block-btn-${vId}`);
+                    if (button.classList.contains('btn-outline-danger')) {
+                        button.classList.remove('btn-outline-danger');
+                        button.classList.add('btn-brand');
+                        button.innerHTML = '<i class="material-icons md-check_circle"></i> Unblock';
                     } else {
-                        alert("An error occurred");
+                        button.classList.remove('btn-brand');
+                        button.classList.add('btn-outline-danger');
+                        button.innerHTML = '<i class="material-icons md-block"></i> Block';
                     }
-                })
-                .catch(error => {
-                    console.log("Error in listing and unlisting variant");
-                });
-        }
-    </script>
+                } else {
+                    alert("An error occurred");
+                }
+            })
+            .catch(error => {
+                console.log("Error in listing and unlisting variant");
+            });
+    }
+
+    function deleteVariant(event, variantId) {
+        event.preventDefault();
+        const vId = variantId;
+    
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you really want to delete this variant? This action cannot be undone.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                axios.delete(`/admin/load-variant/deleteVarint?vId=${vId}`)
+                    .then(response => {
+                        if (response.data.success) {
+                            Swal.fire({
+                                title: 'Deleted!',
+                                text: response.data.message || 'The variant has been successfully deleted.',
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                location.reload(); 
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: response.data.message || 'Failed to delete the variant. Please try again.',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.log("Error in deleting variant:", error);
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'An error occurred while trying to delete the variant.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    });
+            }
+        });
+    }
+    
+</script>

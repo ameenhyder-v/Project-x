@@ -3,6 +3,7 @@ const otpContoller = require("../Controller/otpController")
 const otpModel = require('../Model/otpModel')
 const Variant = require("../Model/variantModel")
 const bcrypt = require("bcrypt");
+const wishlistController = require("../Controller/wishlist-controller");
 
 
 
@@ -210,6 +211,7 @@ const userVarify = async (req, res) => {
     }
 }
 
+//! HOME PAGE LOAD
 const home = async (req, res) => {
     try {
         const allVariants = await Variant.find().populate("productId")
@@ -226,18 +228,22 @@ const home = async (req, res) => {
 }
 
 
+//! PRODUCT DETAILS PAGE LOAD
 const productDetails = async (req, res) => {
     try {
+        const userId = req.session.userId;
         const { variantId } = req.query;
         const variant = await Variant.findOne({ _id: variantId }).populate("productId");
         const variants = await Variant.find({ productId: variant.productId })
-        res.render("productDetail", { variant: variant, variants: variants });
+        const wishListData = await wishlistController.findUsersWishlistItems(userId);
+        
+        res.render("productDetail", { variant, variants, wishList: wishListData });
     } catch (error) {
         console.log(`error from productDetails: ${error}`);
     }
 }
 
-
+//! LOAD ALL PRODUCTS SHOPE PAGE 
 const allProducts = async (req, res) => {
     try {
 
@@ -254,7 +260,43 @@ const allProducts = async (req, res) => {
     }
 }
 
+//! ALL WOMEN PRODUCTS 
+const womenAllProducts = async (req, res) => {
+    try {
 
+        const allVariants = await Variant.find().populate("productId").exec();
+
+        // Filter variants based on the isBlocked status of the related product
+        const filteredVariants = allVariants.filter(variant => {
+            return !variant.productId.isBlocked && variant.productId.gender === 'Female';
+        });
+        console.log(filteredVariants)
+
+        // Render the results with the filtered variants
+        res.render("women-all-products", { variants: filteredVariants });
+        
+    } catch (error) {
+        console.log(`error from the user controller womenAllProducts : ${error}`)
+    }
+}
+
+//! ALL MEN PRODUCTS 
+const menAllProducts = async (req, res) => {
+    try {
+
+        const allVariants = await Variant.find().populate("productId").exec();
+
+        // Filter variants based on the isBlocked status of the related product and gender
+        const filteredVariants = allVariants.filter(variant => {
+            return !variant.productId.isBlocked && variant.productId.gender === 'Male';
+        });
+
+        // Render the results with the filtered variants
+        res.render("men-all-products", { variants: filteredVariants });
+    } catch (error) {
+        console.log(`error from the user controller menAllProducts : ${error}`)
+    }
+}
 
 
 
@@ -341,4 +383,6 @@ module.exports = {
     userExists,
     updatePassword,
     changePassword,
+    womenAllProducts,
+    menAllProducts
 };
