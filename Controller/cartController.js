@@ -50,17 +50,17 @@ async function subTotal(userId) {
         const cartData = await Cart.findOne({ userId: userId }).populate("cartItems.variantId");
 
         if (!cartData || !cartData.cartItems || cartData.cartItems.length === 0) {
-            return 0; 
+            return 0;
         }
 
         const total = cartData.cartItems.reduce((acc, item) => {
             const variant = item.variantId;
-            const stockItem = variant.stock.find(stock => stock.size.trim() === item.size.trim());
-
-            if (stockItem && stockItem.quantity > 0) {
-                acc += stockItem.price * item.quantity;
+            if (variant) {
+                const stockItem = variant.stock.find(stock => stock.size.trim() === item.size.trim());
+                if (stockItem && stockItem.quantity > 0) {
+                    acc += variant.price * item.quantity;
+                }
             }
-
             return acc;
         }, 0);
 
@@ -81,7 +81,6 @@ const shopingCart = async (req, res) => {
             return res.status(400).json({ error: "User not found" });
         }
 
-        // Fetch the user's cart with populated variant and product data
         const cartData = await Cart.findOne({ userId }).populate({
             path: "cartItems.variantId",
             populate: {
@@ -90,23 +89,18 @@ const shopingCart = async (req, res) => {
             }
         });
 
-        // Handle case where cart is empty
         if (!cartData || !cartData.cartItems.length) {
             return res.render("shopping-cart", { cartData: { cartItems: [] }, subTotalAmount: 0, message: "Your cart is empty." });
         }
 
-        // Optionally, process items if needed (e.g., for logging or further operations)
         cartData.cartItems.forEach(item => {
             const size = item.size.trim();
             const variant = item.variantId;
             const product = item.variantId.productId;
-            // Add additional processing if needed
         });
 
-        // Calculate the subtotal amount
         const subTotalAmount = await subTotal(userId);
 
-        // Render the shopping cart page with cart data and subtotal amount
         res.render("shopping-cart", { cartData, subTotalAmount });
 
     } catch (error) {
@@ -123,15 +117,10 @@ const addQuantity = async (req, res) => {
         const userId = req.session.userId;
         const variant = await Variant.findOne({_id: variantId})
         const stock = variant.stock.find(item => item.size.trim() == size.trim());
-        // console.log(stock);
 
         if (!userId) {
             return res.status(200).json({ fail: "User not authenticated" });
         }
-
-        // console.log("variantId:", variantId);
-        // console.log("size:", size);
-
         const userCart = await Cart.findOne({ userId: userId });
 
         if (!userCart) {
@@ -142,14 +131,12 @@ const addQuantity = async (req, res) => {
             item.variantId == variantId && item.size.trim() == size.trim()
         );
 
-        // console.log(cartItem.quantity)
-        // console.log(stock.quantity)
-
         if (!cartItem) {
             return res.status(200).json({ fail: "Cart item not found" });   
         }
-        if (stock.quantity <= cartItem.quantity) {
 
+        
+        if (stock.quantity <= cartItem.quantity) {
             return res.status(200).json({ message: "Insufficient stock" })
         }else if (cartItem.quantity >= 5){
             res.status(200).json({ message: "Maximum limit reached"})
@@ -159,7 +146,7 @@ const addQuantity = async (req, res) => {
             if (saving) {
                 let subTotalAmount = await subTotal(userId);
                 console.log(subTotalAmount);
-                let total = cartItem.quantity*stock.price
+                let total = cartItem.quantity * variant.price
                 res.status(200).json({ success: 1, quantity: cartItem.quantity, totalPrice: total, subTotalAmount: subTotalAmount });
             }
         }
@@ -198,7 +185,7 @@ const decreaseQuantity = async (req, res) => {
             if (saving) {
                 
                 let subTotalAmount = await subTotal(userId);
-                let total = cartItem.quantity * stock.price
+                let total = cartItem.quantity * variant.price
                 res.status(200).json({ success: 1, quantity: cartItem.quantity, totalPrice: total, subTotalAmount: subTotalAmount });
             }
             
@@ -216,8 +203,8 @@ const removeItem = async (req, res) => {
         const { variantId, size } = req.body;
         const userId = req.session.userId ;
 
-        console.log(userId, "---------userId")
-        console.log("VId ===", variantId,  "           size ====", size);
+        // console.log(userId, "---------userId")
+        // console.log("VId ===", variantId,  "           size ====", size);
 
         const cart = await Cart.findOne({ userId: userId });
 

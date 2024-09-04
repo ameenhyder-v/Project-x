@@ -14,7 +14,16 @@ const variantScema = new mongoose.Schema({
         type: [String],
         required: true
     },
-    stock: [    { size: { type: String, required: true } ,  quantity: { type: Number, required: true } , price: { type: Number, required: true } }],
+    stock: [    
+        {
+            size: { type: String, required: true },
+            quantity: { type: Number, required: true }
+        }
+    ],
+    price: {
+        type: Number,
+        required: true
+    },
     isListed:{
         type: Boolean,
         default: true

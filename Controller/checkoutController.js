@@ -96,21 +96,23 @@ const placeOrder = async (req, res) => {
         // Create ordered items array
         const orderedItems = availableCartItems.map(item => {
             const variant = item.variantId;
-            const stockItem = variant.stock.find(stock => stock.size.trim() === item.size.trim());
             const product = variant.productId;
+            console.log("🚀 ~ orderedItems ~ orderedItems:", item.size.trim())            
 
             return {
                 variantId: variant,
                 product_name: product.name,
                 quantity: item.quantity,
-                price: stockItem.price,
+                price: variant.price,
                 type: product.material,
                 category: product.category,
                 color: variant.color,
-                size: item.size,
+                size: item.size.trim(),
             };
         });
+        console.log("🚀 ~ orderedItems ~ orderedItems:", orderedItems)
 
+        
         const userData = await User.findById(userId)
 
         // Create an order
@@ -132,7 +134,7 @@ const placeOrder = async (req, res) => {
         });
 
         await order.save();
-        console.log(order)
+        // console.log(order)
 
         const orderId = order._id;
 
@@ -157,10 +159,10 @@ const placeOrder = async (req, res) => {
         await Cart.findOneAndUpdate({ userId: userId }, { $set: { cartItems: [] } });
 
         if(paymentMethod === "COD"){
-            console.log("cod")
+            // console.log("cod")
             res.status(200).json({ message: 'Ordered by COD', orderId });
         }else if(paymentMethod === "razor"){
-            console.log("with razor")
+            // console.log("with razor")
 
             const razorpayOrder = await razorpayInstance.orders.create({
                 amount: totalAmount * 100,

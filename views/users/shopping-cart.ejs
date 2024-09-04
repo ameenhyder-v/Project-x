@@ -52,7 +52,7 @@
                                         </td>
                                         <td class="column-2"><a href="/productDetail?variantId=<%= variant._id %>"><%= product.name %></a></td>
                                         <td class="column-3"><%= cart.size.trim() %></td>
-                                        <td class="column-4">₹<%= filteredData[0].price %></td>
+                                        <td class="column-4">₹<%= variant.price %></td>
                                         <td class="column-5">
                                             <% if (filteredData[0].quantity == 0) { %>
                                                 <p style="color: red;" id="noStock">Out of stock</p>
@@ -72,7 +72,7 @@
                                             <% if (filteredData[0].quantity == 0) { %>
                                                 ₹0
                                             <% } else { %>
-                                                ₹<%= filteredData[0].price * cart.quantity %>
+                                                ₹<%= variant.price * cart.quantity %>
                                             <% } %>
                                         </td>
                                     </tr>

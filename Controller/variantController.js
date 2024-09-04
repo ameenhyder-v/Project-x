@@ -35,7 +35,6 @@ const addVariant = async (req, res) => {
             stock[i] = {
                 size: size[i],
                 quantity: quantity[i],
-                price: price[i]
             }
         }
         // console.log(stock);
@@ -54,6 +53,7 @@ const addVariant = async (req, res) => {
             productId: productId,
             image: images,
             stock: stock,
+            price: price
         })
 
         const saving = await variant.save()
@@ -109,12 +109,16 @@ const addNewVariant = async (req, res) => {
             return res.status(200).json({ fail: "Color must be a non-empty string" });
         }
 
-        if (!Array.isArray(size) || !Array.isArray(quantity) || !Array.isArray(price)) {
-            return res.status(200).json({ fail: "Size, quantity, and price must be arrays" });
+        if (!Array.isArray(size) || !Array.isArray(quantity)) {
+            return res.status(200).json({ fail: "Size and quantity must be equal size" });
         }
 
-        if (size.length !== quantity.length || size.length !== price.length) {
-            return res.status(200).json({ fail: "Size, quantity, and price arrays must have the same length" });
+        if (size.length !== quantity.length) {
+            return res.status(200).json({ fail: "Size and quantity must have the same length" });
+        }
+
+        if (price <= 0 || typeof price == "number"){
+            return res.status(200).json({fail: "price must be greater than 0"});
         }
 
         const stock = [];
@@ -122,7 +126,6 @@ const addNewVariant = async (req, res) => {
             stock[i] = {
                 size: size[i],
                 quantity: quantity[i],
-                price: price[i]
             }
         }
         console.log(stock)
@@ -146,6 +149,7 @@ const addNewVariant = async (req, res) => {
             productId: productId,
             image: images,
             stock: stock,
+            price: price
         })
 
         const saving = await variant.save();
@@ -216,14 +220,18 @@ const updateVariant = async (req, res) => {
         const { colour, size, quantity, price } = req.body;
         const { variantId } = req.query;
 
+        console.log(size,  "==========", quantity, "\n", price)
         // Validate that size, quantity, and price are provided and are arrays
-        if (!Array.isArray(size) || !Array.isArray(quantity) || !Array.isArray(price)) {
-            return res.status(200).json({ fail: "Size, quantity, and price must be arrays." });
+        if (!Array.isArray(size) || !Array.isArray(quantity)) {
+            return res.status(200).json({ fail: "Size and quantity must fill every field." });
         }
 
-        // Validate that size, quantity, and price arrays have the same length
-        if (size.length !== quantity.length || size.length !== price.length) {
-            return res.status(200).json({ fail: "Size, quantity, and price arrays must have the same length." });
+        // Validate that size and quantity arrays have the same length
+        if (size.length !== quantity.length) {
+            return res.status(200).json({ fail: "Size and quantity must have." });
+        }
+        if (price <= 0 || typeof price == "number") {
+            return res.status(200).json({ fail: "price must be greater than 0" });
         }
 
         // Validate that quantity and price are positive numbers
@@ -231,16 +239,12 @@ const updateVariant = async (req, res) => {
             if (quantity[i] <= 0) {
                 return res.status(200).json({ fail: `Quantity at size ${size[i]} must be a positive number.` });
             }
-            if (price[i] <= 0) {
-                return res.status(200).json({ fail: `Price at size ${size[i]} must be a positive number.` });
-            }
         }
 
         //? STOCK CREATING FOR SAVING ARRAY OF OBJECTS
         const stock = size.map((s, i) => ({
             size: s,
             quantity: quantity[i],
-            price: price[i],
         }));
 
         // Find the variant by ID
@@ -252,6 +256,7 @@ const updateVariant = async (req, res) => {
         // Update the variant's color and stock
         findVariant.color = colour;
         findVariant.stock = stock;
+        findVariant.price = price
 
         if (req.files && req.files.length > 0) {
             req.files.forEach(item => {

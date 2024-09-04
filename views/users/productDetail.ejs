@@ -62,7 +62,7 @@
                     </h4>
 
                     <span id="productPrice" class="mtext-106 cl2">
-                        ₹ <%= variant.stock[0].price %>
+                        ₹ <%= variant.price %>
                     </span>
 
                     <p class="stext-102 cl3 p-t-23">
@@ -80,7 +80,7 @@
                                 <div class="rs1-select2 bor8 bg0">
                                     <select class="js-select2" id="productSelect" name="size" onchange="changePrice()">
                                         <% variant.stock.forEach(element => { %>
-                                            <option value="<%= element.price %>" data-quantity="<%= element.quantity %>">
+                                            <option value="" data-quantity="<%= element.quantity %>">
                                                 <%= element.size %>
                                             </option>
                                         <% }) %>
@@ -127,14 +127,17 @@
                     <!--  -->
                     <div class="flex-w flex-m p-l-100 p-t-40 respon7">
                         <div class="flex-m bor9 p-r-10 m-r-11" >
-                            <% let isInWishlist = wishList.wishlistItems.includes(variant._id.toString()); %>
-                            <button onclick="addToWishOrRemove('<%= variant._id %>', event)"
-                                class="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2"
-                                data-tooltip="<%= isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' %>">
-                                <i class="zmdi zmdi-favorite" style="color: <%= isInWishlist ? 'red' : '' %>"></i>
-                            </button>
-                        
-
+                            <% 
+                                let isInWishlist = false; 
+                                if (wishList && wishList.wishlistItems) { 
+                                    isInWishlist = wishList.wishlistItems.includes(variant._id.toString()); 
+                                } 
+                                %>
+                                <button onclick="addToWishOrRemove('<%= variant._id %>', event)"
+                                    class="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2"
+                                    data-tooltip="<%= isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' %>">
+                                    <i class="zmdi zmdi-favorite" style="color: <%= isInWishlist ? 'red' : '' %>"></i>
+                                </button>
                         </div>
 
                         <a href="#"
@@ -759,10 +762,8 @@ console.log(selectedParam)
         const addToCartButton = document.querySelector('.js-addcart-detail');
         const outOfStockMessage = document.getElementById('outOfStockMessage');
         const selectedOption = selectElement.options[selectElement.selectedIndex];
-        const selectedPrice = selectedOption.value;
         const selectedQuantity = selectedOption.getAttribute('data-quantity');
     
-        document.getElementById('productPrice').textContent = `₹ ${selectedPrice}`;
     
         if (selectedQuantity > 0) {
             addToCartButton.style.display = 'inline-block';

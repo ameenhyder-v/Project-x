@@ -73,7 +73,7 @@ adminRoute.post("/update-variant", upload.any(), variantController.updateVariant
 
 //!COUPON SECTION 
 adminRoute.get("/coupon", adminAuth.isLogin, couponController.coupon);
-adminRoute.post("/coupon/add",  upload.none(), couponController.addCoupon);
+adminRoute.post("/coupon/add", upload.none(), couponController.addCoupon);
 adminRoute.delete("/coupon/delete", adminAuth.isLogin, couponController.deleteCoupon);
 adminRoute.get("/coupon/getCoupon", adminAuth.isLogin, couponController.getCouponForEdit);
 adminRoute.post("/coupon/update", adminAuth.isLogin, couponController.updateCoupon);
