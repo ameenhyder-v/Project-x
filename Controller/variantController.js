@@ -11,24 +11,25 @@ const fs = require("fs").promises;
 const addVariant = async (req, res) => {
     try {
         const { colour, size, quantity, price } = req.body;
-        // console.log(size);
 
-        // if (typeof colour !== 'string' || colour.trim() === '') {
-        //     return res.status(200).json({ fail: "Color must be a non-empty string" });
-        // }
+        if (!Array.isArray(size) || !Array.isArray(quantity)) {
+            return res.status(200).json({ fail: "Size and quantity must fill every field." });
+        }
 
-        // if (typeof size !== 'string' || size.length !== 1) {
-        //     return res.status(200).json({ fail: "Size must be a single character" });
-        // }
+        // Validate that size and quantity arrays have the same length
+        if (size.length !== quantity.length) {
+            return res.status(200).json({ fail: "Size and quantity must have." });
+        }
+        if (price <= 0 || typeof price == "number") {
+            return res.status(200).json({ fail: "price must be greater than 0" });
+        }
 
-        // if (isNaN(quantity) || quantity <= 0) {
-        //     return res.status(200).json({ fail: "Quantity must be a positive number" });
-        // }
-
-        // if (isNaN(price) || price <= 0) {
-        //     return res.status(200).json({ fail: "Price must be a positive number" });
-        // }
-
+        // Validate that quantity and price are positive numbers
+        for (let i = 0; i < size.length; i++) {
+            if (quantity[i] <= 0) {
+                return res.status(200).json({ fail: `Quantity at size ${size[i]} must be a positive number.` });
+            }
+        }
 
         const stock = [];
         for (i = 0; i < size.length; i++) {
@@ -64,7 +65,6 @@ const addVariant = async (req, res) => {
         } else {
             res.status(200).json({ fail: "Sorry! Please try again.." })
         }
-        console.log(productId)
     } catch (error) {
         console.log(`error form variantController.addVriant: ${error}`);
     }
@@ -105,20 +105,23 @@ const addNewVariant = async (req, res) => {
     try {
         const { colour, size, quantity, price } = req.body;
 
-        if (typeof colour !== 'string' || colour.trim() === '') {
-            return res.status(200).json({ fail: "Color must be a non-empty string" });
-        }
-
         if (!Array.isArray(size) || !Array.isArray(quantity)) {
-            return res.status(200).json({ fail: "Size and quantity must be equal size" });
+            return res.status(200).json({ fail: "Size and quantity must fill every field." });
         }
 
+        // Validate that size and quantity arrays have the same length
         if (size.length !== quantity.length) {
-            return res.status(200).json({ fail: "Size and quantity must have the same length" });
+            return res.status(200).json({ fail: "Size and quantity must have." });
+        }
+        if (price <= 0 || typeof price == "number") {
+            return res.status(200).json({ fail: "price must be greater than 0" });
         }
 
-        if (price <= 0 || typeof price == "number"){
-            return res.status(200).json({fail: "price must be greater than 0"});
+        // Validate that quantity are positive numbers
+        for (let i = 0; i < size.length; i++) {
+            if (quantity[i] <= 0) {
+                return res.status(200).json({ fail: `Quantity at size ${size[i]} must be a positive number.` });
+            }
         }
 
         const stock = [];
@@ -127,16 +130,13 @@ const addNewVariant = async (req, res) => {
                 size: size[i],
                 quantity: quantity[i],
             }
-        }
-        console.log(stock)
-        
+        }        
 
         const images = req.files.map(file => file.filename);
 
         let { productId } = req.query;
 
         productId = productId.replace(/['"]+/g, '').trim();
-        console.log(productId)
 
         const isExists = await Variant.findOne({ color: colour, productId: productId });
 
@@ -220,7 +220,6 @@ const updateVariant = async (req, res) => {
         const { colour, size, quantity, price } = req.body;
         const { variantId } = req.query;
 
-        console.log(size,  "==========", quantity, "\n", price)
         // Validate that size, quantity, and price are provided and are arrays
         if (!Array.isArray(size) || !Array.isArray(quantity)) {
             return res.status(200).json({ fail: "Size and quantity must fill every field." });

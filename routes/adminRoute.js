@@ -66,10 +66,9 @@ adminRoute.get("/load-variant", adminAuth.isLogin, variantController.loadAllVari
 adminRoute.delete("/load-variant/deleteVarint", adminAuth.isLogin, variantController.deleteVariant);
 
 //!EDIT VARIANT
-adminRoute.get("/edit-variant", adminAuth.isLogin, variantController.editVariant);
+adminRoute.get("/edit-variant",  variantController.editVariant);
 adminRoute.post("/update-variant", upload.any(), variantController.updateVariant);
 // adminRoute.patch("/admin/block-variant")
-
 
 //!COUPON SECTION 
 adminRoute.get("/coupon", adminAuth.isLogin, couponController.coupon);

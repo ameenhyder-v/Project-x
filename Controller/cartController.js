@@ -9,7 +9,6 @@ const addToCart = async (req, res) => {
         // const quantity = 1;
         let userCart = await Cart.findOne({ userId });
         const variant = await Variant.findById(variantId)
-        // console.log(variant)
         const stockItem = variant.stock.find(item => item.size === size.trim());
         if (stockItem.quantity <= 0){
             return res.status(200).json()
@@ -135,7 +134,7 @@ const addQuantity = async (req, res) => {
             return res.status(200).json({ fail: "Cart item not found" });   
         }
 
-        
+
         if (stock.quantity <= cartItem.quantity) {
             return res.status(200).json({ message: "Insufficient stock" })
         }else if (cartItem.quantity >= 5){
@@ -145,7 +144,6 @@ const addQuantity = async (req, res) => {
             const saving = await userCart.save();
             if (saving) {
                 let subTotalAmount = await subTotal(userId);
-                console.log(subTotalAmount);
                 let total = cartItem.quantity * variant.price
                 res.status(200).json({ success: 1, quantity: cartItem.quantity, totalPrice: total, subTotalAmount: subTotalAmount });
             }
@@ -164,7 +162,6 @@ const decreaseQuantity = async (req, res) => {
         const userId = req.session.userId;
         const variant = await Variant.findOne({ _id: variantId })
         const stock = variant.stock.find(item => item.size.trim() == size.trim());
-        console.log(stock);
 
         if (!userId) {
             return res.status(200).json({ fail: "User not authenticated" });
@@ -203,9 +200,6 @@ const removeItem = async (req, res) => {
         const { variantId, size } = req.body;
         const userId = req.session.userId ;
 
-        // console.log(userId, "---------userId")
-        // console.log("VId ===", variantId,  "           size ====", size);
-
         const cart = await Cart.findOne({ userId: userId });
 
         if (!cart) {
@@ -217,10 +211,8 @@ const removeItem = async (req, res) => {
         );
 
         if (itemIndex === -1) {
-            console.log('nothing found');
             return res.status(404).json({ error: "Item not found in cart." });
         }
-        console.log('Match found at index:', itemIndex);
 
         cart.cartItems.splice(itemIndex, 1);
         await cart.save();

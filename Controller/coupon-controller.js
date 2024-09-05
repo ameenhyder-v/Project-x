@@ -182,23 +182,7 @@ const deleteCoupon = async (req, res) => {
 };
 
 
-
-
-
-
-const getCoupon = async (req, res) => {
-    try {
-        const userId = req.session.user_id;
-        const couponData = await Coupon.find({});
-        res.json({ couponData, userId }); // Send userId along with couponData
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ error: 'Failed to fetch coupons' });
-    }
-};
-
-
-const getAllCoupons = async (req, res) => {
+const getAllAvailCoupons = async (req, res) => {
     try {
         const allCoupons = await Coupon.find({})
         const allusebleCoupons = allCoupons.filter((coupons) => {
@@ -207,6 +191,7 @@ const getAllCoupons = async (req, res) => {
 
         console.log(allusebleCoupons)
 
+        
         res.status(200).json(allCoupons)
         
     } catch (error) {
@@ -221,6 +206,5 @@ module.exports = {
     getCouponForEdit,
     updateCoupon,
     deleteCoupon,
-    getCoupon,
-    getAllCoupons
+    getAllAvailCoupons
 }

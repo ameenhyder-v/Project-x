@@ -103,7 +103,7 @@ userRoute.get("/wishlist", wishlistController.loadWishlist);
 userRoute.post("/wishlist/add", checkState.isLogin, wishlistController.addToWishlist)
 userRoute.post("/wishlist/remove", checkState.isLogin, wishlistController.removeWishItem)
 
-userRoute.get("/get-all-coupon", checkState.isLogin, couponController.getAllCoupons)
+userRoute.get("/coupons/all", checkState.isLogin, couponController.getAllAvailCoupons)
 
 
 

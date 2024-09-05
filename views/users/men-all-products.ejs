@@ -149,13 +149,11 @@
                     </div>
                 </div>
             </div>`;
-            }).join(''); // Join the array into a single string
+            }).join(''); 
     
-            // Clear the existing content with fade-out animation
             const productContainer = document.getElementById("productContainer");
             productContainer.classList.add('fade-out');
     
-            // Wait for the fade-out animation to complete before updating the content
             productContainer.addEventListener('animationend', () => {
                 // Update the content
                 productContainer.innerHTML = productshtml;
@@ -174,7 +172,6 @@
         })
         .catch((error) => {
             console.error('Error:', error);
-            // Handle any errors here
         });
     }
     
@@ -185,7 +182,7 @@
     <div class="container">
         <div class="flex-w flex-sb-m p-b-52">
             <div class="flex-w flex-l-m filter-tope-group m-tb-10">
-                <button class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5 how-active1" data-filter=".Female">Women</button>
+                <button class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5 how-active1" data-filter=".male">Men</button>
             
             </div>
             <div class="flex-w flex-c-m m-tb-10">
@@ -329,7 +326,7 @@
                                 <%= variant.productId.name %>
                             </a>
                             <span class="stext-105 cl3">₹ <%=
-                                variant.stock[0].price %></span>
+                                variant.price %></span>
                         </div>
                         <div class="block2-txt-child2 flex-r p-t-3">
                             <a href="#"

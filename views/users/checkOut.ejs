@@ -101,7 +101,7 @@
                                 <div class="col-lg-6">
                                     <div class="single-form">
                                         <button class="btn btn-primary btn-hover-dark">
-                                            Coupon
+                                            Apply Coupon
                                         </button>
                                     </div>
                                 </div>
@@ -109,6 +109,12 @@
                         </form>
                     </div>
                 </div>
+            </div>
+            <div class="checkout-info">
+                <p class="info-header">
+                    <i class="fa fa-exclamation-circle"></i>
+                    <a data-bs-toggle="collapse" href="#" id="fetchCoupons">Click here to see all available coupons</a>
+                </p>
             </div>
 
 
@@ -383,6 +389,27 @@
 
     <%- include('../partials/userpartials/footer.ejs') %>
 
+<!-- Modal for View all available Coupons-->
+
+<div class="modal fade" id="couponsModal" tabindex="-1" aria-labelledby="couponsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="couponsModalLabel">Available Coupons</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="couponsBody" style="max-height: 400px; overflow-y: auto;">
+          <!-- Coupons will be dynamically added here -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  
+
         <script>
             //Enabling the user to add new address
             document.getElementById('shipping').addEventListener('change', function () {
@@ -638,6 +665,73 @@
                 });
             }
             
+
+             // Function to fetch the coupon and show it in the modal
+                document.getElementById('fetchCoupons').addEventListener('click', async (e) => {
+                  e.preventDefault();
+              
+                  try {
+                    const response = await fetch('/coupons/all', { // Adjust the endpoint as needed
+                      method: 'GET',
+                      headers: {
+                        'Content-Type': 'application/json'
+                      }
+                    });
+              
+                    const coupons = await response.json();
+                    const couponsBody = document.getElementById('couponsBody');
+                    couponsBody.innerHTML = ''; // Clear previous content
+              
+                    if (coupons.length > 0) {
+                      coupons.forEach(coupon => {
+                        const couponElement = `
+                          <div class="coupon-card" style="padding: 10px; border-bottom: 1px solid #ddd; margin-bottom: 10px;">
+                            <h5 style="margin-bottom: 5px;">${coupon.name}</h5>
+                            <p style="margin: 0;"><strong>Discount:</strong> ₹${coupon.amount} off</p>
+                            <p style="margin: 0;"><strong>Minimum Purchase:</strong> ₹${coupon.minimumAmount}</p>
+                            <p style="margin: 0 0 5px;"><strong>Expires On:</strong> ${new Date(coupon.expires).toLocaleDateString()}</p>
+                            <div class="coupon-code">
+                              <span class="badge bg-primary" style="cursor: pointer;" id="couponCode-${coupon.couponCode}" data-code="${coupon.couponCode}">
+                                ${coupon.couponCode}
+                              </span>
+                              <small style="margin-left: 10px;">(Click to copy)</small>
+                            </div>
+                          </div>
+                        `;
+                        couponsBody.innerHTML += couponElement;
+                      });
+              
+                      // Add event listener to make coupon code copyable
+                      document.querySelectorAll('.badge').forEach(badge => {
+                        badge.addEventListener('click', (e) => {
+                          const couponCode = e.target.getAttribute('data-code');
+                          copyToClipboard(couponCode);
+                        });
+                      });
+                    } else {
+                      couponsBody.innerHTML = '<p>No coupons available at the moment.</p>';
+                    }
+              
+                    // Show the modal
+                    const couponsModal = new bootstrap.Modal(document.getElementById('couponsModal'));
+                    couponsModal.show();
+                  } catch (error) {
+                    console.error('Error fetching coupons:', error);
+                  }
+                });
+              
+                // Modern function to copy text to clipboard
+                function copyToClipboard(text) {
+                  navigator.clipboard.writeText(text).then(() => {
+                    alert(`Coupon code ${text} copied!`);
+                  }).catch(err => {
+                    console.error('Error copying text: ', err);
+                  });
+                }
+              
+              
+              
+              
         </script>
 
         <!-- SWEET ALERT LINK -->

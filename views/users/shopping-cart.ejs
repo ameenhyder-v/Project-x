@@ -42,7 +42,6 @@
                                     <% const variant = item.variantId %>
                                     <% const product = item.variantId.productId %>
                                     <% let filteredData = variant.stock.filter(stockItem => stockItem.size == size) %>
-									<% console.log(filteredData) %>
                                     <tr class="table_row">
                                         <td class="column-1">
                                             <div class="how-itemcart1" onclick="removeItem(event, '<%= variant._id %>', '<%= cart.size.trim() %>')">
