@@ -6,7 +6,8 @@ const productController = require("../Controller/productController")
 const variantController = require('../Controller/variantController');
 const upload = require('../middleware/multer');
 const couponController = require("../Controller/coupon-controller");
-const adminAuth = require("../middleware/adminAuth")
+const adminAuth = require("../middleware/adminAuth");
+const offerController = require("../Controller/offerController")
 // const multer = require("multer");
 
 adminRoute.set("view engine", "ejs");
@@ -19,11 +20,11 @@ adminRoute.post("/", adminAuth.isLogout, adminController.verifyAdmin);
 adminRoute.get("/dashboard", adminAuth.isLogin, adminController.dashboard);
 
 
-//PRODUCTLIST PAGE RENDERING, BLOCKING PRODUCT
+//!PRODUCTLIST PAGE RENDERING, BLOCKING PRODUCT
 adminRoute.get("/productList", adminAuth.isLogin, adminController.productList);
 adminRoute.post('/block-product', adminAuth.isLogin, productController.blockProduct);
 
-//ADD PRODUCT PAGE RENDERING, ADDING PRODUCT, REMOVING PRODUCT THAT DONT HAVE A VARIANT, CHECKING CATEGORY
+//!ADD PRODUCT PAGE RENDERING, ADDING PRODUCT, REMOVING PRODUCT THAT DONT HAVE A VARIANT, CHECKING CATEGORY
 adminRoute.get("/addProduct", adminAuth.isLogin, adminController.addProduct);
 adminRoute.post("/adding-product", adminAuth.isLogin, productController.addingProduct);
 adminRoute.get("/edit-this-product", adminAuth.isLogin, productController.editThisProduct);
@@ -40,7 +41,7 @@ adminRoute.patch("/orders/updateStatus", adminAuth.isLogin, adminController.upda
 adminRoute.patch("/orders/return-reject", adminAuth.isLogin, adminController.rejectReturn);
 adminRoute.patch("/orders/return-accept", adminAuth.isLogin, adminController.acceptReturn)
 
-//USERS LIST PAGE RENDERING, BLOCKING AND UNBLOCKING USER
+//!USERS LIST PAGE RENDERING, BLOCKING AND UNBLOCKING USER
 adminRoute.get("/users", adminAuth.isLogin, adminController.allUsers);
 adminRoute.put("/blockUser", adminAuth.isLogin, adminController.userControl);
 
@@ -76,6 +77,12 @@ adminRoute.post("/coupon/add", upload.none(), couponController.addCoupon);
 adminRoute.delete("/coupon/delete", adminAuth.isLogin, couponController.deleteCoupon);
 adminRoute.get("/coupon/getCoupon", adminAuth.isLogin, couponController.getCouponForEdit);
 adminRoute.post("/coupon/update", adminAuth.isLogin, couponController.updateCoupon);
+
+//! OFFER SECTION
+adminRoute.get("/offer", adminAuth.isLogin, offerController.loadOfferPage);
+adminRoute.get("/fetchCategories", adminAuth.isLogin, offerController.fetchAllCategory);
+adminRoute.get("/fetchProducts", adminAuth.isLogin, offerController.fetchAllProducts);
+adminRoute.post("/offers/add", offerController.addOffer)
 
 
 module.exports = adminRoute;

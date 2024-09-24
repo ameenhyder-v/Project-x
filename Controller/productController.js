@@ -10,7 +10,7 @@ const productExists = async function(productName, gender,category) {
 
 const addingProduct = async (req, res) => {
     try {
-        const { productName, description, brandName, material, category, tags, gender} = req.body;
+        const { productName, description, brandName, material, tags,} = req.body;
 
 
         if (!productName || typeof productName !== 'string') {
@@ -22,15 +22,7 @@ const addingProduct = async (req, res) => {
         if (!brandName || typeof brandName !== 'string') {
             return res.status(400).json({"message": 'Brand name is required and should be a string!'});
         }
-        if (!category || typeof category !== 'string') {
-            return res.status(400).json({"message": "Category is required and should be a string!"});
-        }
-        if (!category || typeof category !== 'string') {
-            return res.status(400).json({ "message": "Pleas select a Sub-category!" });
-        }
-        if (!gender || typeof gender !== 'string') {
-            return res.status(400).json({ "message": "Please select a gender!" });
-        }
+        
         if (!tags || typeof tags !== 'string') {
             return res.status(400).json({ "message": "Tags must be an string!" }) 
         }
@@ -54,8 +46,6 @@ const addingProduct = async (req, res) => {
                 categoryId: categoryId,
                 brand: brandName,
                 material: material,
-                gender: gender,
-                category: category,
                 tags: tags
             })
             //response

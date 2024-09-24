@@ -12,6 +12,9 @@ const productController = require("../Controller/productController");
 const wishlistController = require("../Controller/wishlist-controller");
 const OrderController = require("../Controller/orderController")
 const couponController = require("../Controller/coupon-controller")
+const Variant = require("../Model/variantModel");
+const Product = require("../Model/productModel");
+
 require("../passport")
 
 
@@ -31,8 +34,9 @@ userRoute.get("/resend-otp", checkState.isLogout, otpContoller.resendOtp)
 
 
 //! FOR USER LOGIN
-userRoute.get("/login", userController.userLogin);
-userRoute.post("/login", userController.userVarify);
+userRoute.get("/login",checkState.isLogout, userController.userLogin);
+userRoute.post("/login",  userController.userVarify);
+
 
 //! for passport google authentication
 userRoute.get("/auth/google", checkState.isLogout, passport.authenticate("google", {scope: ["email", "profile"]}));
@@ -50,8 +54,11 @@ userRoute.post("/change-password",  userController.updatePassword);
 
 //! VIEW ALL PRODUCT
 userRoute.get("/allProducts", checkState.isLogin, userController.allProducts);
-userRoute.get("/women-products", userController.womenAllProducts)
-userRoute.get("/men-products", userController.menAllProducts)
+userRoute.get("/women-products", checkState.isLogin, userController.womenAllProducts)
+userRoute.get("/men-products", checkState.isLogin, userController.menAllProducts);
+
+//! SORTING AND FILTERING 
+userRoute.get('/products', userController.sortFilterSearch);
 
 
 //! ADD TO CART
@@ -83,27 +90,29 @@ userRoute.delete("/delete-address", checkState.isLogin, accountController.delete
 userRoute.get("/logout", checkState.isLogin, accountController.logout);
 
 //! HANDLING ORDER SECTION 
-userRoute.get("/my-orders", checkState.isLogin, accountController.allOrders)
-userRoute.get("/order-summary", checkState.isLogin, accountController.orderSummary)
-userRoute.post("/returnOrder", checkState.isLogin, OrderController.returnOrder)
+userRoute.get("/my-orders", checkState.isLogin, accountController.allOrders);
+userRoute.get("/order-summary", checkState.isLogin, accountController.orderSummary);
+userRoute.post("/returnOrder", checkState.isLogin, OrderController.returnOrder);
+userRoute.post("/cancelOrder", checkState.isLogin, OrderController.cancelOrder);
+userRoute.post("/retry-payment", checkState.isLogin, checkoutController.retryPayment )
 
 
 //! USER CHECK-OUT SECTION
 userRoute.post("/adding-address", checkState.isLogin, accountController.addAddressFromCheckout);
 userRoute.get("/checkout", checkState.isLogin, checkoutController.checkOut);
 userRoute.post("/place-order", checkState.isLogin, checkoutController.placeOrder);
-userRoute.post("/confirm-payment", checkoutController.confirmPayment)
+userRoute.post("/confirm-payment", checkoutController.confirmPayment);
 
-//! SORTING AND FILTERING 
-userRoute.patch("/sort", checkState.isLogin, productController.sort);
-userRoute.patch("/alphaSort", checkState.isLogin, productController.AlphaSort);
 
 //! USER'S WISH-LIST
 userRoute.get("/wishlist", wishlistController.loadWishlist);
-userRoute.post("/wishlist/add", checkState.isLogin, wishlistController.addToWishlist)
-userRoute.post("/wishlist/remove", checkState.isLogin, wishlistController.removeWishItem)
+userRoute.post("/wishlist/add", checkState.isLogin, wishlistController.addToWishlist);
+userRoute.post("/wishlist/remove", checkState.isLogin, wishlistController.removeWishItem);
 
-userRoute.get("/coupons/all", checkState.isLogin, couponController.getAllAvailCoupons)
+//! COUPON SECTION
+userRoute.get("/coupons/all", checkState.isLogin, couponController.getAllAvailCoupons);
+userRoute.post("/coupon/apply", checkState.isLogin, checkoutController.applyCoupon);
+userRoute.post("/coupon/remove", checkState.isLogin, checkoutController.removeCoupon);
 
 
 

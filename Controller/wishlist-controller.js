@@ -3,10 +3,19 @@ const Wishlist = require("../Model/wishlist-model");
 const loadWishlist = async (req, res) => {
     try {
         const userId = req.session.userId;
+        const wishlistData = await Wishlist.findOne({ userId })
+            .populate({
+                path: 'wishlistItems', 
+                populate: {
+                    path: 'productId',
+                    populate: {
+                        path: 'categoryId',
+                    }
+                }
+            })
+            .exec();
 
-        const wishlistData = await findUsersWishlistItems(userId);
-        console.log(wishlistData)
-        res.render("wish-list")
+        res.render("wish-list", { variants : wishlistData.wishlistItems})
         
     } catch (error) {
         console.log(`error from the wishlist controller load wish list - ${error}`)

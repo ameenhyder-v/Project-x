@@ -2,8 +2,88 @@
 
 <script src="https://unpkg.com/isotope-layout@3.0.6/dist/isotope.pkgd.min.js"></script>
 
-
 <style>
+    /* Offer Badge with Percentage */
+    .badge-danger {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #d9534f;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+
+    /* Ensure the percentage and label fit well */
+    .badge-danger::after {
+        content: ' OFF';
+    }
+
+    /* Additional Product Hover Effects */
+    .isotope-item:hover {
+        transform: translateY(-10px); /* Slight elevation on hover */
+    }
+
+    .product-image {
+        width: 100%;
+        height: auto;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .block2-pic:hover .product-image {
+        transform: scale(1.05);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .discount-price {
+        color: #d9534f;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+
+    .original-price {
+        color: #999;
+        font-size: 0.9rem;
+    }
+
+    .off-class {
+        text-decoration: line-through;
+    }
+
+    .product-name {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #333;
+        transition: color 0.3s ease;
+    }
+
+    .product-name:hover {
+        color: #d9534f;
+    }
+
+    .icon-heart1 {
+        transition: opacity 0.3s ease;
+    }
+
+    .icon-heart2 {
+        position: absolute;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .js-addwish-b2:hover .icon-heart1 {
+        opacity: 0;
+    }
+
+    .js-addwish-b2:hover .icon-heart2 {
+        opacity: 1;
+    }
+
+    
     /* Fade-out animation */
     @keyframes fadeOut {
         from { opacity: 1; }
@@ -18,189 +98,35 @@
 
     /* Apply transition effects */
     .fade-out {
-        animation: fadeOut 0.5s forwards;
+        animation: fadeOut 1s forwards;
     }
 
     .fade-in {
-        animation: fadeIn 0.5s forwards;
+        animation: fadeIn 1s forwards;
     }
 </style>
 
-<script>
-
-     function sort(val){
-
-        alert(val)
-        fetch('/sort', {
-            method: 'PATCH', // Use the PATCH method
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ value: val }) // Send the value in the request body
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Success:', data.data);
-
-            let productshtml = data.data.map(variant => { 
-                return `<div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item ${variant.productId.gender}">
-                    <div class="block2">
-                        <div class="block2-pic hov-img0">
-                            <a href="/productDetail?variantId=${variant._id}">
-                                <img src="images/${variant.image[0]}" alt="IMG-PRODUCT">
-                            </a>
-                            <a href="#" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">Quick View</a>
-                        </div>
-                        <div class="block2-txt flex-w flex-t p-t-14">
-                            <div class="block2-txt-child1 flex-col-l ">
-                                <a href="/productDetail?variantId=${variant._id}" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6">
-                                     ${variant.productId.name}
-                                </a>
-                                <span class="stext-105 cl3">₹ ${variant.stock[0].price}</span>
-                            </div>
-                            <div class="block2-txt-child2 flex-r p-t-3">
-                                <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
-                                    <img class="icon-heart1 dis-block trans-04" src="images/icons/icon-heart-01.png" alt="ICON">
-                                    <img class="icon-heart2 dis-block trans-04 ab-t-l" src="images/icons/icon-heart-02.png" alt="ICON">
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
-            }).join(''); // Join the array into a single string
-
-                // Clear the existing content with fade-out animation
-                const productContainer = document.getElementById("productContainer");
-                productContainer.classList.add('fade-out');
-
-                // Wait for the fade-out animation to complete before updating the content
-                productContainer.addEventListener('animationend', () => {
-                    // Update the content
-                    productContainer.innerHTML = productshtml;
-
-                    // Remove the fade-out class and add fade-in class
-                    productContainer.classList.remove('fade-out');
-                    productContainer.classList.add('fade-in');
-
-                    // Clean up after fade-in animation
-                    productContainer.addEventListener('animationend', () => {
-                        productContainer.classList.remove('fade-in');
-                    }, { once: true });
-                }, { once: true });
-
-                console.log('Products added to the container with animation');
-
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-            // Handle any errors here
-        });
-
-    }
-
-
-    function alphaSort(val) {
-        alert(val);
-        fetch('/alphaSort', {
-            method: 'PATCH', // Use the PATCH method
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ value: val }) // Send the value in the request body
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Success:', data.data);
-    
-            let productshtml = data.data.map(variant => { 
-                return `<div
-                class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item ${variant.productId.gender}">
-                <div class="block2">
-                    <div class="block2-pic hov-img0">
-                        <a href="/productDetail?variantId=${variant._id}">
-                            <img src="images/${variant.image[0]}"
-                                alt="IMG-PRODUCT">
-                        </a>
-                        <a href="#"
-                            class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">Quick
-                            View</a>
-                    </div>
-                    <div class="block2-txt flex-w flex-t p-t-14">
-                        <div class="block2-txt-child1 flex-col-l ">
-                            <a
-                                href="/productDetail?variantId=${variant._id}"
-                                class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6">
-                                ${variant.productId.name}
-                            </a>
-                            <span class="stext-105 cl3">₹ ${variant.stock[0].price}</span>
-                        </div>
-                        <div class="block2-txt-child2 flex-r p-t-3">
-                            <a href="#"
-                                class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
-                                <img class="icon-heart1 dis-block trans-04"
-                                    src="images/icons/icon-heart-01.png"
-                                    alt="ICON">
-                                <img
-                                    class="icon-heart2 dis-block trans-04 ab-t-l"
-                                    src="images/icons/icon-heart-02.png"
-                                    alt="ICON">
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-            }).join(''); 
-    
-            const productContainer = document.getElementById("productContainer");
-            productContainer.classList.add('fade-out');
-    
-            productContainer.addEventListener('animationend', () => {
-                // Update the content
-                productContainer.innerHTML = productshtml;
-    
-                // Remove the fade-out class and add fade-in class
-                productContainer.classList.remove('fade-out');
-                productContainer.classList.add('fade-in');
-    
-                // Clean up after fade-in animation
-                productContainer.addEventListener('animationend', () => {
-                    productContainer.classList.remove('fade-in');
-                }, { once: true });
-            }, { once: true });
-    
-            console.log('Products added to the container with animation');
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
-    }
-    
-</script>
 
 <!-- Product -->
 <div class="bg0 m-t-23 p-b-140">
     <div class="container">
         <div class="flex-w flex-sb-m p-b-52">
-            <div class="flex-w flex-l-m filter-tope-group m-tb-10">
-                <button class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5 how-active1" data-filter=".male">Men</button>
             
+            <div class="flex-w flex-l-m filter-tope-group m-tb-10">
+                <a href="/allProducts" class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5">All Products</a>
+                <a href="/women-products" class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5" >Women</a>
+                <a href="/men-products" class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5 how-active1">Men</a>              
             </div>
             <div class="flex-w flex-c-m m-tb-10">
                 <div
                     class="flex-c-m stext-106 cl6 size-104 bor4 pointer hov-btn3 trans-04 m-r-8 m-tb-4 js-show-filter">
-                    <i
-                        class="icon-filter cl2 m-r-6 fs-15 trans-04 zmdi zmdi-filter-list"></i>
-                    <i
-                        class="icon-close-filter cl2 m-r-6 fs-15 trans-04 zmdi zmdi-close dis-none"></i>
-                    Filter
+                    Filter & Sort
                 </div>
 
                 <div
                     class="flex-c-m stext-106 cl6 size-105 bor4 pointer hov-btn3 trans-04 m-tb-4 js-show-search">
-                    <i
-                        class="icon-search cl2 m-r-6 fs-15 trans-04 zmdi zmdi-search"></i>
-                    <i
-                        class="icon-close-search cl2 m-r-6 fs-15 trans-04 zmdi zmdi-close dis-none"></i>
+                    <i class="icon-search cl2 m-r-6 fs-15 trans-04 zmdi zmdi-search"></i>
+                    <i class="icon-close-search cl2 m-r-6 fs-15 trans-04 zmdi zmdi-close dis-none"></i>
                     Search
                 </div>
             </div>
@@ -208,12 +134,10 @@
             <!-- Search product -->
             <div class="dis-none panel-search w-full p-t-10 p-b-15">
                 <div class="bor8 dis-flex p-l-15">
-                    <button
-                        class="size-113 flex-c-m fs-16 cl2 hov-cl1 trans-04">
+                    <button class="size-113 flex-c-m fs-16 cl2 hov-cl1 trans-04" id="searchBtn">
                         <i class="zmdi zmdi-search"></i>
                     </button>
-                    <input class="mtext-107 cl2 size-114 plh2 p-r-15"
-                        type="text" name="search-product" placeholder="Search">
+                    <input id="searchInput" class="mtext-107 cl2 size-114 plh2 p-r-15" type="text" name="search-product" placeholder="Search">
                 </div>
             </div>
             <!-- Filter -->
@@ -227,77 +151,36 @@
                         <ul>
 
                             <li class="p-b-6">
-                                <a href="#"
-                                    class="filter-link stext-106 trans-04 filter-link-active">
-                                    Newness
-                                </a>
+                                <button id="sortAZ" class="filter-link stext-106 trans-04">A - Z</button>
                             </li>
-
-                            <li class="p-b-6" onclick="alphaSort('nameAZ')"">
-                                <button id="sortAZ"
-                                    class="filter-link stext-106 trans-04">A - Z
-                                </button>
-                            </li>
-
-                            <li class="p-b-6" onclick="alphaSort('nameZA')"">
-                                <button
-                                    class="filter-link stext-106 trans-04">
-                                    Z - A
-                                </button>
+                            <li class="p-b-6">
+                                <button id="sortZA" class="filter-link stext-106 trans-04">Z - A</button>
                             </li>
                         </ul>
                     </div>
 
                     <div class="filter-col2 p-r-15 p-b-27">
-                        <div class="mtext-102 cl2 p-b-15">
-                            Price
-                        </div>
-
+                        <div class="mtext-102 cl2 p-b-15">Price</div>
                         <ul>
-                            <li class="p-b-6" onclick="sort('lowToHigh')"">
-                                <button class="filter-link stext-106 trans-04">
-                                    Price: Low to High
-                            </button>
+                            <li class="p-b-6">
+                                <button id="sortLowToHigh" class="filter-link stext-106 trans-04">Price: Low to High</button>
                             </li>
-
-                            <li class="p-b-6" onclick="sort('highToLow')">
-                                <button class="filter-link stext-106 trans-04">
-                                    Price: High to Low
-                                </button>
+                            <li class="p-b-6">
+                                <button id="sortHighToLow" class="filter-link stext-106 trans-04">Price: High to Low</button>
                             </li>
                         </ul>
                     </div>
 
                     <div class="filter-col4 p-b-27">
-                        <div class="mtext-102 cl2 p-b-15">
-                            Tags
-                        </div>
-
+                        <div class="mtext-102 cl2 p-b-15">Categories</div>
                         <div class="flex-w p-t-4 m-r--5">
-                            <a href="#"
-                                class="flex-c-m stext-107 cl6 size-301 bor7 p-lr-15 hov-tag1 trans-04 m-r-5 m-b-5">
-                                Fashion
-                            </a>
-
-                            <a href="#"
-                                class="flex-c-m stext-107 cl6 size-301 bor7 p-lr-15 hov-tag1 trans-04 m-r-5 m-b-5">
-                                Lifestyle
-                            </a>
-
-                            <a href="#"
-                                class="flex-c-m stext-107 cl6 size-301 bor7 p-lr-15 hov-tag1 trans-04 m-r-5 m-b-5">
-                                Denim
-                            </a>
-
-                            <a href="#"
-                                class="flex-c-m stext-107 cl6 size-301 bor7 p-lr-15 hov-tag1 trans-04 m-r-5 m-b-5">
-                                Streetstyle
-                            </a>
-
-                            <a href="#"
-                                class="flex-c-m stext-107 cl6 size-301 bor7 p-lr-15 hov-tag1 trans-04 m-r-5 m-b-5">
-                                Crafts
-                            </a>
+                            <% allCategories.forEach(category => { %>
+                            <button
+                                class="flex-c-m stext-107 cl6 size-301 bor7 p-lr-15 hov-tag1 trans-04 m-r-5 m-b-5 categoryFilterBtn"
+                                data-category="<%= category.category %>" data-gender="<%= category.gender %>">
+                                <%= category.category %> in <%= category.gender %>
+                            </button>
+                            <% }) %>
                         </div>
                     </div>
                 </div>
@@ -306,38 +189,69 @@
 
         <div class="row isotope-grid" id="productContainer">
             <% variants.forEach(variant => { %>
-            <div
-                class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item <%= variant.productId.gender %>">
+            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item <%= variant.productId.categoryId.gender %>">
                 <div class="block2">
                     <div class="block2-pic hov-img0">
                         <a href="/productDetail?variantId=<%= variant._id %>">
-                            <img src="images/<%= variant.image[0] %>"
-                                alt="IMG-PRODUCT">
+                            <img src="images/<%= variant.image[0] %>" alt="IMG-PRODUCT" class="product-image">
                         </a>
-                        <a href="#"
-                            class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">Quick
-                            View</a>
+        
+                        <!-- Calculate and Display Offer Badge with Correct Discount Percentage -->
+                        <% if (variant.productOfferPrice || variant.categoryOfferPrice) { %>
+                            <% 
+                                let discountPrice;
+                                let discountPercentage;
+        
+                                // Determine the correct offer price to use
+                                if (!variant.productOfferPrice) {
+                                    // Only category offer exists
+                                    discountPrice = variant.categoryOfferPrice;
+                                    discountPercentage = Math.round(((variant.price - discountPrice) / variant.price) * 100);
+                                } else if (!variant.categoryOfferPrice) {
+                                    // Only product offer exists
+                                    discountPrice = variant.productOfferPrice;
+                                    discountPercentage = Math.round(((variant.price - discountPrice) / variant.price) * 100);
+                                } else {
+                                    // Both exist, choose the lower offer price
+                                    discountPrice = Math.min(variant.productOfferPrice, variant.categoryOfferPrice);
+                                    discountPercentage = Math.round(((variant.price - discountPrice) / variant.price) * 100);
+                                }
+                            %>
+                            <% if (discountPercentage > 0) { %>
+                                <span class="badge badge-danger"><%= discountPercentage %>% </span>
+                            <% } %>
+                        <% } %>
                     </div>
+        
                     <div class="block2-txt flex-w flex-t p-t-14">
-                        <div class="block2-txt-child1 flex-col-l ">
-                            <a
-                                href="/productDetail?variantId=<%= variant._id %>"
-                                class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6">
+                        <div class="block2-txt-child1 flex-col-l">
+                            <a href="/productDetail?variantId=<%= variant._id %>" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6 product-name">
                                 <%= variant.productId.name %>
                             </a>
-                            <span class="stext-105 cl3">₹ <%=
-                                variant.price %></span>
+        
+                            <!-- Price Section -->
+                            <% if (!variant.productOfferPrice && !variant.categoryOfferPrice) { %>
+                                <span class="stext-105 cl3 original-price">₹ <%= variant.price %></span>
+                            <% } else if (!variant.productOfferPrice) { %>
+                                <span class="stext-105 cl3 discount-price">₹ <%= variant.categoryOfferPrice %></span>
+                                <span class="original-price strike-through off-class">₹ <%= variant.price %></span>
+                            <% } else if (!variant.categoryOfferPrice) { %>
+                                <span class="stext-105 cl3 discount-price">₹ <%= variant.productOfferPrice %></span>
+                                <span class="original-price strike-through off-class">₹ <%= variant.price %></span>
+                            <% } else { %>
+                                <% 
+                                    let finalPrice = Math.min(variant.productOfferPrice, variant.categoryOfferPrice);
+                                %>
+                                <span class="stext-105 cl3 discount-price">₹ <%= finalPrice %></span>
+                                <span class="original-price strike-through off-class">₹ <%= variant.price %></span>
+                            <% } %>
                         </div>
+        
                         <div class="block2-txt-child2 flex-r p-t-3">
-                            <a href="#"
-                                class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
-                                <img class="icon-heart1 dis-block trans-04"
-                                    src="images/icons/icon-heart-01.png"
-                                    alt="ICON">
-                                <img
-                                    class="icon-heart2 dis-block trans-04 ab-t-l"
-                                    src="images/icons/icon-heart-02.png"
-                                    alt="ICON">
+                            <!-- Wishlist Button -->
+                            <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
+                                <img class="icon-heart1 dis-block trans-04" src="images/icons/icon-heart-01.png" alt="ICON">
+                                <img class="icon-heart2 dis-block trans-04 ab-t-l" src="images/icons/icon-heart-02.png" alt="ICON">
                             </a>
                         </div>
                     </div>
@@ -345,6 +259,9 @@
             </div>
             <% }) %>
         </div>
+        
+        
+
 
         <!-- Load more -->
         <div class="flex-c-m flex-w w-full p-t-45">
@@ -357,3 +274,117 @@
 </div>
 
 <%- include("../partials/userpartials/footer.ejs") %>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        let searchInput = document.getElementById('searchInput');
+        let sortAZ = document.getElementById('sortAZ');
+        let sortZA = document.getElementById('sortZA');
+        let sortLowToHigh = document.getElementById('sortLowToHigh');
+        let sortHighToLow = document.getElementById('sortHighToLow');
+        let categoryFilterBtns = document.querySelectorAll('.categoryFilterBtn');
+    
+        let currentSort = '';
+        let currentSearch = '';
+        let currentCategory = '';
+        let currentGender = '';
+    
+        const reloadProducts = () => {
+            let filter = currentCategory && currentGender ? `${currentCategory} ${currentGender}` : 'Men *';
+            let url = `/products?sort=${currentSort}&search=${currentSearch}&filter=${filter}`;
+    
+            const productContainer = document.getElementById('productContainer');
+            productContainer.classList.add('fade-out'); 
+    
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    productContainer.innerHTML = ''; 
+    
+                    data.variants.forEach(variant => {
+                        let discountPrice = variant.categoryOfferPrice || variant.productOfferPrice;
+                        let discountPercentage = discountPrice ? Math.round(((variant.price - discountPrice) / variant.price) * 100) : 0;
+    
+                        let productHTML = `
+                            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item ${variant.productId.categoryId.gender}">
+                                <div class="block2">
+                                    <div class="block2-pic hov-img0">
+                                        <a href="/productDetail?variantId=${variant._id}">
+                                            <img src="images/${variant.image[0]}" alt="IMG-PRODUCT" class="product-image">
+                                        </a>
+                                        ${discountPercentage > 0 ? `<span class="badge badge-danger">${discountPercentage}% OFF</span>` : ''}
+                                    </div>
+                                    <div class="block2-txt flex-w flex-t p-t-14">
+                                        <div class="block2-txt-child1 flex-col-l">
+                                            <a href="/productDetail?variantId=${variant._id}" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6 product-name">
+                                                ${variant.productId.name}
+                                            </a>
+                                            ${!variant.productOfferPrice && !variant.categoryOfferPrice 
+                                                ? `<span class="stext-105 cl3 original-price">₹ ${variant.price}</span>`
+                                                : `<span class="stext-105 cl3 discount-price">₹ ${discountPrice}</span>
+                                                   <span class="original-price strike-through">₹ ${variant.price}</span>`
+                                            }
+                                        </div>
+                                        <div class="block2-txt-child2 flex-r p-t-3">
+                                            <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
+                                                <img class="icon-heart1 dis-block trans-04" src="images/icons/icon-heart-01.png" alt="ICON">
+                                                <img class="icon-heart2 dis-block trans-04 ab-t-l" src="images/icons/icon-heart-02.png" alt="ICON">
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        productContainer.insertAdjacentHTML('beforeend', productHTML);
+                    });
+    
+                        productContainer.classList.remove('fade-out');
+                        productContainer.classList.add('fade-in');
+    
+                    setTimeout(() => {
+                        productContainer.classList.remove('fade-in');
+                    }, 500); 
+                })
+                .catch(error => {
+                    console.error('Error fetching products:', error);
+                });
+        };
+    
+        // search
+        document.getElementById('searchBtn').addEventListener('click', () => {
+            currentSearch = searchInput.value;
+            reloadProducts();
+        });
+    
+        // sort 
+        sortAZ.addEventListener('click', () => {
+            currentSort = 'nameAZ';
+            reloadProducts();
+        });
+    
+        sortZA.addEventListener('click', () => {
+            currentSort = 'nameZA';
+            reloadProducts();
+        });
+    
+        sortLowToHigh.addEventListener('click', () => {
+            currentSort = 'lowToHigh';
+            reloadProducts();
+        });
+    
+        sortHighToLow.addEventListener('click', () => {
+            currentSort = 'highToLow';
+            reloadProducts();
+        });
+    
+        // filters
+        categoryFilterBtns.forEach(button => {
+            button.addEventListener('click', (e) => {
+                currentCategory = e.target.getAttribute('data-category');
+                currentGender = e.target.getAttribute('data-gender');
+                reloadProducts();
+            });
+        });
+    });
+</script>

@@ -2,15 +2,40 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<style>
+
+    .wrap-pic-w {
+        position: relative;
+        display: inline-block; /* Keep the image inline */
+    }
+    
+    .zoom-image {
+        width: 100%; /* Responsive image */
+        height: auto; /* Maintain aspect ratio */
+    }
+    
+    .zoom-lens {
+        position: absolute;
+        border: 2px solid #000; /* Lens border color */
+        cursor: none; /* Hide cursor when over lens */
+        display: none; /* Hide lens initially */
+        width: 200px; /* Size of the zoom lens */
+        height: 200px; /* Size of the zoom lens */
+        pointer-events: none; /* Disable interactions with the lens */
+    }
+    
+    
+</style>
+
 <!-- breadcrumb -->
 <div class="container">
     <div class="bread-crumb flex-w p-l-25 p-r-15 p-t-30 p-lr-0-lg">
-        <a href="index.html" class="stext-109 cl8 hov-cl1 trans-04">
+        <a href="/" class="stext-109 cl8 hov-cl1 trans-04">
             Home
             <i class="fa fa-angle-right m-l-9 m-r-10" aria-hidden="true"></i>
         </a>
 
-        <a href="product.html" class="stext-109 cl8 hov-cl1 trans-04">
+        <a href="/men-products" class="stext-109 cl8 hov-cl1 trans-04">
             Men
             <i class="fa fa-angle-right m-l-9 m-r-10" aria-hidden="true"></i>
         </a>
@@ -25,6 +50,7 @@
 <section class="sec-product-detail bg0 p-t-65 p-b-60">
     <div class="container">
         <div class="row">
+            <!-- Product Image Section -->
             <div class="col-md-6 col-lg-7 p-b-30">
                 <div class="p-l-25 p-r-30 p-lr-0-lg">
                     <div class="wrap-slick3 flex-sb flex-w">
@@ -33,54 +59,70 @@
 
                         <div class="slick3 gallery-lb">
                             <% variant.image.map(element => { %>
-
-                            <div class="item-slick3"
-                                data-thumb="/images/<%= element %>">
+                            <div class="item-slick3" data-thumb="/images/<%= element %>">
                                 <div class="wrap-pic-w pos-relative">
-                                    <img src="/images/<%= element %>"
-                                        alt="IMG-PRODUCT">
-
-                                    <a
-                                        class="flex-c-m size-1080 how-pos1 bor0 fs-16 cl10 bg0 hov-btn3 trans-04"
-                                        href="/images/<%= element %>">
+                                    <img class="zoom-image" src="/images/<%= element %>" alt="IMG-PRODUCT">
+                                    <div class="zoom-lens"></div>
+                                    <a class="flex-c-m size-1080 how-pos1 bor0 fs-16 cl10 bg0 hov-btn3 trans-04" href="/images/<%= element %>">
                                         <i class="fa fa-expand"></i>
                                     </a>
                                 </div>
+                                
+                                
                             </div>
-
                             <% }) %>
-
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Product Info Section -->
             <div class="col-md-6 col-lg-5 p-b-30">
                 <div class="p-r-50 p-t-5 p-lr-0-lg">
+                    <!-- Product Name -->
                     <h4 class="mtext-105 cl2 js-name-detail p-b-14">
                         <%= variant.productId.name %>
                     </h4>
 
-                    <span id="productPrice" class="mtext-106 cl2">
-                        ₹ <%= variant.price %>
-                    </span>
+                    <!-- Price & Discount Section -->
+                    <div class="mtext-106 cl2">
+                        <% 
+                            const discountPrice = Math.min(variant.categoryOfferPrice || variant.price, variant.productOfferPrice || variant.price);
+                            const hasOffer = variant.categoryOfferPrice || variant.productOfferPrice; 
+                        %>
+                        <span id="productPrice" class="mtext-106 cl2">
+                            <% if (hasOffer) { %>
+                                <span style="text-decoration: line-through; color: red;">₹ <%= variant.price %></span>
+                                <span style="color: green;">₹ <%= discountPrice %></span>
+                            <% } else { %>
+                                <span>₹ <%= variant.price %></span>
+                            <% } %>
+                        </span>
+                        <% if (hasOffer) {
+                            const discountPercentage = Math.round(((variant.price - discountPrice) / variant.price) * 100);
+                            if (discountPercentage > 0) { %>
+                                <p class="stext-102 cl3 p-t-10" style="color: orange;">
+                                    Save <%= discountPercentage %>% off!
+                                </p>
+                            <% }
+                        } %>
 
+                    </div>
+
+                    <!-- Product Description -->
                     <p class="stext-102 cl3 p-t-23">
                         <%= variant.productId.description %>
                     </p>
 
-                    <!--  -->
+                    <!-- Size and Color Options -->
                     <div class="p-t-33">
                         <div class="flex-w flex-r-m p-b-10">
-                            <div class="size-203 flex-c-m respon6">
-                                Size
-                            </div>
-
+                            <div class="size-203 flex-c-m respon6">Size</div>
                             <div class="size-204 respon6-next">
                                 <div class="rs1-select2 bor8 bg0">
                                     <select class="js-select2" id="productSelect" name="size" onchange="changePrice()">
                                         <% variant.stock.forEach(element => { %>
-                                            <option value="" data-quantity="<%= element.quantity %>">
+                                            <option value="<%= element.size %>" data-quantity="<%= element.quantity %>">
                                                 <%= element.size %>
                                             </option>
                                         <% }) %>
@@ -91,76 +133,56 @@
                         </div>
 
                         <div class="flex-w flex-r-m p-b-10">
-                            <div class="size-203 flex-c-m respon6">
-                                Color
-                            </div>
-
+                            <div class="size-203 flex-c-m respon6">Color</div>
                             <div class="size-204 respon6-next">
                                 <div class="rs1-select2 bor8 bg0">
-                                    <select class="js-select2" name="time"
-                                        onchange="changeColor()"
-                                        id="colorSelect">
-                                        <option selecteds><%= variant.color%></option>
+                                    <select class="js-select2" name="color" id="colorSelect" onchange="changeColor()">
+                                        <option selected><%= variant.color %></option>
                                         <% variants.forEach(element => { %>
-                                            <% if(element.color !== variant.color) {%>
-                                        <option data-param="<%= element._id %>"><%= element.color %></option>
-                                                <% } %>
+                                            <% if (element.color !== variant.color) { %>
+                                                <option data-param="<%= element._id %>"><%= element.color %></option>
+                                            <% } %>
                                         <% }) %>
-
                                     </select>
                                     <div class="dropDownSelect2"></div>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Add to Cart and Stock Message -->
                         <div class="flex-w flex-r-m p-b-10">
                             <div class="size-204 flex-w flex-m respon6-next">
                                 <button onclick="addToCart('<%= variant._id %>')" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04 js-addcart-detail">
                                     Add to cart
                                 </button>
-                                
                                 <p id="outOfStockMessage" style="color: red; display: none;">This size is out of stock</p>
                             </div>
                         </div>
                     </div>
 
-                    <!--  -->
+                    <!-- Wishlist and Social Sharing -->
                     <div class="flex-w flex-m p-l-100 p-t-40 respon7">
-                        <div class="flex-m bor9 p-r-10 m-r-11" >
-                            <% 
-                                let isInWishlist = false; 
-                                if (wishList && wishList.wishlistItems) { 
-                                    isInWishlist = wishList.wishlistItems.includes(variant._id.toString()); 
-                                } 
-                                %>
-                                <button onclick="addToWishOrRemove('<%= variant._id %>', event)"
-                                    class="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2"
-                                    data-tooltip="<%= isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' %>">
-                                    <i class="zmdi zmdi-favorite" style="color: <%= isInWishlist ? 'red' : '' %>"></i>
-                                </button>
+                        <div class="flex-m bor9 p-r-10 m-r-11">
+                            <% let isInWishlist = wishList && wishList.wishlistItems.includes(variant._id.toString()); %>
+                            <button onclick="addToWishOrRemove('<%= variant._id %>', event)" class="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2" data-tooltip="<%= isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' %>">
+                                <i class="zmdi zmdi-favorite" style="color: <%= isInWishlist ? 'red' : '' %>"></i>
+                            </button>
                         </div>
-
-                        <a href="#"
-                            class="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2 m-r-8 tooltip100"
-                            data-tooltip="Facebook">
+                        <a href="#" class="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2 m-r-8 tooltip100" data-tooltip="Facebook">
                             <i class="fa fa-facebook"></i>
                         </a>
-
-                        <a href="#"
-                            class="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2 m-r-8 tooltip100"
-                            data-tooltip="Twitter">
+                        <a href="#" class="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2 m-r-8 tooltip100" data-tooltip="Twitter">
                             <i class="fa fa-twitter"></i>
                         </a>
-
-                        <a href="#"
-                            class="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2 m-r-8 tooltip100"
-                            data-tooltip="Google Plus">
+                        <a href="#" class="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2 m-r-8 tooltip100" data-tooltip="Google Plus">
                             <i class="fa fa-google-plus"></i>
                         </a>
                     </div>
                 </div>
             </div>
         </div>
+    
+
 
         <div class="bor10 m-t-50 p-t-43 p-b-40">
             <!-- Tab01 -->
@@ -921,5 +943,35 @@ console.log(selectedParam)
         });
     }
     
+
+    document.querySelectorAll('.zoom-image').forEach((zoomImage) => {
+    const zoomLens = zoomImage.parentElement.querySelector('.zoom-lens');
+
+    zoomImage.addEventListener('mousemove', (e) => {
+        const rect = zoomImage.getBoundingClientRect();
+        const x = e.clientX - rect.left; 
+        const y = e.clientY - rect.top;  
+
+        // Calculate the position of the lens
+        const lensX = Math.max(0, Math.min(x - zoomLens.offsetWidth / 2, rect.width - zoomLens.offsetWidth));
+        const lensY = Math.max(0, Math.min(y - zoomLens.offsetHeight / 2, rect.height - zoomLens.offsetHeight));
+
+        // Set lens position
+        zoomLens.style.left = lensX + 'px';
+        zoomLens.style.top = lensY + 'px';
+        zoomLens.style.display = 'block';
+
+        zoomLens.style.backgroundImage = `url('${zoomImage.src}')`;
+        zoomLens.style.backgroundSize = `${zoomImage.width * 2}px ${zoomImage.height * 2}px`; 
+        zoomLens.style.backgroundPosition = `-${lensX * 2}px -${lensY * 2}px`; 
+    });
+
+    zoomImage.addEventListener('mouseleave', () => {
+        zoomLens.style.display = 'none'; // Hide lens when mouse leaves
+    });
+});
+
+
+
     
 </script>

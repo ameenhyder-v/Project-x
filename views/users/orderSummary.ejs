@@ -42,11 +42,21 @@
             <p><strong>Date:</strong> <%= new Date(order.createdAt).toLocaleDateString() %></p>
             <p class="text-danger"><strong class="text-dark">Status:</strong> <%= order.orderStatus %></p>
             <p ><strong class="text-dark">Payment:</strong> <%= order.paymentStatus %></p>
+            <% if(order.couponDiscount > 0) {%>
+                <p ><strong class="text-dark">Coupon discount:</strong> <%= order.couponDiscount %></p>
+            <% } %>
+
             <p><strong>Total:</strong> ₹<%= order.totalAmount %></p>
 
 
 
-            <% if (order.orderStatus == 'canceled') { %>
+            <%if (order.orderStatus == 'Pending' && order.paymentMethod == 'razor' && order.paymentStatus == "Pending") { %>
+                <aside>
+                    <button type="button"  class="btn btn-secondary" onclick="continuePayment('<%= order._id %>', event)">
+                        <i class="fas fa-undo"></i> Continue payment
+                    </button>
+                </aside>
+            <% } else if (order.orderStatus == 'canceled') { %>
                 <p class="text-danger">The order is canceled</p>
                 <a href="/my-orders" class="btn btn-primary">
                     <i class="fas fa-arrow-left"></i> Back
@@ -57,7 +67,7 @@
                         <i class="fas fa-undo"></i> Return Order
                     </button>
                 </aside>
-            <% } else if (order.orderStatus == 'Pending') { %>
+            <% } else if (order.orderStatus == 'Pending' || order.orderStatus == 'Placed' ) { %>
                 <div class="d-flex justify-content-between align-items-center">
                     <button type="submit" onclick="cancelOrder('<%= order._id %>')" class="btn btn-danger">Cancel Order</button>
                 </div>
@@ -82,6 +92,9 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!--   For linking the razor pay     -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 
 <script>
     function cancelOrder(orderId) {
@@ -89,42 +102,75 @@
             title: "Do you want to cancel the order?",
             showCancelButton: true,
             confirmButtonText: 'Yes',
+            cancelButtonText: 'No'
         }).then((result) => {
             if (result.isConfirmed) {
-                axios.post(`/cancelOrder?id=${orderId}`)
-                    .then((response) => {
-                        if (response.data.success == 1) {
+                Swal.fire({
+                    title: 'Select the reason for cancellation',
+                    input: 'select',
+                    inputOptions: {
+                        'Delayed shipping': 'Delayed shipping',
+                        'Ordered by mistake': 'Ordered by mistake',
+                        'Found a better price': 'Found a better price',
+                        'Product not needed anymore': 'Product not needed anymore',
+                        'Other': 'Other'
+                    },
+                    inputPlaceholder: 'Choose a reason',
+                    showCancelButton: true,
+                    confirmButtonText: 'Submit',
+                    cancelButtonText: 'Cancel'
+                }).then((reasonResult) => {
+                    if (reasonResult.isConfirmed) {
+                        if (!reasonResult.value) {
                             Swal.fire({
-                                icon: 'success',
-                                title: 'Order Canceled',
+                                icon: 'error',
+                                title: 'Cancellation reason is required',
+                                text: 'Please select a reason for cancellation.',
                                 confirmButtonText: 'OK'
+                            });
+                        } else {
+                            const cancelReason = reasonResult.value;
+                            
+                            axios.post(`/cancelOrder?orderId=${orderId}`, {
+                                reason: cancelReason
                             })
-                            .then((response)=> {
-                                if(response.isConfirmed){
-                                    window.location.href = '/orderPage';
+                            .then((response) => {
+                                if (response.data.success == 1) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Order Canceled',
+                                        confirmButtonText: 'OK'
+                                    })
+                                    .then((result) => {
+                                        if (result.isConfirmed) {
+                                            window.location.reload()
+                                        }
+                                    });
+                                } else if (response.data.cancel) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Amount added to the Wallet',
+                                        confirmButtonText: 'OK'
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            window.location.reload()
+                                        }
+                                    });
                                 }
                             })
-                        } else if (response.data.cancel) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Amount added to the Wallet',
-                                confirmButtonText: 'OK'
-                            }).then(result => {
-                                if (result.isConfirmed) {
-                                    window.location.href = '/orderPage';
-                                }
+                            .catch((error) => {
+                                console.log(error);
                             });
                         }
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                    });
-                Swal.fire("changed!", "", "success");
+                    }
+                });
             } else if (result.isDenied) {
-                Swal.fire("Changes are not Saved", "", "info");
+                Swal.fire("Changes are not saved", "", "info");
             }
         });
     }
+    
+    
 
     function returnOrder(orderId) {
         Swal.fire({
@@ -201,6 +247,118 @@
                     }
                 });
             }
+        });
+    }
+
+
+    function continuePayment(orderId, event){
+        event.preventDefault()
+        fetch(`/retry-payment`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ orderId: orderId})
+        }).then(response => response.json())
+        .then(data => {
+            if(data.message === "Ordered by Razor"){
+                const options = {
+                    key: data.key,
+                    amount: data.amount * 100,
+                    name: 'Coza store',
+                    order_id: data.razorpayOrderId,
+                    handler: function (response) {
+                        fetch('/confirm-payment', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                orderId: data.orderId,
+                                razorpayPaymentId: response.razorpay_payment_id,
+                                razorpayOrderId: response.razorpay_order_id,
+                                razorpaySignature: response.razorpay_signature
+                            })
+                        })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Network response was not ok')
+                                }
+                                return response.json()
+                            })
+                            .then(data => {
+                                if (data.message === 'Success') {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Order Confirmed!',
+                                        text: 'Your order has been successfully placed.',
+                                        confirmButtonText: 'OK'
+                                    })
+                                        .then(() => {
+                                            console.log('Order Confirmed');
+                                            window.location.href = `/order-summary?orderId=${data.orderId}`;
+                                        });
+                                } else if (data.message === 'Payment not confirmed') {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Payment not confirmed!',
+                                        text: 'Payment not confirmed. Please contact support.',
+                                        confirmButtonText: 'OK'
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Payment Failed!',
+                                        text: 'Your payment was successful but order placement failed. Please contact support.',
+                                        confirmButtonText: 'OK'
+                                    });
+
+                                }
+                            })
+                            .catch(error => {
+                                console.log(error)
+                            })
+
+                    },
+                    prefill: {
+                        name: 'Ameen Hyder',
+                        email: 'email@email.com',
+                        contact: '9867876598'
+                    },
+                    theme: {
+                        color: "#3399cc"
+                    }
+                }
+                const rzpl = new Razorpay(options);
+                
+                rzpl.on("payment.failed", function (response){
+                    console.error(response.error);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Payment Failed",
+                        text: "Redirecting to Home page"
+                    }).then(() => {
+                        window.location.href = "/"
+                    })
+                })
+                rzpl.open();
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message,
+                    showConfirmButton: true,
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred while placing the order. Please try again later.',
+                showConfirmButton: true,
+            });
         });
     }
     

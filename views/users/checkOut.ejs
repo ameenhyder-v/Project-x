@@ -20,50 +20,123 @@
         }
 
         .address-cards {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 1.25rem; /* 20px equivalent to 1.25rem */
-}
+            display: flex;
+            justify-content: space-around;
+            margin-top: 1.25rem; 
+        }
 
-.card {
-    border: 1px solid #ccc;
-    border-radius: 0.8rem; /* 8px equivalent to 0.8rem */
-    padding: 1rem;
-    text-align: center;
-    width: 20rem; /* 320px equivalent to 20rem */
-    cursor: pointer;
-    transition: transform 0.2s;
-}
+        .card {
+            border: 1px solid #ccc;
+            border-radius: 0.8rem; 
+            padding: 1rem;
+            text-align: center;
+            width: 20rem; 
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
 
-.card:hover {
-    transform: scale(1.05);
-}
+        .card:hover {
+            transform: scale(1.05);
+        }
 
-.card h3 {
-    margin: 0 0 0.625rem 0; /* 10px equivalent to 0.625rem */
-}
+        .card h3 {
+            margin: 0 0 0.625rem 0; 
+        }
 
-.card p {
-    margin: 0.3125rem 0; /* 5px equivalent to 0.3125rem */
-}
+        .card p {
+            margin: 0.3125rem 0; 
+        }
 
-.select-button {
-    background-color: #007bff;
-    border: none;
-    color: white;
-    padding: 0.625rem 1.25rem; /* 10px and 20px equivalent */
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 1rem; /* 16px equivalent to 1rem */
-    margin: 0.625rem 0; /* 10px equivalent to 0.625rem */
-    border-radius: 0.3125rem; /* 5px equivalent to 0.3125rem */
-    cursor: pointer;
-}
+        .select-button {
+            background-color: #007bff;
+            border: none;
+            color: white;
+            padding: 0.625rem 1.25rem; 
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 1rem;
+            margin: 0.625rem 0; 
+            border-radius: 0.3125rem; 
+            cursor: pointer;
+        }
 
-.select-button:hover {
-    background-color: #0056b3;
-}
+        .select-button:hover {
+            background-color: #0056b3;
+        }
+
+
+        .modal-dialog.modal-md {
+            max-width: 31.25rem; 
+            margin: 5rem auto;
+        }
+
+        .modal-content {
+            border-radius: 0.625rem; 
+        }
+
+        .modal-header {
+            border-bottom: none;
+            padding: 1rem 1rem; 
+        }
+
+        .modal-title {
+            font-weight: bold;
+        }
+
+        .coupon-list {
+            margin-top: 0.625rem; 
+        }
+
+        .coupon-card {
+            border: 1px dashed #ed9b30;
+            padding: 0.625rem; 
+            margin-bottom: 0.625rem; 
+            border-radius: 0.5rem;
+        }
+
+        .coupon-header {
+            display: flex;
+            align-items: center;
+        }
+
+        .coupon-checkbox {
+            margin-right: 0.625rem;
+        }
+
+        .coupon-code {
+            font-size: 1.125rem;
+            font-weight: bold;
+            color: #dd9e4c;
+            cursor: pointer;
+            border: 1px dashed #ed9b30;
+            padding: 0.3125rem 0.625rem; 
+            border-radius: 0.3125rem; 
+        }
+
+        .coupon-details {
+            margin-top: 0.3125rem; 
+            font-size: 0.875rem;
+            color: #555;
+        }
+
+        .savings-info p {
+            margin: 0;
+            font-size: 0.875rem; 
+            color: #333;
+        }
+
+        .checkout-order .table tbody tr td.Product-price {
+            text-align: center;
+        }
+
+        .checkout-order .table thead tr th.Product-price {
+            text-align: center;
+        }
+  
+        #total-saved {
+            color: rgba(0, 128, 0, 0.78);
+        }
     </style>
 
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
@@ -83,7 +156,7 @@
                 </div>
             <% } else { %>
 
-            <div class="checkout-info">
+            <div class="checkout-info" id="applyCouponDiv" style="display: block;">
                 <p class="info-header">
                     <i class="fa fa-exclamation-circle"></i> Have a coupon?
                     <a data-bs-toggle="collapse" href="#coupon">Click here to enter your code</a>
@@ -95,12 +168,12 @@
                             <div class="row">
                                 <div class="col-lg-6">
                                     <div class="single-form">
-                                        <input type="email" placeholder="Coupon code" />
+                                        <input type="text" id="coupon-code-value" placeholder="Coupon code" pattern="[A-Z0-9]+" title="Only capital letters and numbers are allowed" oninput="this.value = this.value.toUpperCase()" />
                                     </div>
                                 </div>
                                 <div class="col-lg-6">
                                     <div class="single-form">
-                                        <button class="btn btn-primary btn-hover-dark">
+                                        <button class="btn btn-primary btn-hover-dark" onclick="applyCoupon(event)">
                                             Apply Coupon
                                         </button>
                                     </div>
@@ -110,12 +183,18 @@
                     </div>
                 </div>
             </div>
-            <div class="checkout-info">
-                <p class="info-header">
-                    <i class="fa fa-exclamation-circle"></i>
-                    <a data-bs-toggle="collapse" href="#" id="fetchCoupons">Click here to see all available coupons</a>
-                </p>
-            </div>
+
+            <p class="info-header" id="getCouponsToView">
+                <i class="fa fa-exclamation-circle"></i>
+                <a data-bs-toggle="collapse" href="#" id="fetchCoupons">Click here to see all available coupons</a>
+            </p>
+
+            <p class="info-header" id="removeCoupon" style="display: none;">
+                <strong>Cooupon added</strong>
+                <button  class="btn btn-primary btn-hover-dark" onclick="removeCoupon(event)">
+                    Remove Coupon
+                </button>
+            </p>
 
 
 
@@ -203,183 +282,137 @@
         <!-- Checkout Form End -->
     </div>
     <div class="col-lg-5">
-        <div class="checkout-order">
-            <div class="checkout-title">
+        <div class="checkout-order rounded shadow p-4 bg-light">
+            <div class="checkout-title text-center mb-4">
                 <h4 class="title">Your Order</h4>
             </div>
-
-            <div class="checkout-order-table table-responsive">
+    
+            <div class="checkout-order-table table-responsive mb-4">
                 <table class="table">
-                    <thead>
+                    <thead class="thead-light">
                         <tr>
-                            <th class="Product-name">
-                                Product
-                            </th>
-                            <th class="Product-price">
-                                Total
-                            </th>
+                            <th class="Product-name">Product</th>
+                            <th class="Product-price">Total</th>
+                            <th class="Product-original-price">Original Price</th>
+                            <th class="Product-discount">Discount</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <% cartItems.forEach(item => { %>
+                        <% let totalSaved = 0; %> <!-- Initialize total saved amount -->
+                        <% cartItems.forEach(item => { 
+                            const originalPrice = item.variantId.price; // Original price
+                            const productDiscountPrice = item.variantId.productOfferPrice || originalPrice;
+                            const categoryDiscountPrice = item.variantId.categoryOfferPrice || originalPrice;
+                            const bestDiscountPrice = Math.min(productDiscountPrice, categoryDiscountPrice); // Best discount price
+                            const discountedPrice = bestDiscountPrice * item.quantity; // Total discounted price
+                            const savings = (originalPrice - bestDiscountPrice) * item.quantity; // Total savings for the item
+                            totalSaved += savings; // Accumulate total saved
+                        %>
                             <tr>
                                 <td class="Product-name">
-                                    <p>
-                                        <%= item.variantId.productId.name %> (<%= item.size %> x <%= item.quantity %>)
-                                    </p>
+                                    <p><%= item.variantId.productId.name %> (<%= item.size %> x <%= item.quantity %>)</p>
                                 </td>
                                 <td class="Product-price">
-                                    <p>₹<%= item.variantId.stock.find(stock => stock.size.trim() === item.size.trim()).price %></p>
+                                    <p>₹<%= discountedPrice %></p>
+                                </td>
+                                <td class="Product-original-price">
+                                    <p class="text-muted" style="text-decoration: line-through;">₹<%= originalPrice * item.quantity %></p>
+                                </td>
+                                <td class="Product-discount">
+                                    <p>
+                                        <% if (savings > 0) { %>
+                                            <span class="text-danger">Save ₹<%= savings.toFixed(2) %></span>
+                                        <% } else { %>
+                                            <span class="text-secondary">No discount available</span>
+                                        <% } %>
+                                    </p>
                                 </td>
                             </tr>
                         <% }) %>
                     </tbody>
                     <tfoot>
                         <tr>
+                            <td class="Product-name"><strong>Subtotal</strong></td>
+                            <td class="Product-price"><strong>₹<%= totalAmount %></strong></td>
+                            <td class="Product-original-price" colspan="2"></td> <!-- Empty cells for alignment -->
+                        </tr>
+                        <!-- Coupon Discount Row -->
+                        <tr id="coupon-td" style="display: none;">
                             <td class="Product-name">
-                                <p>Subtotal</p>
+                                <p id="usedCoupon"></p>
                             </td>
                             <td class="Product-price">
-                                <p>₹<%= totalAmount %></p>
+                                <p id="couponDiscount"></p>
                             </td>
+                            <td class="Product-original-price" colspan="2"></td> <!-- Empty cells for alignment -->
+                        </tr>
+
+                        <tr>
+                            <td class="Product-name"><strong>Total Saved</strong></td>
+                            <td class="Product-price" ><strong id="total-saved" >₹<%= totalSaved.toFixed(2) %></strong></td>
+                            <td class="Product-original-price" colspan="2"></td> <!-- Empty cells for alignment -->
                         </tr>
                         <tr>
-                            <td class="Product-name">
-                                <p>Shipping</p>
-                            </td>
+                            <td class="Product-name"><strong>Shipping</strong></td>
                             <td class="Product-price">
-                                <ul class="shipping-list">
-                                    <!-- <li class="radio">
-                                                    <input type="radio" name="shipping" id="radio1" checked />
-                                                    <label for="radio1"><span></span>
-                                                        Flat Rate</label>
-                                                </li> -->
+                                <ul class="list-unstyled mb-0">
                                     <li class="radio">
                                         <input type="radio" name="shipping" id="radio1" checked />
-                                        <label for="radio2"><span></span>
-                                            Free
-                                            Shipping</label>
+                                        <label for="radio1"> Free Shipping</label>
                                     </li>
-                                    <!-- <li class="radio">
-                                                    <input type="radio" name="shipping" id="radio3" />
-                                                    <label for="radio3"><span></span>
-                                                        Local
-                                                        Pickup</label>
-                                                </li> -->
                                 </ul>
                             </td>
+                            <td class="Product-original-price" colspan="2"></td> <!-- Empty cells for alignment -->
                         </tr>
                         <tr>
-                            <td class="Product-name">
-                                <p>Total</p>
-                            </td>
-                            <td class="total-price">
-                                <p>₹<%= totalAmount %></p>
-                            </td>
+                            <td class="Product-name"><strong>Total</strong></td>
+                            <td class="total-price" id="total-price"><strong>₹<%= totalAmount %></strong></td>
+                            <td class="Product-original-price" colspan="2"></td> <!-- Empty cells for alignment -->
                         </tr>
                     </tfoot>
                 </table>
             </div>
-
-            <div class="checkout-payment">
-                <ul>
-                    <!-- <li>
-                                    <div class="single-payment">
-                                        <div class="payment-radio radio">
-                                            <input type="radio" name="radio" id="bank" />
-                                            <label for="bank"><span></span> Direct
-                                                bank transfer
-                                            </label>
-
-                                            <div class="payment-details">
-                                                <p>
-                                                    Please send a Check
-                                                    to Store name with
-                                                    Store Street, Store
-                                                    Town, Store State,
-                                                    Store Postcode,
-                                                    Store Country.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="single-payment">
-                                        <div class="payment-radio radio">
-                                            <input type="radio" name="radio" id="check" />
-                                            <label for="check"><span></span> Check
-                                                payments
-                                            </label>
-
-                                            <div class="payment-details">
-                                                <p>
-                                                    Please send a check
-                                                    to Store Name, Store
-                                                    Street, Store Town,
-                                                    Store State /
-                                                    County, Store
-                                                    Postcode.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li> -->
-                                <li>
-                                    <div class="single-payment">
-                                        <div class="payment-radio radio">
-                                            <input type="radio" name="payment" id="cash" value="COD" checked="checked" />
-                                            <label for="cash"><span></span> Cash on Delivery</label>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="single-payment">
-                                        <div class="payment-radio radio">
-                                            <input type="radio" name="payment" id="Razor" value="razor" />
-                                            <label for="Razor"><span></span> Razorpay</label>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="single-payment">
-                                        <div class="payment-radio radio">
-                                            <input type="radio" name="payment" id="wallet" value="wallet" />
-                                            <label for="wallet"><span></span> Wallet</label>
-                                        </div>
-                                    </div>
-                                </li>
-                                
-                    <!-- <li>
-                                    <div class="single-payment">
-                                        <div class="payment-radio radio">
-                                            <input type="radio" name="radio" id="paypal" />
-                                            <label for="paypal"><span></span> Paypal
-                                                <img class="payment" src="assets/images/payment-2.html" alt="" />
-                                                <a href="#">What is PayPal?</a></label>
-
-                                            <div class="payment-details">
-                                                <p>
-                                                    Pay via PayPal; you
-                                                    can pay with your
-                                                    credit card if you
-                                                    don't have a PayPal
-                                                    account.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li> -->
+    
+            <div class="checkout-payment mb-4">
+                <h5 class="mb-3">Payment Method</h5>
+                <ul class="list-unstyled">
+                    <li>
+                        <div class="single-payment mb-2">
+                            <div class="payment-radio">
+                                <input type="radio" name="payment" id="cash" value="COD" checked="checked" />
+                                <label for="cash"><span></span> Cash on Delivery</label>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="single-payment mb-2">
+                            <div class="payment-radio">
+                                <input type="radio" name="payment" id="Razor" value="razor" />
+                                <label for="Razor"><span></span> Razorpay</label>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="single-payment mb-2">
+                            <div class="payment-radio">
+                                <input type="radio" name="payment" id="wallet" value="wallet" />
+                                <label for="wallet"><span></span> Wallet</label>
+                            </div>
+                        </div>
+                    </li>
                 </ul>
-
-                <div class="single-form">
-                    <button class="btn btn-primary btn-hover-dark d-block" onclick="placeOrder(event)">
-                        Place Order
-                    </button>
-                </div>
+            </div>
+    
+            <div class="single-form text-center">
+                <button class="btn btn-primary btn-hover-dark w-100 mt-3" onclick="placeOrder(event)">
+                    Place Order
+                </button>
             </div>
         </div>
     </div>
+    
+    
+    
     </div>
     </form>
     <% } %>
@@ -389,24 +422,24 @@
 
     <%- include('../partials/userpartials/footer.ejs') %>
 
-<!-- Modal for View all available Coupons-->
-
-<div class="modal fade" id="couponsModal" tabindex="-1" aria-labelledby="couponsModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="couponsModalLabel">Available Coupons</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <!-- Modal for View all available Coupons-->
+    <div class="modal fade" id="couponsModal" tabindex="-1" aria-labelledby="couponsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title" id="couponsModalLabel">APPLY COUPON</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                <div class="coupon-list" id="couponsBody">
+                    <!-- here appending the coupon data dinanically -->
+                    
+                </div>
+                </div>
+            </div>
         </div>
-        <div class="modal-body" id="couponsBody" style="max-height: 400px; overflow-y: auto;">
-          <!-- Coupons will be dynamically added here -->
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        </div>
-      </div>
     </div>
-  </div>
+  
   
   
 
@@ -644,6 +677,17 @@
                             }
                         }
                         const rzpl = new Razorpay(options);
+                        
+                        rzpl.on("payment.failed", function (response){
+                            console.error(response.error);
+                            Swal.fire({
+                                icon: "error",
+                                title: "Payment Failed",
+                                text: "Redirecting to Home page"
+                            }).then(() => {
+                                window.location.href = "/"
+                            })
+                        })
                         rzpl.open();
                     } else {
                         Swal.fire({
@@ -667,67 +711,241 @@
             
 
              // Function to fetch the coupon and show it in the modal
-                document.getElementById('fetchCoupons').addEventListener('click', async (e) => {
-                  e.preventDefault();
+             document.getElementById('fetchCoupons').addEventListener('click', async (e) => {
+                e.preventDefault();
               
-                  try {
-                    const response = await fetch('/coupons/all', { // Adjust the endpoint as needed
-                      method: 'GET',
-                      headers: {
-                        'Content-Type': 'application/json'
-                      }
+                try {
+                  const response = await fetch('/coupons/all', {
+                    method: 'GET',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                  });
+              
+                  const coupons = await response.json();
+                  const couponsBody = document.getElementById('couponsBody');
+                  couponsBody.innerHTML = '';
+              
+                  if (coupons.length > 0) {
+                    coupons.forEach((coupon) => {
+                      const couponElement = `
+                        <div class="coupon-card" style="padding: 10px; border-bottom: 1px solid #ddd; margin-bottom: 10px;">
+                          <h5 style="margin-bottom: 5px;">${coupon.name}</h5>
+                          <p style="margin: 0;"><strong>Save: ₹${coupon.amount} off </strong></p>
+                          <p style="margin: 0;">RS.${coupon.amount} off on minimum purchase of Rs.${coupon.minimumAmount}</p>
+                          <p style="margin: 0 0 5px;">Expires on: ${new Date(coupon.expires).toLocaleDateString()}</p>
+                          <div class="coupon-code">
+                            <span class="coupon-base-labelChecked" style="cursor: pointer;" id="couponCode-${coupon.couponCode}" data-code="${coupon.couponCode}">
+                              ${coupon.couponCode}
+                            </span>
+                            <small style="margin-left: 10px;">(Click to copy)</small>
+                          </div>
+                        </div>
+                      `;
+                      couponsBody.innerHTML += couponElement;
                     });
               
-                    const coupons = await response.json();
-                    const couponsBody = document.getElementById('couponsBody');
-                    couponsBody.innerHTML = ''; // Clear previous content
-              
-                    if (coupons.length > 0) {
-                      coupons.forEach(coupon => {
-                        const couponElement = `
-                          <div class="coupon-card" style="padding: 10px; border-bottom: 1px solid #ddd; margin-bottom: 10px;">
-                            <h5 style="margin-bottom: 5px;">${coupon.name}</h5>
-                            <p style="margin: 0;"><strong>Discount:</strong> ₹${coupon.amount} off</p>
-                            <p style="margin: 0;"><strong>Minimum Purchase:</strong> ₹${coupon.minimumAmount}</p>
-                            <p style="margin: 0 0 5px;"><strong>Expires On:</strong> ${new Date(coupon.expires).toLocaleDateString()}</p>
-                            <div class="coupon-code">
-                              <span class="badge bg-primary" style="cursor: pointer;" id="couponCode-${coupon.couponCode}" data-code="${coupon.couponCode}">
-                                ${coupon.couponCode}
-                              </span>
-                              <small style="margin-left: 10px;">(Click to copy)</small>
-                            </div>
-                          </div>
-                        `;
-                        couponsBody.innerHTML += couponElement;
+                    // FOR COPYING THE CODE
+                    document.querySelectorAll('.coupon-base-labelChecked').forEach((label) => {
+                      label.addEventListener('click', (e) => {
+                        const couponCode = e.target.getAttribute('data-code');
+                        copyToClipboard(couponCode);
                       });
-              
-                      // Add event listener to make coupon code copyable
-                      document.querySelectorAll('.badge').forEach(badge => {
-                        badge.addEventListener('click', (e) => {
-                          const couponCode = e.target.getAttribute('data-code');
-                          copyToClipboard(couponCode);
-                        });
-                      });
-                    } else {
-                      couponsBody.innerHTML = '<p>No coupons available at the moment.</p>';
-                    }
-              
-                    // Show the modal
-                    const couponsModal = new bootstrap.Modal(document.getElementById('couponsModal'));
-                    couponsModal.show();
-                  } catch (error) {
-                    console.error('Error fetching coupons:', error);
+                    });
+                  } else {
+                    couponsBody.innerHTML = '<p>No coupons available at the moment.</p>';
                   }
-                });
               
-                // Modern function to copy text to clipboard
-                function copyToClipboard(text) {
-                  navigator.clipboard.writeText(text).then(() => {
-                    alert(`Coupon code ${text} copied!`);
-                  }).catch(err => {
-                    console.error('Error copying text: ', err);
-                  });
+                  const couponsModal = new bootstrap.Modal(document.getElementById('couponsModal'));
+                  couponsModal.show();
+                } catch (error) {
+                  console.error('Error fetching coupons:', error);
                 }
+              });
+              
+              // FUNCTION TO ADD THE COPIED DATA TO THE CLIPBOARD
+              function copyToClipboard(text) {
+                navigator.clipboard.writeText(text)
+                  .then(() => {
+                    // Close the modal first
+                    const couponsModal = bootstrap.Modal.getInstance(document.getElementById('couponsModal'));
+                    couponsModal.hide();
+              
+                    Toastify({
+                        text: `Coupon code ${text} copied!`,
+                        duration: 1500, 
+                        gravity: 'top',
+                        position: 'right', 
+                        backgroundColor: 'green', 
+                        stopOnFocus: true, 
+                      }).showToast();
+                    })
+                    .catch((err) => {
+                      console.error('Failed to copy text: ', err);
+                
+                      // Show error Toastify notification
+                      Toastify({
+                        text: 'Failed to copy coupon code. Please try again.',
+                        duration: 2000,
+                        close: true,
+                        gravity: 'top',
+                        position: 'right',
+                        backgroundColor: 'red',
+                        stopOnFocus: true,
+                      }).showToast();
+                    });
+              }
+            
+              // APPLYING COUPON
+              function applyCoupon(event) {
+                event.preventDefault();
+                
+                const couponCode = document.getElementById("coupon-code-value").value;
+                console.log(couponCode)
+                
+                if (couponCode) {
+                    fetch("/coupon/apply", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ couponCode }), 
+                    })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.success) {
+                            Toastify({
+                                text: `Coupon code ${couponCode} applied! You saved ₹${data.discountAmount}`,
+                                duration: 3000, 
+                                close: true,
+                                gravity: 'top',
+                                position: 'right', 
+                                backgroundColor: 'green', 
+                                stopOnFocus: true,
+                            }).showToast();
+                            
+                            // Update the total price
+                            document.getElementById('total-price').textContent = `₹${data.newTotal}`;
+
+                            // Update the total saved amount by adding the discount amount
+                            const totalSavedElement = document.getElementById('total-saved');
+                            const currentTotalSaved = parseFloat(totalSavedElement.textContent.replace('₹', '')) || 0;
+                            const newTotalSaved = currentTotalSaved + data.discountAmount;
+
+                            // Set the new total saved value
+                            totalSavedElement.textContent = `₹${newTotalSaved.toFixed(2)}`;
+
+                            // Set the coupon code and discount amount in the respective paragraphs
+                            document.getElementById('usedCoupon').textContent = `Coupon Applied: ${data.couponCode}`;
+                            document.getElementById('couponDiscount').textContent = `Discount: ₹${data.discountAmount}`;
+
+                            // Hide the coupon input and get coupons buttons
+                            document.getElementById('applyCouponDiv').style.display = 'none';
+                            document.getElementById('getCouponsToView').style.display = 'none';
+
+                            // Show the remove coupon button
+                            document.getElementById('removeCoupon').style.display = 'block';
+
+                            // Show the coupon-td element
+                            document.getElementById('coupon-td').style.display = 'table-row';
+                        } else {
+                            // Show error message if the coupon is invalid
+                            Toastify({
+                                text: data.message || 'Invalid coupon code. Please try again.',
+                                duration: 3000, 
+                                close: true,
+                                gravity: 'top',
+                                position: 'right', 
+                                backgroundColor: 'red', 
+                                stopOnFocus: true,
+                            }).showToast();
+                        }
+                    })
+                    .catch((error) => {
+                        // Show error if there's a problem with the request
+                        console.error('Error applying coupon:', error);
+                        Toastify({
+                            text: 'Error applying coupon. Please try again later.',
+                            duration: 3000, 
+                            close: true,
+                            gravity: 'top',
+                            position: 'right', 
+                            backgroundColor: 'red', 
+                            stopOnFocus: true,
+                        }).showToast();
+                    });
+                } else {
+                    // Show a notification if the coupon code input is empty
+                    Toastify({
+                        text: 'Enter coupon code',
+                        duration: 1500, 
+                        close: true,
+                        gravity: 'top',
+                        position: 'right', 
+                        backgroundColor: 'orange', 
+                        stopOnFocus: true,
+                    }).showToast();
+                }
+            }
+  
+              
+            function removeCoupon(event) {
+                event.preventDefault();
+                
+                fetch("/coupon/remove", { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Toastify({
+                            text: `Coupon removed successfully!`,
+                            duration: 3000, 
+                            close: true,
+                            gravity: 'top',
+                            position: 'right', 
+                            backgroundColor: 'red', 
+                            stopOnFocus: true,
+                        }).showToast();
+                        
+                        document.getElementById('total-price').textContent = `₹${data.originalTotal}`;
+                        
+                        // Clear coupon code and discount information
+                        document.getElementById('usedCoupon').textContent = '';
+                        document.getElementById('couponDiscount').textContent = ''; 
+            
+                        const totalSavedElement = document.getElementById('total-saved'); // The total saved field
+                        let currentTotalSaved = parseFloat(totalSavedElement.textContent.replace(/[₹,]/g, '')) || 0;
+            
+                        let discountAmount = Number(data.discountAmount) || 0; // Ensure discountAmount is a number
+                        const newTotalSaved = currentTotalSaved - discountAmount;
+            
+                        totalSavedElement.textContent = `₹${newTotalSaved.toFixed(2)}`;
+            
+                        document.getElementById('applyCouponDiv').style.display = 'block';
+                        document.getElementById('getCouponsToView').style.display = 'block';
+                        document.getElementById('removeCoupon').style.display = 'none';
+                        document.getElementById('coupon-td').style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error removing coupon:', error);
+                    Toastify({
+                        text: `Failed to remove coupon. Please try again.`,
+                        duration: 3000, 
+                        close: true,
+                        gravity: 'top',
+                        position: 'right', 
+                        backgroundColor: 'orange', 
+                        stopOnFocus: true,
+                    }).showToast();
+                });
+            }
+            
+            
               
               
               

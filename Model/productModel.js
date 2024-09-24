@@ -17,10 +17,6 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    gender:{
-        type:String,
-        required: true
-    },
     material: {
         type: String,
         required: true
@@ -28,10 +24,6 @@ const productSchema = new mongoose.Schema({
     isBlocked: {
         type: Boolean,
         default: false
-    },
-    category: {
-        type: String,
-        required: true
     },
     isVariant: { 
         type: Boolean,

@@ -1,6 +1,7 @@
 const User = require("../Model/userModel")
 const Address = require("../Model/addressModel")
 const Order = require("../Model/orderModel")
+const Transaction = require("../Model/transactionModel")
 const bcrypt = require("bcrypt");
 
 
@@ -9,9 +10,10 @@ const accountLoad = async (req, res) => {
         const userId = req.session.userId;
         const userData = await User.findOne({_id: userId});
         const userAddress = await Address.find({userId: userId});
+        const transactions = await Transaction.find({ userId: userId }).sort({ createdAt: -1 }); // Sorted by most recent first
         const orders = await Order.find({userId});
         
-        res.render("userAccount", {userData, userAddress, orders})
+        res.render("userAccount", { userData, userAddress, orders, transactions })
     } catch (error) {
         console.log(`error from the account controller . account load:  ${error}`)
     }

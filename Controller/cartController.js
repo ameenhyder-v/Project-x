@@ -26,7 +26,7 @@ const addToCart = async (req, res) => {
         } else {
             const existingItem = userCart.cartItems.find(item => item.variantId.equals(variantId) && item.size == size);
             if (existingItem) {
-                return res.status(200).json({fail: "Item alredy in cart"})
+                return res.status(200).json({fail: "Item already in cart"})
             } else {
                 userCart.cartItems.push({ variantId, size });
             }
@@ -46,7 +46,7 @@ const addToCart = async (req, res) => {
 
 async function subTotal(userId) {
     try {
-        const cartData = await Cart.findOne({ userId: userId }).populate("cartItems.variantId");
+        const cartData = await Cart.findOne({ userId }).populate("cartItems.variantId");
 
         if (!cartData || !cartData.cartItems || cartData.cartItems.length === 0) {
             return 0;
@@ -56,8 +56,13 @@ async function subTotal(userId) {
             const variant = item.variantId;
             if (variant) {
                 const stockItem = variant.stock.find(stock => stock.size.trim() === item.size.trim());
-                if (stockItem && stockItem.quantity > 0) {
-                    acc += variant.price * item.quantity;
+                if (stockItem && stockItem.quantity >= item.quantity) {
+                    const lowestPrice = Math.min(
+                        variant.categoryOfferPrice || variant.price,
+                        variant.productOfferPrice || variant.price,
+                        variant.price
+                    );
+                    acc += lowestPrice * item.quantity; 
                 }
             }
             return acc;
@@ -66,8 +71,11 @@ async function subTotal(userId) {
         return total;
     } catch (error) {
         console.error("Error calculating subtotal:", error);
+        return 0;
     }
 }
+
+
 
 
 //! CART LOADING
@@ -144,7 +152,12 @@ const addQuantity = async (req, res) => {
             const saving = await userCart.save();
             if (saving) {
                 let subTotalAmount = await subTotal(userId);
-                let total = cartItem.quantity * variant.price
+                const lowestPrice = Math.min(
+                    variant.categoryOfferPrice || variant.price,
+                    variant.productOfferPrice || variant.price,
+                    variant.price
+                );
+                let total = cartItem.quantity * lowestPrice;
                 res.status(200).json({ success: 1, quantity: cartItem.quantity, totalPrice: total, subTotalAmount: subTotalAmount });
             }
         }
@@ -182,7 +195,12 @@ const decreaseQuantity = async (req, res) => {
             if (saving) {
                 
                 let subTotalAmount = await subTotal(userId);
-                let total = cartItem.quantity * variant.price
+                const lowestPrice = Math.min(
+                    variant.categoryOfferPrice || variant.price,
+                    variant.productOfferPrice || variant.price,
+                    variant.price
+                );
+                let total = cartItem.quantity * lowestPrice;
                 res.status(200).json({ success: 1, quantity: cartItem.quantity, totalPrice: total, subTotalAmount: subTotalAmount });
             }
             

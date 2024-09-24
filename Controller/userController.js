@@ -4,6 +4,7 @@ const otpModel = require('../Model/otpModel')
 const Variant = require("../Model/variantModel")
 const bcrypt = require("bcrypt");
 const wishlistController = require("../Controller/wishlist-controller");
+const categoryController = require("./categoryController")
 
 
 
@@ -211,21 +212,36 @@ const userVarify = async (req, res) => {
     }
 }
 
+
+
 //! HOME PAGE LOAD
 const home = async (req, res) => {
     try {
-        const allVariants = await Variant.find().populate("productId")
-        // console.log(allVariants);
+        const allVariants = await Variant.find()
+            .populate({
+                path: 'productId',
+                populate: {
+                    path: 'categoryId',
+                    model: 'Category'
+                }
+            });
 
-        const variants = allVariants.filter(Element => {
-            return Element.productId.isBlocked == false
-        })
+        const filteredVariants = allVariants.filter(variant => {
+            const product = variant.productId;
+            const category = product && product.categoryId;
+            return product && !product.isBlocked && category && !category.isBlocked;
+        });
 
-        res.render('home', { variants: variants });
+        const shuffledVariants = filteredVariants.sort(() => 0.5 - Math.random()).slice(0, 8);
+
+        res.render('home', { variants: shuffledVariants });
     } catch (error) {
-        console.log(`error from home: ${error}`);
+        console.log(`Error from home: ${error}`);
+        res.status(500).send("An error occurred while loading the home page.");
     }
-}
+};
+
+
 
 
 //! PRODUCT DETAILS PAGE LOAD
@@ -247,14 +263,24 @@ const productDetails = async (req, res) => {
 const allProducts = async (req, res) => {
     try {
 
-        const allVariants = await Variant.find().populate("productId")
-        // console.log(allVariants);
+        const allVariants = await Variant.find()
+            .populate({
+                path: 'productId',
+                populate: {
+                    path: 'categoryId',
+                    model: 'Category'
+                }
+            });
 
-        const variants = allVariants.filter(Element => {
-            return Element.productId.isBlocked == false
-        })
+        const variants = allVariants.filter(variant => {
+            const product = variant.productId;
+            const category = product && product.categoryId;
+            return product && !product.isBlocked && category && !category.isBlocked;
+        });
 
-        res.render("allProducts", {variants});
+        const allCategories = await categoryController.getAllCategory()
+
+        res.render("allProducts", { variants, allCategories });
     } catch (error) {
         console.log(`error from allProducts: ${error}`)
     }
@@ -263,36 +289,68 @@ const allProducts = async (req, res) => {
 //! ALL WOMEN PRODUCTS 
 const womenAllProducts = async (req, res) => {
     try {
+        const allVariants = await Variant.find()
+            .populate({
+                path: 'productId',
+                populate: {
+                    path: 'categoryId',
+                    model: 'Category'
+                }
+            })
+            .exec();
 
-        const allVariants = await Variant.find().populate("productId").exec();
 
-        // Filter variants based on the isBlocked status of the related product
-        const filteredVariants = allVariants.filter(variant => {
-            return !variant.productId.isBlocked && variant.productId.gender === 'Female';
-        });
-        console.log(filteredVariants)
-
-        // Render the results with the filtered variants
-        res.render("women-all-products", { variants: filteredVariants });
         
+        const filteredVariants = allVariants.filter(variant => {
+            return (
+                !variant.productId.isBlocked &&
+                !variant.productId.categoryId.isBlocked && 
+                variant.productId.categoryId.gender === 'Female'
+            );
+        });
+        const allCategoriesInDb = await categoryController.getAllCategory()
+        const allCategories = allCategoriesInDb.filter((category) =>{
+                                    return category.gender === "Female"
+                                });
+
+        
+        res.render("women-all-products", { variants: filteredVariants, allCategories });
+
     } catch (error) {
-        console.log(`error from the user controller womenAllProducts : ${error}`)
+        console.log(`Error from the user controller womenAllProducts: ${error}`);
     }
-}
+};
+
 
 //! ALL MEN PRODUCTS 
 const menAllProducts = async (req, res) => {
     try {
 
-        const allVariants = await Variant.find().populate("productId").exec();
+        const allVariants = await Variant.find()
+            .populate({
+                path: 'productId',
+                populate: {
+                    path: 'categoryId', 
+                    model: 'Category'
+                }
+            })
+            .exec();
 
-        // Filter variants based on the isBlocked status of the related product and gender
         const filteredVariants = allVariants.filter(variant => {
-            return !variant.productId.isBlocked && variant.productId.gender === 'Male';
+            return (
+                !variant.productId.isBlocked &&
+                !variant.productId.categoryId.isBlocked && // Check if the category is not blocked
+                variant.productId.categoryId.gender === 'Male'
+            );
         });
 
+
+        const allCategoriesInDb = await categoryController.getAllCategory()
+        const allCategories = allCategoriesInDb.filter((category) => {
+            return category.gender === "Male"
+        })
         // Render the results with the filtered variants
-        res.render("men-all-products", { variants: filteredVariants });
+        res.render("men-all-products", { variants: filteredVariants, allCategories });
     } catch (error) {
         console.log(`error from the user controller menAllProducts : ${error}`)
     }
@@ -368,6 +426,86 @@ const updatePassword = async (req, res) => {
     }
 }
 
+const sortFilterSearch = async (req, res) => {
+    try {
+        const { sort, filter, search } = req.query;
+
+        let query = {};
+
+        const variants = await Variant.find(query)
+            .populate({
+                path: 'productId',
+                populate: {
+                    path: 'categoryId',
+                    select: 'gender category'
+                }
+            })
+            .exec();
+
+        // Filter based on category and gender
+        let filteredVariants = variants;
+        if (filter && filter === 'Women *') {
+            filteredVariants = variants.filter(variant => {
+                const product = variant.productId;
+                return product.categoryId && product.categoryId.gender === 'Female';
+            });
+        } else if (filter && filter === 'Men *') {
+            filteredVariants = variants.filter(variant => {
+                const product = variant.productId;
+                return product.categoryId && product.categoryId.gender === 'Male';
+            });
+        } else if (filter && filter !== '*') {
+            const [category, gender] = filter.split(' ');
+
+            filteredVariants = variants.filter(variant => {
+                const product = variant.productId;
+                return product.categoryId && product.categoryId.category === category && product.categoryId.gender === gender;
+            });
+        }
+
+        // sorting
+        if (sort === 'nameAZ') {
+            filteredVariants.sort((a, b) => a.productId.name.localeCompare(b.productId.name));
+        } else if (sort === 'nameZA') {
+            filteredVariants.sort((a, b) => b.productId.name.localeCompare(a.productId.name));
+        } else if (sort === 'lowToHigh') {
+            filteredVariants.sort((a, b) => {
+                const aEffectivePrice = Math.min(
+                    a.productOfferPrice || a.price,
+                    a.categoryOfferPrice || a.price
+                );
+                const bEffectivePrice = Math.min(
+                    b.productOfferPrice || b.price,
+                    b.categoryOfferPrice || b.price
+                );
+                return aEffectivePrice - bEffectivePrice;
+            });
+        } else if (sort === 'highToLow') {
+            filteredVariants.sort((a, b) => {
+                const aEffectivePrice = Math.min(
+                    a.productOfferPrice || a.price,
+                    a.categoryOfferPrice || a.price
+                );
+                const bEffectivePrice = Math.min(
+                    b.productOfferPrice || b.price,
+                    b.categoryOfferPrice || b.price
+                );
+                return bEffectivePrice - aEffectivePrice;
+            });
+        }
+
+        //todo search not done 
+        // if (search) {
+        //     query['productId.name'] = { $regex: search, $options: 'i' };
+        // }
+
+        res.json({ variants: filteredVariants });
+        
+    } catch (error) {
+        console.log(`error in the sort filter search section : ${error.message}`)
+    }
+}
+
 module.exports = {
     register,
     home,
@@ -384,5 +522,6 @@ module.exports = {
     updatePassword,
     changePassword,
     womenAllProducts,
-    menAllProducts
+    menAllProducts,
+    sortFilterSearch
 };

@@ -20,7 +20,7 @@ const verifyAdmin = async (req, res) => {
 
         const { username, password } = req.body;
 
-        // validation of email and password regex form
+        // validation of email regex form
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         if (!emailRegex.test(username)) {
@@ -64,28 +64,36 @@ const dashboard = async (req, res) => {
 
 const productList = async (req, res) => {
     try {
+        const limit = 10;
+        const page = parseInt(req.query.page) || 1;
 
-        const limit = 10; 
-        const page = parseInt(req.query.page) || 1; 
-        const allProducts = await Product.find().sort({ _id: -1 });
-        const falseCategories = await CategoryModel.find({ isBlocked: false });
-        const falseCategoryName = falseCategories.map(categories => categories.name);
-        const filteredProducts = allProducts.filter(product => !falseCategoryName.includes(product.category));
+        const allProducts = await Product.find()
+            .populate({
+                path: 'categoryId',
+                model: 'Category',
+                match: { isBlocked: false }
+            })
+            .sort({ _id: -1 });
+
+        const filteredProducts = allProducts.filter(product => product.categoryId !== null);
 
         const totalProducts = filteredProducts.length;
         const totalPages = Math.ceil(totalProducts / limit);
 
         const startIndex = (page - 1) * limit;
-        const endIndex = page * limit;
+        const productsToShow = filteredProducts.slice(startIndex, startIndex + limit);
 
-        const productsToShow = filteredProducts.slice(startIndex, endIndex);
-
-
-        res.render("productList", { allProducts: productsToShow, currentPage: page, totalPages: totalPages });
+        res.render("productList", {
+            allProducts: productsToShow,
+            currentPage: page,
+            totalPages: totalPages
+        });
     } catch (error) {
-        console.log(`error form productList loding: ${error}`)
+        console.log(`Error from productList loading: ${error}`);
+        res.status(500).send("An error occurred while loading the product list.");
     }
-}
+};
+
 
 const addProduct = async (req, res) => {
     try {

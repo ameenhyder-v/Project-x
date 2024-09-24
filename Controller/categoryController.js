@@ -140,11 +140,21 @@ const updateCategory = async (req, res) => {
 }
 
 
+async function getAllCategory(){
+    const allCategory = await Category.find({isBlocked: false});
+    if(allCategory){
+        return allCategory
+    }else {
+        return []
+    }
+}
+
 module.exports = {
     addCategory,
     deleteCategory,
     checkCategory,
     getingId,
     getCatEdit,
-    updateCategory
+    updateCategory,
+    getAllCategory
 }

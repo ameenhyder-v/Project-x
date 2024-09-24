@@ -168,9 +168,9 @@ const deleteCoupon = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Coupon ID is required' });
         }
 
-        const removeCoupon = await Coupon.findOneAndDelete({ _id: couponId });
+        const deleteCoupon = await Coupon.findOneAndDelete({ _id: couponId });
 
-        if (removeCoupon) {
+        if (deleteCoupon) {
             return res.json({ success: true, message: 'Coupon deleted successfully' });
         } else {
             return res.status(404).json({ success: false, message: 'Coupon not found' });
@@ -184,20 +184,16 @@ const deleteCoupon = async (req, res) => {
 
 const getAllAvailCoupons = async (req, res) => {
     try {
-        const allCoupons = await Coupon.find({})
-        const allusebleCoupons = allCoupons.filter((coupons) => {
-            return coupons.status = true
-        })
-
-        console.log(allusebleCoupons)
-
-        
-        res.status(200).json(allCoupons)
+        const allusebleCoupons = await Coupon.find({status: true})
+        res.status(200).json(allusebleCoupons)
         
     } catch (error) {
         console.log(`error in coupon ${error.message}`)
     }
 }
+
+
+
 
 
 module.exports = {
@@ -206,5 +202,5 @@ module.exports = {
     getCouponForEdit,
     updateCoupon,
     deleteCoupon,
-    getAllAvailCoupons
+    getAllAvailCoupons,
 }

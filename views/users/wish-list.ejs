@@ -1,102 +1,178 @@
 <%- include("../partials/userpartials/header.ejs") %>
 
+<style>
+    /* Offer Badge with Percentage */
+    .badge-danger {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #d9534f;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
 
-<div class="container" style="height: 50rem;">
-    <div class="wishlist-title p-3">
-        <h2 class="p-2">My wishlist on Porto Shop 4</h2>
+    /* Ensure the percentage and label fit well */
+    .badge-danger::after {
+        content: ' OFF';
+    }
+
+    /* Additional Product Hover Effects */
+    .isotope-item:hover {
+        transform: translateY(-10px); /* Slight elevation on hover */
+    }
+
+    .product-image {
+        width: 100%;
+        height: auto;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .block2-pic:hover .product-image {
+        transform: scale(1.05);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .discount-price {
+        color: #d9534f;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+
+    .original-price {
+        color: #999;
+        font-size: 0.9rem;
+    }
+
+    .off-class {
+        text-decoration: line-through;
+    }
+
+    .product-name {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #333;
+        transition: color 0.3s ease;
+    }
+
+    .product-name:hover {
+        color: #d9534f;
+    }
+
+    .icon-heart1 {
+        transition: opacity 0.3s ease;
+    }
+
+    .icon-heart2 {
+        position: absolute;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .js-addwish-b2:hover .icon-heart1 {
+        opacity: 0;
+    }
+
+    .js-addwish-b2:hover .icon-heart2 {
+        opacity: 1;
+    }
+
+</style>
+
+
+<div class="container">
+    <div class="bread-crumb flex-w p-l-25 p-r-15 p-t-30 p-lr-0-lg">
+        <a href="/" class="stext-109 cl8 hov-cl1 trans-04">
+            Home
+            <i class="fa fa-angle-right m-l-9 m-r-10" aria-hidden="true"></i>
+        </a>
+
+        <span class="stext-109 cl4">
+            My wishlist
+        </span>
     </div>
-    <div class="wishlist-table-container">
-        <table class="table table-wishlist mb-0">
-            <thead>
-                <tr>
-                    <th class="thumbnail-col"></th>
-                    <th class="product-col">Product</th>
-                    <th class="price-col">Price</th>
-                    <th class="status-col">Stock Status</th>
-                    <th class="action-col">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="product-row">
-                    <td>
-                        <figure class="product-image-container">
-                            <a href="product.html" class="product-image">
-                                <img src="assets/images/products/product-4.jpg" alt="product">
-                            </a>
+</div>
 
-                            <a href="#" class="btn-remove icon-cancel" title="Remove Product"></a>
-                        </figure>
-                    </td>
-                    <td>
-                        <h5 class="product-title">
-                            <a href="product.html">Men Watch</a>
-                        </h5>
-                    </td>
-                    <td class="price-box">$17.90</td>
-                    <td>
-                        <span class="stock-status">In stock</span>
-                    </td>
-                    <td class="action">
-                        <button class="btn btn-dark btn-add-cart product-type-simple btn-shop">
-                            ADD TO CART
-                        </button>
-                    </td>
-                </tr>
-
-                <tr class="product-row">
-                    <td>
-                        <figure class="product-image-container">
-                            <a href="product.html" class="product-image">
-                                <img src="assets/images/products/product-5.jpg" alt="product">
-                            </a>
-
-                            <a href="#" class="btn-remove icon-cancel" title="Remove Product"></a>
-                        </figure>
-                    </td>
-                    <td>
-                        <h5 class="product-title">
-                            <a href="product.html">Men Cap</a>
-                        </h5>
-                    </td>
-                    <td class="price-box">$17.90</td>
-                    <td>
-                        <span class="stock-status">In stock</span>
-                    </td>
-                    <td class="action">
-                        <a href="product.html" class="btn btn-dark btn-add-cart btn-shop">
-                            SELECT OPTION
+<section class="bg0 p-t-23 p-b-140">
+    <div class="container">
+        <div class="p-b-10">
+            <h3 class="ltext-103 cl5">
+                My Wishlist
+            </h3>
+        </div>
+        
+        <div class="row isotope-grid" id="productContainer">
+            <% variants.forEach(variant => { %>
+            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item <%= variant.productId.categoryId.gender %>">
+                <div class="block2">
+                    <div class="block2-pic hov-img0">
+                        <a href="/productDetail?variantId=<%= variant._id %>">
+                            <img src="images/<%= variant.image[0] %>" alt="IMG-PRODUCT" class="product-image">
                         </a>
-                    </td>
-                </tr>
 
-                <tr class="product-row">
-                    <td>
-                        <figure class="product-image-container">
-                            <a href="product.html" class="product-image">
-                                <img src="assets/images/products/product-6.jpg" alt="product">
+                        <% if (variant.productOfferPrice || variant.categoryOfferPrice) { %>
+                            <% 
+                                let discountPrice;
+                                let discountPercentage;
+
+                                if (!variant.productOfferPrice) {
+                                    discountPrice = variant.categoryOfferPrice;
+                                    discountPercentage = Math.round(((variant.price - discountPrice) / variant.price) * 100);
+                                } else if (!variant.categoryOfferPrice) {
+                                    discountPrice = variant.productOfferPrice;
+                                    discountPercentage = Math.round(((variant.price - discountPrice) / variant.price) * 100);
+                                } else {
+                                    discountPrice = Math.min(variant.productOfferPrice, variant.categoryOfferPrice);
+                                    discountPercentage = Math.round(((variant.price - discountPrice) / variant.price) * 100);
+                                }
+                            %>
+                            <% if (discountPercentage > 0) { %>
+                                <span class="badge badge-danger"><%= discountPercentage %>% </span>
+                            <% } %>
+                        <% } %>
+                    </div>
+
+                    <div class="block2-txt flex-w flex-t p-t-14">
+                        <div class="block2-txt-child1 flex-col-l">
+                            <a href="/productDetail?variantId=<%= variant._id %>" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6 product-name">
+                                <%= variant.productId.name %>
                             </a>
 
-                            <a href="#" class="btn-remove icon-cancel" title="Remove Product"></a>
-                        </figure>
-                    </td>
-                    <td>
-                        <h5 class="product-title">
-                            <a href="product.html">Men Black Gentle Belt</a>
-                        </h5>
-                    </td>
-                    <td class="price-box">$17.90</td>
-                    <td>
-                        <span class="stock-status">In stock</span>
-                    </td>
-                    <td class="action">
-                        <a href="product.html" class="btn btn-dark btn-add-cart btn-shop">
-                            SELECT OPTION
-                        </a>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div><!-- End .cart-table-container -->
-</div><!-- End .container -->
+                            <% if (!variant.productOfferPrice && !variant.categoryOfferPrice) { %>
+                                <span class="stext-105 cl3 original-price">₹ <%= variant.price %></span>
+                            <% } else if (!variant.productOfferPrice) { %>
+                                <span class="stext-105 cl3 discount-price">₹ <%= variant.categoryOfferPrice %></span>
+                                <span class="original-price strike-through off-class">₹ <%= variant.price %></span>
+                            <% } else if (!variant.categoryOfferPrice) { %>
+                                <span class="stext-105 cl3 discount-price">₹ <%= variant.productOfferPrice %></span>
+                                <span class="original-price strike-through off-class">₹ <%= variant.price %></span>
+                            <% } else { %>
+                                <% 
+                                    let finalPrice = Math.min(variant.productOfferPrice, variant.categoryOfferPrice);
+                                %>
+                                <span class="stext-105 cl3 discount-price">₹ <%= finalPrice %></span>
+                                <span class="original-price strike-through off-class">₹ <%= variant.price %></span>
+                            <% } %>
+                        </div>
+
+                        <div class="block2-txt-child2 flex-r p-t-3">
+                            <!-- Wishlist Button -->
+                            <!-- <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
+                                <img class="icon-heart1 dis-block trans-04" src="images/icons/icon-heart-01.png" alt="ICON">
+                                <img class="icon-heart2 dis-block trans-04 ab-t-l" src="images/icons/icon-heart-02.png" alt="ICON">
+                            </a> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <% }) %>
+        </div>
+    </div>
+</section>
+
 
 <%- include("../partials/userpartials/footer.ejs") %>

@@ -47,8 +47,8 @@
                                     Download</a>
                             </li>
                             <li>
-                                <a data-bs-toggle="pill" href="#pills-payment"><i class="fa fa-credit-card"></i>
-                                    Payment Method</a>
+                                <a data-bs-toggle="pill" href="#pills-wallet"><i class="fa fa-credit-card"></i>
+                                    Wallet</a>
                             </li>
                             <li>
                                 <a data-bs-toggle="pill" href="#pills-address"><i class="fa fa-map-marker"></i>
@@ -132,14 +132,48 @@
                             </div>
                         </div>
 
-                        <div class="tab-pane fade" id="pills-payment">
+                        <div class="tab-pane fade" id="pills-wallet">
                             <div class="my-account-payment account-wrapper">
                                 <h4 class="account-title">
-                                    Payment Method
+                                    Wallet
                                 </h4>
-                                <p>
-                                    You Can't Saved Your Payment Method yet.
+                                <p style="font-size: 1.2em; font-weight: bold;">
+                                    Available Balance &nbsp; : &nbsp;
+                                    <span style="color: green;">₹ <%= userData.wallet %>/-</span>
                                 </p>
+                                <h4 class="account-title">
+                                    Wallet Transactions
+                                </h4>
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Type</th>
+                                            <th>Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody style="background-color: aliceblue;">
+                                        <% if (transactions.length > 0) { %>
+                                            <% transactions.forEach(transaction => { %>
+                                                <tr>
+                                                    <td><%= new Date(transaction.createdAt).toLocaleDateString() %></td>
+                                                    <td><%= transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1) %></td>
+                                                    <td>
+                                                        <% if (transaction.type === 'credit') { %>
+                                                            <span style="color: rgba(7, 168, 7, 0.94);"> +₹ <%= transaction.amount %> </span>
+                                                        <% } else { %>
+                                                            <span style="color: #d92c12;"> -₹ <%= transaction.amount %> </span>
+                                                        <% } %>
+                                                    </td>
+                                                </tr>
+                                            <% }) %>
+                                        <% } else { %>
+                                            <tr>
+                                                <td colspan="3">No transactions found</td>
+                                            </tr>
+                                        <% } %>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
 

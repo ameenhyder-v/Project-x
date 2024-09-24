@@ -67,7 +67,6 @@ const orderSchema = new mongoose.Schema({
     },
     paymentMethod: {
         type: String,
-        default: 'COD'
     },
     orderId: {
         type: Number,
@@ -80,6 +79,12 @@ const orderSchema = new mongoose.Schema({
     paymentStatus: {
         type: String,
     },
+    couponDiscount: {
+        type: Number,
+    },
+    cancellationReason: {
+        type: String
+    }
 })
 
 const Order = mongoose.model('Order', orderSchema)

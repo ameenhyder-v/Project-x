@@ -19,133 +19,127 @@
 
 	<!-- Shoping Cart -->
 	<!-- Shopping Cart -->
-<form class="bg0 p-t-75 p-b-85">
-    <div class="container">
-        <div class="row">
-            <% if (cartData && cartData.cartItems && cartData.cartItems.length > 0) { %>
-                <div class="col-lg-10 col-xl-7 m-lr-auto m-b-50">
-                    <div class="m-l-25 m-r--38 m-lr-0-xl">
-                        <div class="wrap-table-shopping-cart">
-                            <table class="table-shopping-cart">
-                                <tr class="table_head">
-                                    <th class="column-1">Product</th>
-                                    <th class="column-2">Name</th>
-                                    <th class="column-3">Size</th>
-                                    <th class="column-4">Price</th>
-                                    <th class="column-5">Quantity</th>
-                                    <th class="column-6">Total</th>
-                                </tr>
-
-                                <% cartData.cartItems.forEach((item) => { %>
-                                    <% const cart = item %>
-                                    <% const size = item.size.trim() %>
-                                    <% const variant = item.variantId %>
-                                    <% const product = item.variantId.productId %>
-                                    <% let filteredData = variant.stock.filter(stockItem => stockItem.size == size) %>
-                                    <tr class="table_row">
-                                        <td class="column-1">
-                                            <div class="how-itemcart1" onclick="removeItem(event, '<%= variant._id %>', '<%= cart.size.trim() %>')">
-                                                <img src="/images/<%= variant.image[0] %>" alt="IMG">
-                                                <button>Remove</button>
-                                            </div>
-                                        </td>
-                                        <td class="column-2"><a href="/productDetail?variantId=<%= variant._id %>"><%= product.name %></a></td>
-                                        <td class="column-3"><%= cart.size.trim() %></td>
-                                        <td class="column-4">₹<%= variant.price %></td>
-                                        <td class="column-5">
-                                            <% if (filteredData[0].quantity == 0) { %>
-                                                <p style="color: red;" id="noStock">Out of stock</p>
-                                            <% } else { %>
-                                                <div class="wrap-num-product flex-w m-l-auto m-r-0">
-                                                    <div class="btn-num-product-down cl8 hov-btn3 trans-04 flex-c-m" onclick="decreaseQuantity('<%= variant._id %>', '<%= size %>', '<%= item._id %>')">
-                                                        <i class="fs-16 zmdi zmdi-minus"></i>
-                                                    </div>
-                                                    <input class="mtext-104 cl3 txt-center num-product" type="number" name="num-product1" id="quantity<%= item._id %>" value="<%= cart.quantity %>">
-                                                    <div class="btn-num-product-up cl8 hov-btn3 trans-04 flex-c-m" onclick="addQuantity('<%= variant._id %>', '<%= size %>', '<%= item._id %>')">
-                                                        <i class="fs-16 zmdi zmdi-plus"></i>
-                                                    </div>
-                                                </div>
-                                            <% } %>
-                                        </td>
-                                        <td class="column-6" id="totalPrice<%= item._id %>">
-                                            <% if (filteredData[0].quantity == 0) { %>
-                                                ₹0
-                                            <% } else { %>
-                                                ₹<%= variant.price * cart.quantity %>
-                                            <% } %>
-                                        </td>
-                                    </tr>
-                                <% }) %>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-sm-10 col-lg-7 col-xl-5 m-lr-auto m-b-50">
-                    <div class="bor10 p-lr-40 p-t-30 p-b-40 m-l-63 m-r-40 m-lr-0-xl p-lr-15-sm">
-                        <h4 class="mtext-109 cl2 p-b-30">
-                            Cart Totals
-                        </h4>
-
-                        <div class="flex-w flex-t bor12 p-b-13">
-                            <div class="size-208">
-                                <span class="stext-110 cl2">
-                                    Subtotal:
-                                </span>
-                            </div>
-                            <div class="size-209">
-                                <span class="mtext-110 cl2" id="subTotal">
-                                    ₹<%= subTotalAmount %>
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="flex-w flex-t p-t-27 p-b-33">
-                            <div class="size-208">
-                                <span class="mtext-101 cl2">
-                                    Total:
-                                </span>
-                            </div>
-                            <div class="size-209 p-t-1">
-                                <span class="mtext-110 cl2" id="totalAmount">
-                                    ₹<%= subTotalAmount %>
-                                </span>
-                            </div>
-                        </div>
-						<!-- Proceed to Checkout Button -->
-						<a href="/checkout" class="proceed-button">
-							<button class="flex-c-m stext-101 cl0 size-116 bg3 bor14 hov-btn3 p-lr-15 trans-04 pointer" type="button">
-								Proceed to Checkout
-							</button>
-						</a>
-
-						<!-- Error Message -->
-						<p class="error-message" style="color: red; display: none;">
-							Some items in your cart are out of stock. Please remove them before proceeding to checkout.
-						</p>
-
-                    </div>
-                </div>
-            <% } else { %>
-                <div class="col-lg-12 m-lr-auto m-b-50">
-                    <div class="bor10 p-lr-40 p-t-30 p-b-40 m-lr-0-xl p-lr-15-sm">
-                        <h4 class="mtext-109 cl2 p-b-30">
-                            Your Cart is Empty
-                        </h4>
-                        <p class="stext-111 cl2">
-                            It looks like you haven't added anything to your cart yet. Continue shopping to find great deals!
-                        </p>
-                        <a href="/allProducts">
-                            <button class="flex-c-m stext-101 cl0 size-116 bg3 bor14 hov-btn3 p-lr-15 trans-04 pointer" type="button">
-                                Continue Shopping
-                            </button>
-                        </a>
-                    </div>
-                </div>
-            <% } %>
-        </div>
-    </div>
-</form>
+	<form class="bg0 p-t-75 p-b-85">
+		<div class="container">
+			<div class="row">
+				<% if (cartData && cartData.cartItems && cartData.cartItems.length > 0) { %>
+					<div class="col-lg-10 col-xl-7 m-lr-auto m-b-50">
+						<div class="m-l-25 m-r--38 m-lr-0-xl">
+							<div class="wrap-table-shopping-cart">
+								<table class="table-shopping-cart">
+									<tr class="table_head">
+										<th class="column-1">Product</th>
+										<th class="column-2">Name</th>
+										<th class="column-3">Size</th>
+										<th class="column-4">Price</th>
+										<th class="column-5">Quantity</th>
+										<th class="column-6">Total</th>
+									</tr>
+	
+									<% cartData.cartItems.forEach((item) => { %>
+										<% const cart = item; %>
+										<% const size = item.size.trim(); %>
+										<% const variant = item.variantId; %>
+										<% const product = item.variantId.productId; %>
+										<% const filteredData = variant.stock.filter(stockItem => stockItem.size === size); %>
+	
+										<!-- Calculating lowest discounted price and percentage -->
+										<% const lowestPrice = Math.min(variant.categoryOfferPrice || variant.price, variant.productOfferPrice || variant.price); %>
+										<% const discountPercentage = Math.floor(((variant.price - lowestPrice) / variant.price) * 100); %>
+	
+										<tr class="table_row">
+											<td class="column-1">
+												<div class="how-itemcart1" onclick="removeItem(event, '<%= variant._id %>', '<%= cart.size.trim() %>')">
+													<img src="/images/<%= variant.image[0] %>" alt="IMG">
+													<button>Remove</button>
+												</div>
+											</td>
+											<td class="column-2">
+												<a href="/productDetail?variantId=<%= variant._id %>"><%= product.name %></a>
+												<% if (discountPercentage > 0) { %>
+													<p style="color: green;"><%= discountPercentage %>% OFF!</p>
+												<% } %>
+											</td>
+											<td class="column-3"><%= cart.size.trim() %></td>
+											<td class="column-4">
+												<span style="<%= discountPercentage > 0 ? 'text-decoration: line-through;' : '' %>">
+													₹<%= variant.price %>
+												</span>
+												<% if (lowestPrice < variant.price) { %>
+													<span style="color: green;"> &nbsp;|&nbsp; ₹<%= lowestPrice %> </span>
+												<% } %>
+											</td>
+											<td class="column-5">
+												<% if (filteredData[0].quantity < cart.quantity) { %>
+													<p style="color: red;" id="noStock">Out of stock</p>
+												<% } else { %>
+													<div class="wrap-num-product flex-w m-l-auto m-r-0">
+														<div class="btn-num-product-down cl8 hov-btn3 trans-04 flex-c-m" onclick="decreaseQuantity('<%= variant._id %>', '<%= size %>', '<%= item._id %>')">
+															<i class="fs-16 zmdi zmdi-minus"></i>
+														</div>
+														<input class="mtext-104 cl3 txt-center num-product" type="number" id="quantity<%= item._id %>" value="<%= cart.quantity %>">
+														<div class="btn-num-product-up cl8 hov-btn3 trans-04 flex-c-m" onclick="addQuantity('<%= variant._id %>', '<%= size %>', '<%= item._id %>')">
+															<i class="fs-16 zmdi zmdi-plus"></i>
+														</div>
+													</div>
+												<% } %>
+											</td>
+											<td class="column-6" id="totalPrice<%= item._id %>">
+												<% if (filteredData[0].quantity < cart.quantity) { %>
+													₹0
+												<% } else { %>
+													₹<%= lowestPrice * cart.quantity %>
+												<% } %>
+											</td>
+										</tr>
+									<% }) %>
+								</table>
+							</div>
+						</div>
+					</div>
+					
+					<!-- Cart Totals and Checkout Section -->
+					<div class="col-sm-10 col-lg-7 col-xl-5 m-lr-auto m-b-50">
+						<div class="bor10 p-lr-40 p-t-30 p-b-40 m-l-63 m-r-40 m-lr-0-xl p-lr-15-sm">
+							<h4 class="mtext-109 cl2 p-b-30">Cart Totals</h4>
+							<div class="flex-w flex-t bor12 p-b-13">
+								<div class="size-208">
+									<span class="stext-110 cl2">Subtotal:</span>
+								</div>
+								<div class="size-209">
+									<span class="mtext-110 cl2" id="subTotal">₹<%= subTotalAmount %></span>
+								</div>
+							</div>
+							<div class="flex-w flex-t p-t-27 p-b-33">
+								<div class="size-208">
+									<span class="mtext-101 cl2">Total:</span>
+								</div>
+								<div class="size-209 p-t-1">
+									<span class="mtext-110 cl2" id="totalAmount">₹<%= subTotalAmount %></span>
+								</div>
+							</div>
+							<a href="/checkout" class="proceed-button" >
+								<button class="flex-c-m stext-101 cl0 size-116 bg3 bor14 hov-btn3 p-lr-15 trans-04" onclick="goToCheckout(event)">Proceed to Checkout</button>
+							</a>
+							<p class="error-message" style="color: red; display: none;">Some items in your cart are out of stock. Please remove them before proceeding to checkout.</p>
+							
+							</div>
+					</div>
+				<% } else { %>
+					<div class="col-lg-12 m-lr-auto m-b-50">
+						<div class="bor10 p-lr-40 p-t-30 p-b-40 m-lr-0-xl p-lr-15-sm">
+							<h4 class="mtext-109 cl2 p-b-30">Your Cart is Empty</h4>
+							<p class="stext-111 cl2">It looks like you haven't added anything to your cart yet. Continue shopping to find great deals!</p>
+							<a href="/allProducts" class="flex-c-m stext-101 cl0 size-116 bg3 bor14 hov-btn3 p-lr-15 trans-04 pointer">
+								 Continue Shopping
+							</a>
+						</div>
+					</div>
+				<% } %>
+			</div>
+		</div>
+	</form>
+	
 
 
 <script>
@@ -300,7 +294,8 @@
 		});
 	}
 
-	function checkOutOfStockItems() {
+	function checkOutOfStockItems(event) {
+		console.log("hello there");
 		const noStockElements = document.querySelectorAll('#noStock');
 		const proceedButton = document.querySelector('.proceed-button');
 		const errorMessage = document.querySelector('.error-message');
@@ -320,6 +315,12 @@
 			proceedButton.style.display = 'block';
 			errorMessage.style.display = 'none';
 		}
+	}
+
+	function goToCheckout(event) {
+		event.preventDefault();
+		// Perform any necessary checks or actions here
+		window.location.href = '/checkout'; // Navigate to checkout
 	}
 	
 	// Call this function when the cart page is loaded

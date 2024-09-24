@@ -1,5 +1,8 @@
 const Order = require("../Model/orderModel");
 const ReturnRequest = require("../Model/returnRequestModel");
+const Variant = require("../Model/variantModel");
+const User = require("../Model/userModel");
+const Transaction = require("../Model/transactionModel")
 
 
 //! USER TRYING TO RETURN THE ORDER
@@ -41,7 +44,61 @@ const returnOrder = async (req, res) => {
 }
 
 
+
+//! USER CANCELING THE ORDER 
+const cancelOrder = async (req, res) => {
+    try {
+        const userId = req.session.userId;
+        const { orderId } = req.query;
+        const { reason } = req.body;
+
+        const orderData = await Order.findById(orderId);
+        if (!orderData) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+
+        for (const item of orderData.orderedItems) {
+            const variant = await Variant.findById(item.variantId);
+            if (variant) {
+                const stockItem = variant.stock.find(s => s.size.trim() === item.size.trim());
+                if (stockItem) {
+                    stockItem.quantity += item.quantity;
+                }
+                await variant.save();
+            }
+        }
+
+        if (orderData.paymentMethod === "razor" && orderData.paymentStatus === "Confirmed") {
+            const refundAmount = orderData.totalAmount;
+            const user = await User.findById(userId);
+            user.wallet += refundAmount; 
+            await user.save();
+
+            const transaction = new Transaction({
+                userId: userId,
+                amount: refundAmount,
+                type: 'credit'
+            });
+            await transaction.save();
+        }
+
+        orderData.orderStatus = 'Canceled';
+        orderData.cancellationReason = reason;
+        await orderData.save();
+
+        return res.json({ success: true, message: "Order canceled and stock updated" });
+
+    } catch (error) {
+        console.log(`Error in the Order Controller cancel order fn: ${error}`);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+
+
+
 module.exports = {
     returnOrder,
+    cancelOrder,
 
 }
