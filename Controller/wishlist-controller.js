@@ -14,7 +14,7 @@ const loadWishlist = async (req, res) => {
                 }
             })
             .exec();
-
+            
         res.render("wish-list", { variants : wishlistData.wishlistItems})
         
     } catch (error) {

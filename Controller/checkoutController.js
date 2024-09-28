@@ -21,7 +21,6 @@ const razorpayInstance = new razorpay({
 //? LOAD CHECK OUT PAGE 
 const checkOut = async (req, res) => {
     try {
-        console.log("hello here i come")
         const userId = req.session.userId;
 
         const totalAmount = await cartController.subTotal(userId);
@@ -107,6 +106,12 @@ const placeOrder = async (req, res) => {
             const coupon = await Coupon.findOne({ couponCode });
             if (coupon) {
                 discount = coupon.amount || 0;
+                coupon.userList.push({ userId, couponUsed: true });
+                await coupon.save();
+
+                delete req.session.couponCode;
+                delete req.session.discountAmount;
+
             }
         }
         const finalAmount = totalAmount - discount;
@@ -127,7 +132,7 @@ const placeOrder = async (req, res) => {
             };
         });
 
-        // Creating order
+        // Creating the order
         const order = new Order({
             userId,
             orderedItems,
@@ -162,7 +167,7 @@ const placeOrder = async (req, res) => {
         // Clear the cart
         await Cart.findOneAndUpdate({ userId: userId }, { $set: { cartItems: [] } }, { new: true });
 
-        // Handle payment method
+        // Handle payments
         if (paymentMethod === "COD") {
             res.status(200).json({ message: 'Ordered by COD', orderId });
          } else if (paymentMethod === "razor") {
@@ -191,7 +196,7 @@ const placeOrder = async (req, res) => {
 
 
 
-
+//! CONFIRMING THE RAZORPAY PAYMENT AND CHECKING THE HASH
 const confirmPayment = async (req, res) => {
     try {
         const { orderId, razorpayPaymentId, razorpayOrderId, razorpaySignature } = req.body;
@@ -201,17 +206,13 @@ const confirmPayment = async (req, res) => {
             return res.status(404).json({ message: 'Order not found' });
         }
 
-        // Create a HMAC using the orderId and razorpayPaymentId
         const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
         hmac.update(`${razorpayOrderId}|${razorpayPaymentId}`);
         const generatedSignature = hmac.digest('hex');
 
-        // Verify the payment signature
         if (generatedSignature === razorpaySignature) {
-            // Payment is successful and verified
             order.paymentStatus = 'Confirmed'
             order.orderStatus = 'Placed';
-            console.log("after saving " , order)
             await order.save();
 
             res.status(200).json({ message: 'Success', orderId: order._id });
@@ -228,7 +229,6 @@ const confirmPayment = async (req, res) => {
 //! APPLYING THE COUPON
 const applyCoupon = async (req, res) => {
     try {
-        console.log("hello abdu")
         const userId = req.session.userId;
 
         if (!userId) {
@@ -269,8 +269,14 @@ const applyCoupon = async (req, res) => {
             });
         }
 
-        console.log(totalAmount)
-        // Calculate amount after applying the coupon discount
+        const hasUsedCoupon = coupon.userList.some(user => user.userId.toString() === userId.toString());
+        if (hasUsedCoupon) {
+            return res.status(400).json({
+                success: false,
+                message: "You have already used this coupon",
+            });
+        }
+        
         const amountAfterDiscount = totalAmount - coupon.amount;
         const discountAmount = coupon.amount;
         req.session.couponCode = coupon.couponCode;
@@ -296,10 +302,9 @@ const removeCoupon = async (req, res) => {
     try {
         const userId = req.session.userId;
 
-        // Example of how to calculate the discount amount
-        const discountAmount = req.session.discountAmount || 0; // Assuming you store discount amount in session
+        const discountAmount = req.session.discountAmount || 0; 
         delete req.session.couponCode;
-        delete req.session.discountAmount; // Clear discount amount if it's in session
+        delete req.session.discountAmount; 
 
         const totalAmount = await cartController.subTotal(userId);
 

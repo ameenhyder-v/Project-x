@@ -10,7 +10,7 @@ const productExists = async function(productName, gender,category) {
 
 const addingProduct = async (req, res) => {
     try {
-        const { productName, description, brandName, material, tags,} = req.body;
+        const { productName, description, brandName, material, tags, gender, category } = req.body;
 
 
         if (!productName || typeof productName !== 'string') {
@@ -48,6 +48,7 @@ const addingProduct = async (req, res) => {
                 material: material,
                 tags: tags
             })
+
             //response
             const saving = await addProduct.save()
             const productId = saving._id

@@ -104,7 +104,7 @@
                 My Wishlist
             </h3>
         </div>
-        
+        <% if (variants.length > 0) { %>
         <div class="row isotope-grid" id="productContainer">
             <% variants.forEach(variant => { %>
             <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item <%= variant.productId.categoryId.gender %>">
@@ -172,6 +172,17 @@
             <% }) %>
         </div>
     </div>
+    <% } else { %>
+        <div class="col-lg-12 m-lr-auto m-b-50">
+            <div class="bor10 p-lr-40 p-t-30 p-b-40 m-lr-0-xl p-lr-15-sm">
+                <h4 class="mtext-109 cl2 p-b-30">Your Wishlist is Empty</h4>
+                <p class="stext-111 cl2">It looks like you haven't added anything to your wishlist yet. Continue shopping to find great deals!</p>
+                <a href="/allProducts" class="flex-c-m stext-101 cl0 size-116 bg3 bor14 hov-btn3 p-lr-15 trans-04 pointer">
+                     Continue Shopping
+                </a>
+            </div>
+        </div>
+    <% } %>
 </section>
 
 

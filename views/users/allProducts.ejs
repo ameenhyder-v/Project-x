@@ -211,23 +211,18 @@
                             <img src="images/<%= variant.image[0] %>" alt="IMG-PRODUCT" class="product-image">
                         </a>
         
-                        <!-- Calculate and Display Offer Badge with Correct Discount Percentage -->
                         <% if (variant.productOfferPrice || variant.categoryOfferPrice) { %>
                             <% 
                                 let discountPrice;
                                 let discountPercentage;
         
-                                // Determine the correct offer price to use
                                 if (!variant.productOfferPrice) {
-                                    // Only category offer exists
                                     discountPrice = variant.categoryOfferPrice;
                                     discountPercentage = Math.round(((variant.price - discountPrice) / variant.price) * 100);
                                 } else if (!variant.categoryOfferPrice) {
-                                    // Only product offer exists
                                     discountPrice = variant.productOfferPrice;
                                     discountPercentage = Math.round(((variant.price - discountPrice) / variant.price) * 100);
                                 } else {
-                                    // Both exist, choose the lower offer price
                                     discountPrice = Math.min(variant.productOfferPrice, variant.categoryOfferPrice);
                                     discountPercentage = Math.round(((variant.price - discountPrice) / variant.price) * 100);
                                 }
@@ -264,10 +259,10 @@
         
                         <div class="block2-txt-child2 flex-r p-t-3">
                             <!-- Wishlist Button -->
-                            <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
+                            <!-- <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
                                 <img class="icon-heart1 dis-block trans-04" src="images/icons/icon-heart-01.png" alt="ICON">
                                 <img class="icon-heart2 dis-block trans-04 ab-t-l" src="images/icons/icon-heart-02.png" alt="ICON">
-                            </a>
+                            </a> -->
                         </div>
                     </div>
                 </div>
@@ -317,44 +312,57 @@
                     .then(response => response.json())
                     .then(data => {
                         productContainer.innerHTML = ''; 
-        
-                        data.variants.forEach(variant => {
-                            let discountPrice = variant.categoryOfferPrice || variant.productOfferPrice;
-                            let discountPercentage = discountPrice ? Math.round(((variant.price - discountPrice) / variant.price) * 100) : 0;
-        
-                            let productHTML = `
-                                <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item ${variant.productId.categoryId.gender}">
-                                    <div class="block2">
-                                        <div class="block2-pic hov-img0">
-                                            <a href="/productDetail?variantId=${variant._id}">
-                                                <img src="images/${variant.image[0]}" alt="IMG-PRODUCT" class="product-image">
-                                            </a>
-                                            ${discountPercentage > 0 ? `<span class="badge badge-danger">${discountPercentage}% OFF</span>` : ''}
-                                        </div>
-                                        <div class="block2-txt flex-w flex-t p-t-14">
-                                            <div class="block2-txt-child1 flex-col-l">
-                                                <a href="/productDetail?variantId=${variant._id}" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6 product-name">
-                                                    ${variant.productId.name}
-                                                </a>
-                                                ${!variant.productOfferPrice && !variant.categoryOfferPrice 
-                                                    ? `<span class="stext-105 cl3 original-price">₹ ${variant.price}</span>`
-                                                    : `<span class="stext-105 cl3 discount-price">₹ ${discountPrice}</span>
-                                                       <span class="original-price strike-through">₹ ${variant.price}</span>`
-                                                }
-                                            </div>
-                                            <div class="block2-txt-child2 flex-r p-t-3">
-                                                <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
-                                                    <img class="icon-heart1 dis-block trans-04" src="images/icons/icon-heart-01.png" alt="ICON">
-                                                    <img class="icon-heart2 dis-block trans-04 ab-t-l" src="images/icons/icon-heart-02.png" alt="ICON">
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
+                        if (data.variants.length === 0) {
+                            const noProductsHTML = `
+                                <div class="col-12 text-center">
+                                    <h4>No products available</h4>
+                                    <p>Please check back later or browse other categories.</p>
                                 </div>
                             `;
+                            productContainer.insertAdjacentHTML('beforeend', noProductsHTML);
+                        } else {
+        
+                        data.variants.forEach(variant => {
+                            let discountPrice;
+                            if (variant.productOfferPrice && variant.categoryOfferPrice) {
+                                discountPrice = Math.min(variant.productOfferPrice, variant.categoryOfferPrice);
+                            } else {
+                                discountPrice = variant.productOfferPrice || variant.categoryOfferPrice; 
+                            }
+                            
+                            let discountPercentage = discountPrice ? Math.round(((variant.price - discountPrice) / variant.price) * 100) : 0;
+                        
+                            let productHTML = ` <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item ${variant.productId.categoryId.gender}">
+                                                    <div class="block2">
+                                                        <div class="block2-pic hov-img0">
+                                                            <a href="/productDetail?variantId=${variant._id}">
+                                                                <img src="images/${variant.image[0]}" alt="IMG-PRODUCT" class="product-image">
+                                                            </a>
+                                                            ${discountPercentage > 0 ? `<span class="badge badge-danger">${discountPercentage}% OFF</span>` : ''}
+                                                        </div>
+                                                        <div class="block2-txt flex-w flex-t p-t-14">
+                                                            <div class="block2-txt-child1 flex-col-l">
+                                                                <a href="/productDetail?variantId=${variant._id}" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6 product-name">
+                                                                    ${variant.productId.name}
+                                                                </a>
+                                                                ${!discountPrice 
+                                                                    ? `<span class="stext-105 cl3 original-price">₹ ${variant.price}</span>`
+                                                                    : `<span class="stext-105 cl3 discount-price">₹ ${discountPrice}</span>
+                                                                    <span class="original-price strike-through">₹ ${variant.price}</span>`
+                                                                }
+                                                            </div>
+                                                            <div class="block2-txt-child2 flex-r p-t-3">
+                                                                
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            `;
+                            
+                            // Appending the html 
                             productContainer.insertAdjacentHTML('beforeend', productHTML);
                         });
-        
+                    }
                             productContainer.classList.remove('fade-out');
                             productContainer.classList.add('fade-in');
         

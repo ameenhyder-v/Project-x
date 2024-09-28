@@ -15,6 +15,66 @@
 
     <link rel="stylesheet" href="css/style.min.css">
     <style>
+
+        .order__title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .checkout__input__checkbox {
+            position: relative;
+            padding-left: 35px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .checkout__input__checkbox input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .checkout__input__checkbox .checkmark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 20px;
+            width: 20px;
+            background-color: #eee;
+            border: 2px solid #ccc;
+            border-radius: 2px; /* Square corners */
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        .checkout__input__checkbox input[type="radio"]:checked ~ .checkmark {
+            background-color: #f8f1d1; /* Light golden background */
+            border-color: #b59100; /* Golden border */
+        }
+        
+        .checkout__input__checkbox .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+        
+        .checkout__input__checkbox input[type="radio"]:checked ~ .checkmark:after {
+            display: block;
+        }
+        
+        .checkout__input__checkbox .checkmark:after {
+            left: 6px;
+            top: 2px;
+            width: 6px;
+            height: 12px;
+            border: solid #b59100; /* Golden tick mark */
+            border-width: 0 3px 3px 0;
+            transform: rotate(45deg);
+        }
+        
+
         .checkout-shipping {
             display: none;
         }
@@ -298,15 +358,15 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <% let totalSaved = 0; %> <!-- Initialize total saved amount -->
+                        <% let totalSaved = 0; %> 
                         <% cartItems.forEach(item => { 
-                            const originalPrice = item.variantId.price; // Original price
+                            const originalPrice = item.variantId.price; 
                             const productDiscountPrice = item.variantId.productOfferPrice || originalPrice;
                             const categoryDiscountPrice = item.variantId.categoryOfferPrice || originalPrice;
-                            const bestDiscountPrice = Math.min(productDiscountPrice, categoryDiscountPrice); // Best discount price
-                            const discountedPrice = bestDiscountPrice * item.quantity; // Total discounted price
-                            const savings = (originalPrice - bestDiscountPrice) * item.quantity; // Total savings for the item
-                            totalSaved += savings; // Accumulate total saved
+                            const bestDiscountPrice = Math.min(productDiscountPrice, categoryDiscountPrice); 
+                            const discountedPrice = bestDiscountPrice * item.quantity; 
+                            const savings = (originalPrice - bestDiscountPrice) * item.quantity; 
+                            totalSaved += savings; 
                         %>
                             <tr>
                                 <td class="Product-name">
@@ -349,7 +409,7 @@
 
                         <tr>
                             <td class="Product-name"><strong>Total Saved</strong></td>
-                            <td class="Product-price" ><strong id="total-saved" >₹<%= totalSaved.toFixed(2) %></strong></td>
+                            <td class="Product-price" ><strong id="total-saved" >₹ <%= totalSaved.toFixed(2) %></strong></td>
                             <td class="Product-original-price" colspan="2"></td> <!-- Empty cells for alignment -->
                         </tr>
                         <tr>
@@ -373,35 +433,32 @@
                 </table>
             </div>
     
-            <div class="checkout-payment mb-4">
-                <h5 class="mb-3">Payment Method</h5>
-                <ul class="list-unstyled">
-                    <li>
-                        <div class="single-payment mb-2">
-                            <div class="payment-radio">
-                                <input type="radio" name="payment" id="cash" value="COD" checked="checked" />
-                                <label for="cash"><span></span> Cash on Delivery</label>
-                            </div>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="single-payment mb-2">
-                            <div class="payment-radio">
-                                <input type="radio" name="payment" id="Razor" value="razor" />
-                                <label for="Razor"><span></span> Razorpay</label>
-                            </div>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="single-payment mb-2">
-                            <div class="payment-radio">
-                                <input type="radio" name="payment" id="wallet" value="wallet" />
-                                <label for="wallet"><span></span> Wallet</label>
-                            </div>
-                        </div>
-                    </li>
-                </ul>
-            </div>
+            <h4 class="order__title">Payment Options</h4>
+
+<div class="checkout__input__checkbox">
+    <label for="cod">
+        Cash on Delivery
+        <input type="radio" id="cod" name="payment" value="COD" required>
+        <span class="checkmark"></span>
+    </label>
+</div>
+
+<div class="checkout__input__checkbox">
+    <label for="razorpay">
+        Razorpay
+        <input type="radio" id="razorpay" name="payment" value="razor">
+        <span class="checkmark"></span>
+    </label>
+</div>
+
+<div class="checkout__input__checkbox">
+    <label for="wallet">
+        Wallet 
+        <input type="radio" id="wallet" name="payment" value="Wallet">
+        <span class="checkmark"></span>
+    </label>
+</div>
+
     
             <div class="single-form text-center">
                 <button class="btn btn-primary btn-hover-dark w-100 mt-3" onclick="placeOrder(event)">
@@ -605,8 +662,7 @@
                             text: data.message,
                             showConfirmButton: true,
                         }).then(() => {
-                            // Redirect or refresh page if needed
-                            window.location.href = `/order-summary?orderId=${data.orderId}`; // Adjust the URL as necessary
+                            window.location.href = `/order-summary?orderId=${data.orderId}`; 
                         });
                     }else if(data.message === "Ordered by Razor"){
                         const options = {
@@ -732,7 +788,7 @@
                         <div class="coupon-card" style="padding: 10px; border-bottom: 1px solid #ddd; margin-bottom: 10px;">
                           <h5 style="margin-bottom: 5px;">${coupon.name}</h5>
                           <p style="margin: 0;"><strong>Save: ₹${coupon.amount} off </strong></p>
-                          <p style="margin: 0;">RS.${coupon.amount} off on minimum purchase of Rs.${coupon.minimumAmount}</p>
+                          <p style="margin: 0;">FLAT-RS. ₹ ${coupon.amount} off on minimum purchase of Rs.${coupon.minimumAmount}</p>
                           <p style="margin: 0 0 5px;">Expires on: ${new Date(coupon.expires).toLocaleDateString()}</p>
                           <div class="coupon-code">
                             <span class="coupon-base-labelChecked" style="cursor: pointer;" id="couponCode-${coupon.couponCode}" data-code="${coupon.couponCode}">

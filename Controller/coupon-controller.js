@@ -184,6 +184,8 @@ const deleteCoupon = async (req, res) => {
 
 const getAllAvailCoupons = async (req, res) => {
     try {
+        // const userId = req.session.userId;
+        // console.log(userId)
         const allusebleCoupons = await Coupon.find({status: true})
         res.status(200).json(allusebleCoupons)
         
