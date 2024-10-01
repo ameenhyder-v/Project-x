@@ -4,7 +4,6 @@ const Variant = require("../Model/variantModel")
 
 const productExists = async function(productName, gender,category) {
     const prod = await Product.findOne({ name: productName, gender: gender, category: category })
-    // console.log(prod);
     return prod
 }
 
@@ -35,7 +34,6 @@ const addingProduct = async (req, res) => {
         } 
 
         const checkProductExists = await productExists(productName, gender, category)
-        console.log(checkProductExists);
         if(checkProductExists){
             return res.status(400).json({"message": "this product already exists add variant"});
         }else{
@@ -96,7 +94,6 @@ const editThisProduct = async (req, res) => {
         const { productId } = req.query;
         const product = await Product.findById(productId);
         res.status(200).json({ data: product });
-        console.log(product);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch product data' });
         console.error('Error fetching product data:', error);
@@ -164,7 +161,6 @@ const updateProduct = async (req, res) => {
 
         const save = await product.save();
         if (save){
-            console.log("success!")
             res.status(200).json({ message: 'product updated properly'})
         }
 
@@ -203,7 +199,6 @@ const deleteProduct = async (req, res) => {
         try {
 
                 const value = req.body.value;
-                console.log(typeof value);
 
                 let sortOrder;
                 if (value === "highToLow") {
@@ -248,69 +243,6 @@ const deleteProduct = async (req, res) => {
         
     }
 
-const AlphaSort = async (req, res) => {
-    try {
-        const value = req.body.value;
-        console.log(typeof value);
-
-        let sortOrder;
-        if (value === "nameAZ") {
-            sortOrder = 1;
-        } else if (value === "nameZA") {
-            sortOrder = -1;
-        } else {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid sort value"
-            });
-        }
-
-        const products = await Variant.aggregate([
-            {
-                $lookup: {
-                    from: 'products',
-                    localField: 'productId',
-                    foreignField: '_id',
-                    as: 'product'
-                }
-            },
-            { $unwind: "$product" },
-            {
-                $sort: { "product.name": sortOrder } // Sort by the product name
-            },
-            {
-                $project: {
-                    _id: 1,
-                    color: 1,
-                    productId: 1,
-                    image: 1,
-                    stock: 1,
-                    isListed: 1,
-                    addedAt: 1,
-                    product: {
-                        name: 1
-                    }
-                }
-            }
-        ]);
-
-        const populatedProducts = await Variant.populate(products, { path: 'productId' });
-
-        console.log(populatedProducts);
-        res.status(200).json({
-            success: true,
-            data: populatedProducts
-        });
-
-    } catch (error) {
-        console.log("Error from product controller sort function -- ", error);
-        res.status(500).json({
-            success: false,
-            message: "Internal Server Error",
-            error: error.message
-        });
-    }
-};
 
 
 module.exports = {
@@ -320,7 +252,6 @@ module.exports = {
     removeProductVariantFalse,
     blockProduct,
     sort,
-    AlphaSort,
     updateProduct,
     deleteProduct
 }

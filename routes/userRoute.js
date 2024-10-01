@@ -8,12 +8,10 @@ const cartContoller = require("../Controller/cartController");
 const upload = require("../middleware/multer");
 const accountController = require("../Controller/accountController");
 const checkoutController = require("../Controller/checkoutController");
-const productController = require("../Controller/productController");
 const wishlistController = require("../Controller/wishlist-controller");
 const OrderController = require("../Controller/orderController")
 const couponController = require("../Controller/coupon-controller")
-const Variant = require("../Model/variantModel");
-const Product = require("../Model/productModel");
+
 
 require("../passport")
 

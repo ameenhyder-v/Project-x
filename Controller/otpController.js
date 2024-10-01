@@ -169,27 +169,27 @@ const forgetResendOtp = async (req, res) => {
 //FORGET OTP VARIFICATION
 const otpVerify = async (req, res) => {
   try {
-    const OTP = req.body.otp
+    const OTP = req.body.otp;
     const email = req.session.email;
 
-
-    console.log('otp oppp', OTP)
+    console.log('otp oppp', OTP);
 
     const findOtp = await otpModel.findOne({ emailId: email });
 
-
-    // console.log(OTP === findOtp.otp)
+    if (!findOtp) {
+      return res.status(404).send({ status: 0, message: "OTP not found for this email." });
+    }
 
     if (OTP !== findOtp.otp) {
-      res.send({ status: 0 })
+      return res.send({ status: 0 });
     } else {
-      res.send({ status: 1 })
+      return res.send({ status: 1 });
     }
 
   } catch (error) {
-    console.log(`error form the otpController .otpVarify: ${error}`)
+    console.log(`error form the otpController .otpVarify: ${error}`);
+    res.status(500).send({ status: 0, message: "Internal server error" });
   }
-
 }
 
 

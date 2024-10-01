@@ -55,7 +55,37 @@ const dashboard = async (req, res) => {
         const returnRequests = await ReturnRequest.find()
             .populate('user', 'name');
 
-        return res.render("dashboard", { returnMessage: returnRequests });
+        const newOrders = await Order.find()
+            .sort({ createdAt: -1 })
+            .limit(7);
+
+        const totalSalesData = await Order.aggregate([
+            { $match: { orderStatus: 'Delivered' } }, 
+            { $group: { _id: null, totalSales: { $sum: '$totalAmount' } } } 
+        ]);
+
+        const totalSales = totalSalesData.length > 0 ? totalSalesData[0].totalSales : 0;
+        
+        const deliveredOrdersCountData = await Order.aggregate([
+            { $match: { orderStatus: 'Delivered' } },
+            { $count: 'totalDeliveredOrders' }
+        ]);
+
+        const totalDeliveredOrders = deliveredOrdersCountData.length > 0 ? deliveredOrdersCountData[0].totalDeliveredOrders : 0; // Get the total delivered orders count
+
+
+        const formattedOrders = newOrders.map(order => ({
+            id:order._id,
+            orderId: order.orderId,
+            billingName: order.shippingAddress.name,
+            date: order.createdAt,
+            total: order.totalAmount,
+            paymentStatus: order.paymentStatus,
+            paymentMethod: order.paymentMethod,
+        }));
+
+
+        return res.render("dashboard", { returnMessage: returnRequests, newOrders: formattedOrders, totalSales, totalDeliveredOrders });
     } catch (error) {
         console.log(`error from dashboaer: ${error}`);
     }
@@ -131,7 +161,6 @@ const orders = async (req, res) => {
 const orderDetail = async (req, res) => {
     try {
         const { orderId } = req.query;
-        // console.log(orderId);
         const order = await Order.findById(orderId).populate({
                 path: 'userId',
             })
@@ -141,7 +170,6 @@ const orderDetail = async (req, res) => {
 
             orderItems = order.orderedItems;
             userData = order.userId;
-            // console.log(order.orderStatus)
         
         //todo for getting first product image - ( order.orderedItems[0].variantId.image[0] )
 
@@ -176,9 +204,15 @@ const allUsers = async (req, res) => {
 const updateOrderStatus = async (req, res) => {
     try {
         const { orderId } = req.query;
-        const { status } = req.body
-        
-        const updateOrder = await Order.findByIdAndUpdate(orderId, { orderStatus: status }, { new: true });
+        const { status } = req.body;
+
+        const updateFields = { orderStatus: status };
+
+        if (status === 'Delivered') {
+            updateFields.paymentStatus = 'Confirmed';
+        }
+
+        const updateOrder = await Order.findByIdAndUpdate(orderId, updateFields, { new: true });
 
         if (!updateOrder) {
             return res.status(404).json({ success: false, message: 'Order not found' });
@@ -186,23 +220,19 @@ const updateOrderStatus = async (req, res) => {
 
         return res.status(200).json({ success: true, message: 'Order status updated successfully', order: updateOrder });
 
-        
     } catch (error) {
-        console.log(`error from the admin controller - updateOrderStatus - ${error}`)
+        console.log(`Error from the admin controller - updateOrderStatus - ${error}`);
+        return res.status(500).json({ success: false, message: 'Server error' });
     }
-}
+};
 
 const userControl = async (req, res) => {
     try {
-        console.log("working")
         const { id, state } = req.query
-        console.log(`id= ${id} stste = ${state}`)
         const data = await Users.findById({ _id: id })
         data.isBlocked = !data.isBlocked
         const isSave = await data.save()
 
-        console.log(isSave)
-        console.log(data);
         if (data) {
             res.send({ success: 1 })
         }

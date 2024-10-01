@@ -789,7 +789,7 @@
                           <h5 style="margin-bottom: 5px;">${coupon.name}</h5>
                           <p style="margin: 0;"><strong>Save: ₹${coupon.amount} off </strong></p>
                           <p style="margin: 0;">FLAT-RS. ₹ ${coupon.amount} off on minimum purchase of Rs.${coupon.minimumAmount}</p>
-                          <p style="margin: 0 0 5px;">Expires on: ${new Date(coupon.expires).toLocaleDateString()}</p>
+                          <p style="margin: 0 0 5px;">Expires on: ${new Date(coupon.expires).toLocaleDateString()} 11:59 PM</p>
                           <div class="coupon-code">
                             <span class="coupon-base-labelChecked" style="cursor: pointer;" id="couponCode-${coupon.couponCode}" data-code="${coupon.couponCode}">
                               ${coupon.couponCode}

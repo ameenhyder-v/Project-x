@@ -33,10 +33,12 @@ const variantScema = new mongoose.Schema({
         default: Date.now()
     },
     categoryOfferPrice: {
-        type: Number
+        type: Number,
+        default: 0
     },
     productOfferPrice: {
-        type: Number
+        type: Number,
+        default: 0
     }
 
 })

@@ -45,10 +45,9 @@ const orderSchema = new mongoose.Schema({
                 type: String,
                 required: true
             },
-            
-            orderedDate: {
-                type: Date,
-                default: Date.now()
+            offerAmount:{
+                type: Number,
+                default: 0
             },
         }
    ],
@@ -64,6 +63,10 @@ const orderSchema = new mongoose.Schema({
     totalAmount: {
         type: Number,
         required: true
+    },
+    totalOfferAmount: {
+        type: Number,
+        default: 0
     },
     paymentMethod: {
         type: String,
@@ -85,6 +88,9 @@ const orderSchema = new mongoose.Schema({
     cancellationReason: {
         type: String
     }
+},
+{
+    timestamps: true
 })
 
 const Order = mongoose.model('Order', orderSchema)

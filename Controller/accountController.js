@@ -394,29 +394,24 @@ const changePassword = async (req, res) => {
         const { userId } = req.session; 
         const { currentPass, newPass, confirmPass } = req.body; 
 
-        console.log(currentPass, "-------", newPass, "--------", confirmPass, "---------", userId);
 
         if (newPass !== confirmPass) {
-            console.log("pass no match")
             return res.json({ success: false, message: "New password and confirm password do not match." });
         }
 
         const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
         if (!passwordRegex.test(newPass)) {
-            console.log("Password must be at least 8 characters")
             return res.json({ success: false, message: "Password must be at least 8 characters long, contain at least one capital letter, and one number." });
         }
 
         const user = await User.findById(userId);
         if (!user) {
-            console.log("usernot found")
             return res.json({ success: false, message: "User not found."});
         }
 
         // Verify current password
         const isMatch = await bcrypt.compare(currentPass, user.password);
         if (!isMatch) {
-            console.log("'Current password is incorrect.-------------")
             return res.json({ success: false, message: "Current password is incorrect." });
         }
 
@@ -442,7 +437,6 @@ const addPassword = async (req, res) => {
         const { userId } = req.session;
         const { newPass, confirmPass } = req.body;
 
-        console.log("-------", newPass, "--------", confirmPass, "---------", userId);
 
         const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
         if (!passwordRegex.test(newPass)) {
@@ -451,16 +445,12 @@ const addPassword = async (req, res) => {
 
         //? pass match
         if (newPass !== confirmPass) {
-            console.log("error in th pass match")
             return res.json({success: false, message: 'Passwords do not match' });
         }
 
         //? hash pass
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(newPass, salt);
-        if (!hashedPassword){
-            console.log("error hashing not working ")
-        }
 
         await User.findByIdAndUpdate(userId, { password: hashedPassword });
 
@@ -476,7 +466,7 @@ const logout = async (req, res) => {
     try {
         req.session.destroy((err) => {
             if (err) {
-                console.log("Error from the account controller logout:", err);
+                res.redirect("/")
             }
             res.redirect("/");
         });

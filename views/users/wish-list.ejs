@@ -81,6 +81,12 @@
         opacity: 1;
     }
 
+    .icon-heart1,
+    .icon-heart2 {
+        filter: invert(19%) sepia(81%) saturate(7476%) hue-rotate(339deg) brightness(98%) contrast(122%);
+    }
+
+
 </style>
 
 
@@ -161,10 +167,10 @@
 
                         <div class="block2-txt-child2 flex-r p-t-3">
                             <!-- Wishlist Button -->
-                            <!-- <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
+                            <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2" data-variant-id="<%= variant._id %>">
                                 <img class="icon-heart1 dis-block trans-04" src="images/icons/icon-heart-01.png" alt="ICON">
                                 <img class="icon-heart2 dis-block trans-04 ab-t-l" src="images/icons/icon-heart-02.png" alt="ICON">
-                            </a> -->
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -187,3 +193,49 @@
 
 
 <%- include("../partials/userpartials/footer.ejs") %>
+
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+<script>
+    document.querySelectorAll('.js-addwish-b2').forEach(button => {
+        button.addEventListener('click', function (event) {
+            event.preventDefault();
+
+            const variantId = this.getAttribute('data-variant-id');
+
+            swal({
+                title: "Are you sure?",
+                text: "Do you want to remove this item from your wishlist?",
+                icon: "warning",
+                buttons: true,
+                dangerMode: true,
+            }).then((willDelete) => {
+                if (willDelete) {
+                    fetch('/wishlist/remove', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ variantId }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            swal("Item removed from wishlist!", {
+                                icon: "success",
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            swal("Error!", data.message, "error");
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        swal("Error!", "Something went wrong. Please try again.", "error");
+                    });
+                }
+            });
+        });
+    });
+</script>

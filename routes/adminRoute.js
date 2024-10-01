@@ -7,7 +7,8 @@ const variantController = require('../Controller/variantController');
 const upload = require('../middleware/multer');
 const couponController = require("../Controller/coupon-controller");
 const adminAuth = require("../middleware/adminAuth");
-const offerController = require("../Controller/offerController")
+const offerController = require("../Controller/offerController");
+const orderController = require("../Controller/orderController")
 // const multer = require("multer");
 
 adminRoute.set("view engine", "ejs");
@@ -18,6 +19,7 @@ adminRoute.post("/", adminAuth.isLogout, adminController.verifyAdmin);
 
 
 adminRoute.get("/dashboard", adminAuth.isLogin, adminController.dashboard);
+adminRoute.get('/sales-chart', orderController.salesChart);
 
 
 //!PRODUCTLIST PAGE RENDERING, BLOCKING PRODUCT
@@ -82,7 +84,13 @@ adminRoute.post("/coupon/update", adminAuth.isLogin, couponController.updateCoup
 adminRoute.get("/offer", adminAuth.isLogin, offerController.loadOfferPage);
 adminRoute.get("/fetchCategories", adminAuth.isLogin, offerController.fetchAllCategory);
 adminRoute.get("/fetchProducts", adminAuth.isLogin, offerController.fetchAllProducts);
-adminRoute.post("/offers/add", offerController.addOffer)
+adminRoute.post("/offers/add", offerController.addOffer);
+
+
+//! SALES REPORT SECTION
+adminRoute.get("/sales-report", adminAuth.isLogin, orderController.salesReport);
+adminRoute.get("/sales-report/download/pdf", adminAuth.isLogin, orderController.downloadReportPdf);
+adminRoute.get("/sales-report/download/excel", adminAuth.isLogin, orderController.downloadReportExcel);
 
 
 module.exports = adminRoute;

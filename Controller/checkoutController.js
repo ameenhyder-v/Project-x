@@ -114,11 +114,32 @@ const placeOrder = async (req, res) => {
 
             }
         }
-        const finalAmount = totalAmount - discount;
 
+        let totalOfferDiscount = 0;
+
+        //creating the order items
         const orderedItems = availableCartItems.map(item => {
             const variant = item.variantId;
             const product = variant.productId;
+
+            const validProductOfferPrice = variant.productOfferPrice > 0 ? variant.productOfferPrice : variant.price;
+            const validCategoryOfferPrice = variant.categoryOfferPrice > 0 ? variant.categoryOfferPrice : variant.price;
+
+            const smallestOfferPrice = Math.min(variant.price, validProductOfferPrice, validCategoryOfferPrice);
+
+            // Calculate the offer discount for this item
+            const offerDiscountPerItem = variant.price - smallestOfferPrice;
+            totalOfferDiscount += offerDiscountPerItem * item.quantity;
+
+            // Logging for debugging
+            console.log({
+                originalPrice: variant.price,
+                productOfferPrice: variant.productOfferPrice,
+                categoryOfferPrice: variant.categoryOfferPrice,
+                smallestOfferPrice,
+                offerDiscountPerItem,
+            });
+
 
             return {
                 variantId: variant._id,
@@ -129,8 +150,12 @@ const placeOrder = async (req, res) => {
                 category: product.categoryId.category,
                 color: variant.color,
                 size: item.size.trim(),
+                offerAmount: offerDiscountPerItem
             };
         });
+
+        const finalAmount = totalAmount - discount;
+
 
         // Creating the order
         const order = new Order({
@@ -148,11 +173,13 @@ const placeOrder = async (req, res) => {
             totalAmount: finalAmount,
             paymentMethod,
             paymentStatus: 'Pending',
-            couponDiscount: discount, 
+            couponDiscount: discount,
+            totalOfferAmount: totalOfferDiscount 
         });
 
         await order.save();
 
+        console.log(order)
         const orderId = order._id;
 
         for (const item of availableCartItems) {
