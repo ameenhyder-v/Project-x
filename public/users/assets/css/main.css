@@ -2491,12 +2491,13 @@ input.num-product::-webkit-inner-spin-button {
 }
 
 .size-113 {
-  width: 38px;
+  background: #6c7ae0eb;
+  width: 134px;
   height: 60px;
 }
 
 .size-114 {
-  width: calc(100% - 38px);
+  width: calc(100% - 133px);
   height: 60px;
 }
 
@@ -3061,7 +3062,7 @@ input.num-product::-webkit-inner-spin-button {
 
 .hov-cl0:hover {color: #fff;}
 .hov-bg0:hover {background-color: #fff;}
-.hov-cl1:hover {color: #717fe0;}
+.hov-cl1:hover {color: #dfe0e4;}
 .hov-bg1:hover {background-color: #717fe0;}
 
 /*---------------------------------------------*/

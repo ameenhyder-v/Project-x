@@ -5,6 +5,7 @@ const { query } = require("express");
 const mongoose = require('mongoose');
 const { findById } = require("../Model/userModel");
 const fs = require("fs").promises;
+const Offer = require("../Model/offerModel")
 
 
 //! ADMIN ADDING VARIANT
@@ -38,7 +39,6 @@ const addVariant = async (req, res) => {
                 quantity: quantity[i],
             }
         }
-        // console.log(stock);
 
         const images = req.files.map(file => file.filename)
 
@@ -56,6 +56,20 @@ const addVariant = async (req, res) => {
             stock: stock,
             price: price
         })
+
+        // Get category ID from the product
+        const product = await Product.findById(productId);
+        if (product && product.categoryId) {
+            const categoryOffer = await Offer.findOne({ selectedItemId: product.categoryId });
+            if (categoryOffer) {
+                const categoryDiscount = categoryOffer.discountPercentage / 100;
+                variant.categoryOfferPrice = price - (price * categoryDiscount);
+            } else {
+                variant.categoryOfferPrice = 0;
+            }
+        } else {
+            variant.categoryOfferPrice = 0;
+        }
 
         const saving = await variant.save()
         if (saving) {
@@ -75,14 +89,12 @@ const loadAllVariant = async (req, res) => {
     try {
 
         const { productId } = req.query;
-        // console.log(productId);
         const variants = await Variant.find({ productId: productId }).populate('productId');
-        // console.log(variants);
-        // console.log(variants);
+
         res.render("variant", { variants: variants, productId: productId })
 
     } catch (error) {
-        console.log(`error from the variantController.loadVariant: ${error}`)
+        console.log(`error from the variantController.loadAllVariant: ${error}`)
     }
 }
 
@@ -151,6 +163,30 @@ const addNewVariant = async (req, res) => {
             stock: stock,
             price: price
         })
+
+        // Check for product offer
+        const productOffer = await Offer.findOne({ selectedItemId: productId });
+        if (productOffer) {
+            const discount = productOffer.discountPercentage / 100;
+            variant.productOfferPrice = price - (price * discount);
+        } else {
+            variant.productOfferPrice = 0;
+        }
+
+        // Get category ID from the product
+        const product = await Product.findById(productId);
+        if (product && product.categoryId) {
+            const categoryOffer = await Offer.findOne({ selectedItemId: product.categoryId });
+            if (categoryOffer) {
+                const categoryDiscount = categoryOffer.discountPercentage / 100;
+                variant.categoryOfferPrice = price - (price * categoryDiscount);
+            } else {
+                variant.categoryOfferPrice = 0;
+            }
+        } else {
+            variant.categoryOfferPrice = 0;
+        }
+
 
         const saving = await variant.save();
         if (saving) {
@@ -232,6 +268,10 @@ const updateVariant = async (req, res) => {
         if (price <= 0 || typeof price == "number") {
             return res.status(200).json({ fail: "price must be greater than 0" });
         }
+        if (typeof colour !== 'string') {
+            return res.status(200).json({fail: "Colour must be string"})
+        }
+
 
         // Validate that quantity and price are positive numbers
         for (let i = 0; i < size.length; i++) {
@@ -247,7 +287,7 @@ const updateVariant = async (req, res) => {
         }));
 
         // Find the variant by ID
-        const findVariant = await Variant.findOne({ _id: variantId });
+        const findVariant = await Variant.findOne({ _id: variantId }).populate('productId');
         if (!findVariant) {
             return res.status(200).json({ fail: "Variant not found." });
         }
@@ -275,18 +315,38 @@ const updateVariant = async (req, res) => {
             });
         }
 
+        // Check for a product offer
+        const productOffer = await Offer.findOne({ selectedItemId: findVariant.productId._id });
+
+        if (productOffer) {
+            const discount = productOffer.discountPercentage / 100;
+            findVariant.productOfferPrice = price - (price * discount);
+        } else {
+            findVariant.productOfferPrice = 0;
+        }
+
+        // Check for a category offer
+        const categoryOffer = await Offer.findOne({ selectedItemId: findVariant.productId.categoryId });
+
+        if (categoryOffer) {
+            const categoryDiscount = categoryOffer.discountPercentage / 100;
+            findVariant.categoryOfferPrice = price - (price * categoryDiscount);
+        } else {
+            findVariant.categoryOfferPrice = 0;
+        }
+
 
         // Save the updated variant
         const saveVariant = await findVariant.save();
         if (saveVariant) {
-            const productId = saveVariant.productId;
+            const productId = saveVariant.productId._id;
             res.status(200).json({ success: "Variant updated successfully", productId: productId });
         } else {
             res.status(500).json({ error: "Failed to update variant." });
         }
 
     } catch (error) {
-        console.error(error);
+        console.log(`error in the variantController. updateVariant : ${error}`);
         res.status(500).json({ error: "An error occurred while updating the variant." });
     }
 };

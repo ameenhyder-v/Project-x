@@ -82,6 +82,7 @@ const cancelOrder = async (req, res) => {
                 type: 'credit'
             });
             await transaction.save();
+            orderData.paymentStatus = "Refund"
         }
 
         orderData.orderStatus = 'Canceled';

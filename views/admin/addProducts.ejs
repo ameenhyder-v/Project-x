@@ -197,7 +197,7 @@
     }
 
 
-     function removeProduct() {
+    function removeProduct() {
         fetch("/admin/remove-product")
     }
 
@@ -211,10 +211,7 @@
     // adding variant 
     async function addVariant() {
         const formData = new FormData(document.getElementById("variantForm"));
-        //console.log(Object.fromEntries(formData))
-
-       // alert("hello world")
-        //console.log(formData)
+        
         const response = await fetch("/admin/add-variant", {
            method: "POST",
             body: formData
@@ -267,6 +264,7 @@
 
     
 </script>
+
 
 <div class="screen-overlay"></div>
 <aside class="navbar-aside" id="offcanvas_aside">

@@ -65,7 +65,7 @@ const removeProductVariantFalse = async () => {
     if (removeProduct){
         // console.log("success")
     }else{
-        console.log("not working");
+        console.log("error in the productController function removeProductVariantFalse");
     }
 }
 
@@ -79,7 +79,7 @@ const blockProduct = async (req, res) => {
             // console.log(`${product.name}'s status changed to  : ${product.isBlocked}`);
             res.send({ success: true })
         } else {
-            console.log("product id not found to block or unblock")
+            // console.log("product id not found to block or unblock")
             res.send({ success: false })
         }
     } catch (error) {

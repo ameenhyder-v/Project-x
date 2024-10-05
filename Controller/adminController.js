@@ -3,6 +3,9 @@ const CategoryModel = require("../Model/categoryModel");
 const Product = require("../Model/productModel");
 const Order = require("../Model/orderModel");
 const ReturnRequest = require("../Model/returnRequestModel");
+const categoryModel = require("../Model/categoryModel");
+const User = require("../Model/userModel");
+const Transaction = require("../Model/transactionModel")
 
 
 const adminLogin = async (req, res) => {
@@ -51,7 +54,6 @@ const verifyAdmin = async (req, res) => {
 
 const dashboard = async (req, res) => {
     try {
-
         const returnRequests = await ReturnRequest.find()
             .populate('user', 'name');
 
@@ -60,22 +62,32 @@ const dashboard = async (req, res) => {
             .limit(7);
 
         const totalSalesData = await Order.aggregate([
-            { $match: { orderStatus: 'Delivered' } }, 
-            { $group: { _id: null, totalSales: { $sum: '$totalAmount' } } } 
+            { $match: { orderStatus: 'Delivered' } },
+            { $group: { _id: null, totalSales: { $sum: '$totalAmount' } } }
         ]);
 
         const totalSales = totalSalesData.length > 0 ? totalSalesData[0].totalSales : 0;
-        
+
         const deliveredOrdersCountData = await Order.aggregate([
             { $match: { orderStatus: 'Delivered' } },
             { $count: 'totalDeliveredOrders' }
         ]);
 
-        const totalDeliveredOrders = deliveredOrdersCountData.length > 0 ? deliveredOrdersCountData[0].totalDeliveredOrders : 0; // Get the total delivered orders count
+        const totalDeliveredOrders = deliveredOrdersCountData.length > 0 ? deliveredOrdersCountData[0].totalDeliveredOrders : 0;
 
+        const totalProducts = await Product.countDocuments();
+        const totalCategories = await categoryModel.countDocuments();
+
+        const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+        const monthlyOrdersCountData = await Order.aggregate([
+            { $match: { createdAt: { $gte: startOfMonth } } },
+            { $count: 'monthlyOrders' }
+        ]);
+
+        const monthlyOrdersCount = monthlyOrdersCountData.length > 0 ? monthlyOrdersCountData[0].monthlyOrders : 0;
 
         const formattedOrders = newOrders.map(order => ({
-            id:order._id,
+            id: order._id,
             orderId: order.orderId,
             billingName: order.shippingAddress.name,
             date: order.createdAt,
@@ -84,10 +96,42 @@ const dashboard = async (req, res) => {
             paymentMethod: order.paymentMethod,
         }));
 
+        // top 10 selling products 
+        const productCount = await Order.aggregate([
+            { $unwind: "$orderedItems" }, 
+            {
+                $group: {
+                    _id: "$orderedItems.variantId", 
+                    totalSold: { $sum: "$orderedItems.quantity" },
+                    productName: { $first: "$orderedItems.product_name" } 
+                }
+            },
+            { $sort: { totalSold: -1 } }, 
+            { $limit: 10 } 
+        ]);
 
-        return res.render("dashboard", { returnMessage: returnRequests, newOrders: formattedOrders, totalSales, totalDeliveredOrders });
+        // top 10 selling categories
+        const categoryCount = await Order.aggregate([
+            { $unwind: "$orderedItems" },
+            { $group: { _id: "$orderedItems.category", totalSold: { $sum: "$orderedItems.quantity" } } },
+            { $sort: { totalSold: -1 } },
+            { $limit: 10 },
+            { $project: { _id: 0, name: "$_id" } }
+        ]);
+
+        return res.render("dashboard", {
+            returnMessage: returnRequests,
+            newOrders: formattedOrders,
+            totalSales,
+            totalDeliveredOrders,
+            totalProducts,
+            totalCategories,
+            monthlyOrdersCount,
+            productCount,
+            categoryCount
+        });
     } catch (error) {
-        console.log(`error from dashboaer: ${error}`);
+        console.log(`error from dashboard: ${error}`);
     }
 };
 
@@ -136,7 +180,7 @@ const addProduct = async (req, res) => {
 const orders = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = 10; // Number of orders per page
+        const limit = 10; 
         const skip = (page - 1) * limit;
 
         const totalOrders = await Order.countDocuments();
@@ -252,12 +296,12 @@ const userDetails = async (req, res) => {
 
 const categories = async (req, res) => {
     try {
-        const perPage = 10; // Number of categories per page
-        const page = parseInt(req.query.page) || 1; // Current page, default to 1 if not provided
+        const perPage = 10; 
+        const page = parseInt(req.query.page) || 1; 
         const message = req.flash("message")
 
-        const totalCategories = await CategoryModel.countDocuments(); // Total number of categories
-        const totalPages = Math.ceil(totalCategories / perPage); // Calculate total pages
+        const totalCategories = await CategoryModel.countDocuments(); 
+        const totalPages = Math.ceil(totalCategories / perPage);
 
         const categoryData = await CategoryModel.find()
             .sort({ _id: -1 })
@@ -306,8 +350,23 @@ const acceptReturn = async (req, res) => {
         if (!returnRequest) {
             return res.json({ success: false, message: "Return request not found." });
         }
+        const userId = order.userId
+        if (order.paymentMethod === "razor" && order.paymentStatus === "Confirmed") {
+            const refundAmount = order.totalAmount;
+            const user = await User.findById(userId);
+            user.wallet += refundAmount;
+            await user.save();
+
+            const transaction = new Transaction({
+                userId: userId,
+                amount: refundAmount,
+                type: 'credit'
+            });
+            await transaction.save();
+        }
 
         order.orderStatus = "Returned";
+        order.paymentStatus = "Refund"
         await order.save();
 
         return res.json({ success: true, message: "Order return request has been accepted. Status updated to 'Returned'." });

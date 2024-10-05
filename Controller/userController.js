@@ -4,7 +4,8 @@ const otpModel = require('../Model/otpModel')
 const Variant = require("../Model/variantModel")
 const bcrypt = require("bcrypt");
 const wishlistController = require("../Controller/wishlist-controller");
-const categoryController = require("./categoryController")
+const categoryController = require("./categoryController");
+const Product = require("../Model/productModel");
 
 
 
@@ -143,20 +144,12 @@ const failureGoolgeLogin = async (req, res) => {
 
 //OTP VARIFICATION WHEN CREATING ACCOUNT
 const otpVerify = async (req, res) => {
-    // console.log(req.body);
-    // console.log(req.session);
     try {
-
-        // console.log('req,body: ',req.body);
-
 
         const OTP = req.body.otp
         console.log('otp oppp', OTP)
 
         const findOtp = await otpModel.findOne({ emailId: req.session.email });
-
-        // console.log(OTP === findOtp.otp)
-
         if (OTP !== findOtp.otp) {
             res.send({ status: 0 })
         } else {
@@ -262,7 +255,11 @@ const productDetails = async (req, res) => {
 //! LOAD ALL PRODUCTS SHOPE PAGE 
 const allProducts = async (req, res) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = 8; 
+        const skip = (page - 1) * limit;
 
+        // Fetch all variants with pagination
         const allVariants = await Variant.find()
             .populate({
                 path: 'productId',
@@ -270,21 +267,34 @@ const allProducts = async (req, res) => {
                     path: 'categoryId',
                     model: 'Category'
                 }
-            });
+            })
+            .skip(skip) 
+            .limit(limit); 
 
+        // Filter out blocked products and categories
         const variants = allVariants.filter(variant => {
             const product = variant.productId;
             const category = product && product.categoryId;
             return product && !product.isBlocked && category && !category.isBlocked;
         });
 
-        const allCategories = await categoryController.getAllCategory()
+        const totalVariants = await Variant.countDocuments();
+        const allCategories = await categoryController.getAllCategory();
+        const totalPages = Math.ceil(totalVariants / limit);
+        console.log(`Total Pages: ${totalPages}, Current Page: ${page}`);
 
-        res.render("allProducts", { variants, allCategories });
+
+        res.render("allProducts", {
+            variants,
+            allCategories,
+            currentPage: page,
+            totalPages
+        });
     } catch (error) {
-        console.log(`error from allProducts: ${error}`)
+        console.log(`error from allProducts: ${error}`);
     }
-}
+};
+
 
 //! ALL WOMEN PRODUCTS 
 const womenAllProducts = async (req, res) => {
@@ -339,7 +349,7 @@ const menAllProducts = async (req, res) => {
         const filteredVariants = allVariants.filter(variant => {
             return (
                 !variant.productId.isBlocked &&
-                !variant.productId.categoryId.isBlocked && // Check if the category is not blocked
+                !variant.productId.categoryId.isBlocked && 
                 variant.productId.categoryId.gender === 'Male'
             );
         });
@@ -432,6 +442,20 @@ const sortFilterSearch = async (req, res) => {
 
         let query = {};
 
+        // Add search functionality
+        if (search) {
+            query['productId'] = {
+                $in: await Product.find({
+                    $or: [
+                        { name: { $regex: search, $options: 'i' } },
+                        { brand: { $regex: search, $options: 'i' } },
+                        { material: { $regex: search, $options: 'i' } },
+                        { tags: { $regex: search, $options: 'i' } } 
+                    ]
+                }).distinct('_id') 
+            };
+        }
+
         const variants = await Variant.find(query)
             .populate({
                 path: 'productId',
@@ -463,7 +487,7 @@ const sortFilterSearch = async (req, res) => {
             });
         }
 
-        // sorting
+        // Sorting
         if (sort === 'nameAZ') {
             filteredVariants.sort((a, b) => a.productId.name.localeCompare(b.productId.name));
         } else if (sort === 'nameZA') {
@@ -494,17 +518,14 @@ const sortFilterSearch = async (req, res) => {
             });
         }
 
-        //todo search not done 
-        // if (search) {
-        //     query['productId.name'] = { $regex: search, $options: 'i' };
-        // }
-
         res.json({ variants: filteredVariants });
-        
+
     } catch (error) {
-        console.log(`error in the sort filter search section : ${error.message}`)
+        console.log(`Error in the sort filter search section: ${error.message}`);
+        res.status(500).json({ error: 'Internal server error' });
     }
-}
+};
+
 
 module.exports = {
     register,

@@ -241,6 +241,17 @@ const removeItem = async (req, res) => {
     }
 }
 
+const cartItemCount = async (userId) => {
+    try {
+        const cart = await Cart.findOne({ userId });
+        const cartItemCount = cart ? cart.cartItems.length : 0;
+        return cartItemCount;
+    } catch (error) {
+        console.log(`error in the cart controller cartItemCount: ${error.message}`)
+        
+    }
+}
+
 
 
 module.exports = {
@@ -249,5 +260,6 @@ module.exports = {
     addQuantity,
     decreaseQuantity,
     subTotal,
-    removeItem
+    removeItem,
+    cartItemCount
 }

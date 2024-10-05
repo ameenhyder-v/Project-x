@@ -91,7 +91,7 @@ const addOffer = async (req, res) => {
 
     
         await newOffer.save();
-        console.log("Offer saved successfully.");
+        // console.log("Offer saved successfully.");
 
         if (selection === "category") {
             // Handling category based offer
@@ -113,7 +113,7 @@ const addOffer = async (req, res) => {
             });
 
             await Variant.bulkWrite(updateOperations);
-            console.log("Successfully applied the category offer to variants.");
+            // console.log("Successfully applied the category offer to variants.");
 
         } else if (selection === "product") {
             // Handling product based offer
@@ -132,7 +132,7 @@ const addOffer = async (req, res) => {
             });
 
             await Variant.bulkWrite(updateOperations);
-            console.log("Successfully applied the product offer to variants.");
+            // console.log("Successfully applied the product offer to variants.");
         }
 
         res.status(200).json({ success: true, message: "Offer added successfully." });

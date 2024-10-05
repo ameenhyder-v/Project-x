@@ -4,6 +4,31 @@
 
 
 <style>
+
+    .pagination ul {
+        list-style: none;
+        display: flex;
+        justify-content: center;
+        padding: 0;
+    }
+    
+    .pagination li {
+        margin: 0 5px;
+    }
+    
+    .pagination a {
+        text-decoration: none;
+        padding: 5px 10px;
+        background-color: #e6d5d5;
+        color: #624958;
+        border-radius: 4px;
+    }
+    
+    .pagination .active a {
+        background-color: #624958;
+        color: #e6d5d5;
+    }
+
     /* Offer Badge with Percentage */
     .badge-danger {
         position: absolute;
@@ -139,7 +164,7 @@
                 </div>
 
                 <div
-                    class="flex-c-m stext-106 cl6 size-105 bor4 pointer hov-btn3 trans-04 m-tb-4 js-show-search">
+                    class="flex-c-m stext-106 cl6 size-105 bor4 pointer hov-btn3 trans-04 m-tb-4 js-show-search" onclick="setSearchClear()">
                     <i class="icon-search cl2 m-r-6 fs-15 trans-04 zmdi zmdi-search"></i>
                     <i class="icon-close-search cl2 m-r-6 fs-15 trans-04 zmdi zmdi-close dis-none"></i>
                     Search
@@ -149,10 +174,10 @@
             <!-- Search product -->
             <div class="dis-none panel-search w-full p-t-10 p-b-15">
                 <div class="bor8 dis-flex p-l-15">
-                    <button class="size-113 flex-c-m fs-16 cl2 hov-cl1 trans-04" id="searchBtn">
-                        <i class="zmdi zmdi-search"></i>
-                    </button>
                     <input id="searchInput" class="mtext-107 cl2 size-114 plh2 p-r-15" type="text" name="search-product" placeholder="Search">
+                    <button class="size-113 flex-c-m fs-16 cl2 hov-cl1 trans-04" id="searchBtn">
+                        <i class="zmdi zmdi-search"></i> Search
+                    </button>
                 </div>
             </div>
             <!-- Filter -->
@@ -270,17 +295,20 @@
             <% }) %>
         </div>
         
-        
-        
+
+        <div class="pagination" id="paginationId">
+            <% if (totalPages > 1) { %>
+                <ul>
+                    <% for (let i = 1; i <= totalPages; i++) { %>
+                        <li class="<%= currentPage === i ? 'active' : '' %>">
+                            <a href="?page=<%= i %>"><%= i %></a>
+                        </li>
+                    <% } %>
+                </ul>
+            <% } %>
+        </div>
         
 
-        <!-- Load more -->
-        <div class="flex-c-m flex-w w-full p-t-45">
-            <a href="#"
-                class="flex-c-m stext-101 cl5 size-103 bg2 bor1 hov-btn1 p-lr-15 trans-04">
-                Load More
-            </a>
-        </div>
     </div>
 </div>
 
@@ -295,6 +323,8 @@
             let sortLowToHigh = document.getElementById('sortLowToHigh');
             let sortHighToLow = document.getElementById('sortHighToLow');
             let categoryFilterBtns = document.querySelectorAll('.categoryFilterBtn');
+            let pagination = document.getElementById("paginationId");
+            
         
             let currentSort = '';
             let currentSearch = '';
@@ -304,15 +334,16 @@
             const reloadProducts = () => {
                 let filter = currentCategory && currentGender ? `${currentCategory} ${currentGender}` : '*';
                 let url = `/products?sort=${currentSort}&search=${currentSearch}&filter=${filter}`;
-        
+            
                 const productContainer = document.getElementById('productContainer');
                 productContainer.classList.add('fade-out'); 
-        
+            
                 fetch(url)
                     .then(response => response.json())
                     .then(data => {
                         productContainer.innerHTML = ''; 
                         if (data.variants.length === 0) {
+                            // Display no products available message
                             const noProductsHTML = `
                                 <div class="col-12 text-center">
                                     <h4>No products available</h4>
@@ -321,51 +352,53 @@
                             `;
                             productContainer.insertAdjacentHTML('beforeend', noProductsHTML);
                         } else {
-        
-                        data.variants.forEach(variant => {
-                            let discountPrice;
-                            if (variant.productOfferPrice && variant.categoryOfferPrice) {
-                                discountPrice = Math.min(variant.productOfferPrice, variant.categoryOfferPrice);
-                            } else {
-                                discountPrice = variant.productOfferPrice || variant.categoryOfferPrice; 
-                            }
-                            
-                            let discountPercentage = discountPrice ? Math.round(((variant.price - discountPrice) / variant.price) * 100) : 0;
-                        
-                            let productHTML = ` <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item ${variant.productId.categoryId.gender}">
-                                                    <div class="block2">
-                                                        <div class="block2-pic hov-img0">
-                                                            <a href="/productDetail?variantId=${variant._id}">
-                                                                <img src="images/${variant.image[0]}" alt="IMG-PRODUCT" class="product-image">
-                                                            </a>
-                                                            ${discountPercentage > 0 ? `<span class="badge badge-danger">${discountPercentage}% OFF</span>` : ''}
-                                                        </div>
-                                                        <div class="block2-txt flex-w flex-t p-t-14">
-                                                            <div class="block2-txt-child1 flex-col-l">
-                                                                <a href="/productDetail?variantId=${variant._id}" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6 product-name">
-                                                                    ${variant.productId.name}
-                                                                </a>
-                                                                ${!discountPrice 
-                                                                    ? `<span class="stext-105 cl3 original-price">₹ ${variant.price}</span>`
-                                                                    : `<span class="stext-105 cl3 discount-price">₹ ${discountPrice}</span>
-                                                                    <span class="original-price strike-through">₹ ${variant.price}</span>`
-                                                                }
-                                                            </div>
-                                                            <div class="block2-txt-child2 flex-r p-t-3">
-                                                                
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                            data.variants.forEach(variant => {
+                                let discountPrice;
+                                if (variant.productOfferPrice && variant.categoryOfferPrice) {
+                                    discountPrice = Math.min(variant.productOfferPrice, variant.categoryOfferPrice);
+                                } else {
+                                    discountPrice = variant.productOfferPrice || variant.categoryOfferPrice; 
+                                }
+                                
+                                let discountPercentage = discountPrice ? Math.round(((variant.price - discountPrice) / variant.price) * 100) : 0;
+            
+                                let productHTML = `
+                                    <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item ${variant.productId.categoryId.gender}">
+                                        <div class="block2">
+                                            <div class="block2-pic hov-img0">
+                                                <a href="/productDetail?variantId=${variant._id}">
+                                                    <img src="images/${variant.image[0]}" alt="IMG-PRODUCT" class="product-image">
+                                                </a>
+                                                ${discountPercentage > 0 ? `<span class="badge badge-danger">${discountPercentage}% OFF</span>` : ''}
+                                            </div>
+                                            <div class="block2-txt flex-w flex-t p-t-14">
+                                                <div class="block2-txt-child1 flex-col-l">
+                                                    <a href="/productDetail?variantId=${variant._id}" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6 product-name">
+                                                        ${variant.productId.name}
+                                                    </a>
+                                                    ${!discountPrice 
+                                                        ? `<span class="stext-105 cl3 original-price">₹ ${variant.price}</span>`
+                                                        : `<span class="stext-105 cl3 discount-price">₹ ${discountPrice}</span>
+                                                        <span class="original-price strike-through">₹ ${variant.price}</span>`
+                                                    }
                                                 </div>
-                                            `;
-                            
-                            // Appending the html 
-                            productContainer.insertAdjacentHTML('beforeend', productHTML);
-                        });
-                    }
-                            productContainer.classList.remove('fade-out');
-                            productContainer.classList.add('fade-in');
-        
+                                                <div class="block2-txt-child2 flex-r p-t-3">
+                                                    <!-- Additional content can go here -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                                
+                                // Appending the HTML 
+                                productContainer.insertAdjacentHTML('beforeend', productHTML);
+                            });
+                        }
+            
+                        // Fade-in effect after loading products
+                        productContainer.classList.remove('fade-out');
+                        productContainer.classList.add('fade-in');
+                        pagination.innerHTML = ''
                         setTimeout(() => {
                             productContainer.classList.remove('fade-in');
                         }, 500); 

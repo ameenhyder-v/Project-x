@@ -1,6 +1,15 @@
 <%- include("../partials/adminpartials/adminHeader.ejs") %>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<style>
+
+    
+    .nav-item span {
+        font-size: 16px;           /* Adjust text size */
+        color: #ffffff;               /* Change text color as needed */
+    }
+</style>
+
 
     <div class="screen-overlay"></div>
     <aside class="navbar-aside" id="offcanvas_aside">
@@ -90,16 +99,14 @@
                         <a class="nav-link btn-icon" href="#" data-bs-toggle="modal" data-bs-target="#returnRequestsModal">
                             <i class="material-icons md-notifications "></i>
                             <span class="badge rounded-pill"><%= returnMessage.length %></span>
-                            Return Requests
-    
+                            <span>Return Requests</span>    
                         </a>
                     </li>
                 <% } else{ %>
                     <li class="nav-item">
                             <i class="material-icons md-notifications "></i>
-                            Return Requests
+                            <span>Return Requests</span>
     
-                        </a>
                     </li>
                     <% } %>
                 <li class="nav-item">
@@ -127,7 +134,7 @@
                         </span>
                         <div class="text">
                             <h6 class="mb-1 card-title">Revenue</h6>
-                            <span>₹ <%= totalSales.toFixed(2) %></span> <!-- Display the total sales amount -->
+                            <span>₹ <%= totalSales.toFixed(2) %></span> 
                             <span class="text-sm"> Only that have delivered </span>
                         </div>
                     </article>
@@ -140,21 +147,9 @@
                             <i class="text-success material-icons md-local_shipping"></i>
                         </span>
                         <div class="text">
-                            <h6 class="mb-1 card-title">Delivered Orders</h6> <!-- Update title to reflect delivered orders -->
-                            <span><%= totalDeliveredOrders %></span> <!-- Display the total delivered orders -->
+                            <h6 class="mb-1 card-title">Delivered Orders</h6> 
+                            <span><%= totalDeliveredOrders %></span>
                             <span class="text-sm"> Total orders delivered </span>
-                        </div>
-                    </article>
-                </div>
-            </div>
-            <!-- <div class="col-lg-3">
-                <div class="card card-body mb-4">
-                    <article class="icontext">
-                        <span class="icon icon-sm rounded-circle bg-warning-light"><i class="text-warning material-icons md-qr_code"></i></span>
-                        <div class="text">
-                            <h6 class="mb-1 card-title">Products</h6>
-                            <span>9.856</span>
-                            <span class="text-sm"> In 19 Categories </span>
                         </div>
                     </article>
                 </div>
@@ -162,15 +157,31 @@
             <div class="col-lg-3">
                 <div class="card card-body mb-4">
                     <article class="icontext">
-                        <span class="icon icon-sm rounded-circle bg-info-light"><i class="text-info material-icons md-shopping_basket"></i></span>
+                        <span class="icon icon-sm rounded-circle bg-warning-light">
+                            <i class="text-warning material-icons md-qr_code"></i>
+                        </span>
                         <div class="text">
-                            <h6 class="mb-1 card-title">Monthly Earning</h6>
-                            <span>$6,982</span>
+                            <h6 class="mb-1 card-title">Products</h6>
+                            <span><%= totalProducts ? totalProducts : '0' %></span>
+                            <span class="text-sm"> In <%= totalCategories ? totalCategories : '0' %> Categories </span>
+                        </div>
+                    </article>
+                </div>                
+            </div>
+            <div class="col-lg-3">
+                <div class="card card-body mb-4">
+                    <article class="icontext">
+                        <span class="icon icon-sm rounded-circle bg-info-light">
+                            <i class="text-info material-icons md-shopping_basket"></i>
+                        </span>
+                        <div class="text">
+                            <h6 class="mb-1 card-title">Monthly Order</h6>
+                            <span><%= (monthlyOrdersCount && monthlyOrdersCount > 0) ? monthlyOrdersCount : '0' %></span>
                             <span class="text-sm"> Based in your local time. </span>
                         </div>
                     </article>
                 </div>
-            </div> -->
+            </div>            
         </div>
         <div class="row">
             <div class="col-xl-8 col-lg-12">
@@ -188,6 +199,65 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="card card-body mb-4">
+                    <h3 class="mb-1 card-title">Top 10 Selling Products</h3>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Index</th>
+                                <th>Product Name</th>
+                                <th>Total Sold</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (productCount.length > 0) { %>
+                                <% productCount.forEach((element, index) => { %>
+                                    <tr>
+                                        <td><%= index + 1 %></td>
+                                        <td><%= element.productName %></td>
+                                        <td><%= element.totalSold %></td>
+                                    </tr>
+                                <% }) %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="2" class="text-center">No products sold yet.</td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="card card-body mb-4">
+                    <h3 class="mb-1 card-title">Top 10 Selling Categories</h3>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Index</th>
+                                <th>Category Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (categoryCount.length > 0) { %>
+                                <% categoryCount.forEach((element, index) => { %>
+                                    <tr>
+                                        <td><%= index + 1 %></td>
+                                        <td><%= element.name %></td>
+                                    </tr>
+                                <% }) %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="2" class="text-center">No categories sold yet.</td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
         <div class="card mb-4">
             <header class="card-header">
                 <h4 class="card-title">Latest orders</h4>
@@ -215,7 +285,7 @@
                                   <td><%= new Date(order.date).toLocaleDateString() %></td>
                                   <td>$<%= order.total.toFixed(2) %></td>
                                   <td>
-                                    <span class="badge badge-pill badge-soft-<%= order.paymentStatus === 'Paid' ? 'success' : 'danger' %>">
+                                    <span class="badge badge-pill badge-soft-<%= order.paymentStatus === 'Confirmed' ? 'success' : 'danger' %>">
                                       <%= order.paymentStatus %>
                                     </span>
                                   </td>

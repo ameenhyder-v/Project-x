@@ -52,14 +52,14 @@ adminRoute.get("/userDetails", adminAuth.isLogin, adminController.userDetails);
 
 adminRoute.get("/categories", adminAuth.isLogin, adminController.categories);
 adminRoute.post("/addCategory", adminAuth.isLogin, categoryController.addCategory);
-adminRoute.get("/edit-category-get", adminAuth.isLogin, categoryController.getCatEdit)
-adminRoute.post("/update-category", upload.none(), categoryController.updateCategory)
-adminRoute.get("/delete-category", adminAuth.isLogin, categoryController.deleteCategory);
+adminRoute.get("/edit-category-get", adminAuth.isLogin, categoryController.getCatEdit);
+adminRoute.post("/update-category", upload.none(), categoryController.updateCategory);
+// adminRoute.get("/delete-category", adminAuth.isLogin, categoryController.deleteCategory);
 
 
 //!ADD VARIANT
-adminRoute.get("/add-new-variant", adminAuth.isLogin, variantController.loadAddNewVariant)
-adminRoute.post("/add-new-variant", upload.any(), variantController.addNewVariant)
+adminRoute.get("/add-new-variant", adminAuth.isLogin, variantController.loadAddNewVariant);
+adminRoute.post("/add-new-variant", upload.any(), variantController.addNewVariant);
 
 adminRoute.post('/add-variant', upload.any(),variantController.addVariant);
 
