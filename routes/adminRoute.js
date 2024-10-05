@@ -22,11 +22,11 @@ adminRoute.get("/dashboard", adminAuth.isLogin, adminController.dashboard);
 adminRoute.get('/sales-chart', orderController.salesChart);
 
 
-//!PRODUCTLIST PAGE RENDERING, BLOCKING PRODUCT
+//PRODUCTLIST PAGE RENDERING, BLOCKING PRODUCT
 adminRoute.get("/productList", adminAuth.isLogin, adminController.productList);
 adminRoute.post('/block-product', adminAuth.isLogin, productController.blockProduct);
 
-//!ADD PRODUCT PAGE RENDERING, ADDING PRODUCT, REMOVING PRODUCT THAT DONT HAVE A VARIANT, CHECKING CATEGORY
+//ADD PRODUCT PAGE RENDERING, ADDING PRODUCT, REMOVING PRODUCT THAT DONT HAVE A VARIANT, CHECKING CATEGORY
 adminRoute.get("/addProduct", adminAuth.isLogin, adminController.addProduct);
 adminRoute.post("/adding-product", adminAuth.isLogin, productController.addingProduct);
 adminRoute.get("/edit-this-product", adminAuth.isLogin, productController.editThisProduct);
@@ -36,14 +36,14 @@ adminRoute.get("/remove-product", adminAuth.isLogin, productController.removePro
 adminRoute.get("/check-category", adminAuth.isLogin, categoryController.checkCategory);
 
 
-//! ORDER SECTION 
+// ORDER SECTION 
 adminRoute.get("/orders", adminAuth.isLogin, adminController.orders);
 adminRoute.get("/order-detail", adminAuth.isLogin, adminController.orderDetail);
 adminRoute.patch("/orders/updateStatus", adminAuth.isLogin, adminController.updateOrderStatus);
 adminRoute.patch("/orders/return-reject", adminAuth.isLogin, adminController.rejectReturn);
 adminRoute.patch("/orders/return-accept", adminAuth.isLogin, adminController.acceptReturn)
 
-//!USERS LIST PAGE RENDERING, BLOCKING AND UNBLOCKING USER
+// USERS LIST PAGE RENDERING, BLOCKING AND UNBLOCKING USER
 adminRoute.get("/users", adminAuth.isLogin, adminController.allUsers);
 adminRoute.put("/blockUser", adminAuth.isLogin, adminController.userControl);
 
@@ -57,7 +57,7 @@ adminRoute.post("/update-category", upload.none(), categoryController.updateCate
 // adminRoute.get("/delete-category", adminAuth.isLogin, categoryController.deleteCategory);
 
 
-//!ADD VARIANT
+// ADD VARIANT
 adminRoute.get("/add-new-variant", adminAuth.isLogin, variantController.loadAddNewVariant);
 adminRoute.post("/add-new-variant", upload.any(), variantController.addNewVariant);
 
