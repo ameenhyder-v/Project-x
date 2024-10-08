@@ -44,7 +44,13 @@ const isLogout = async (req, res, next) => {
     }
 };
 
+function addUserToLocals(req, res, next) {
+    res.locals.user = req.session.userId || null; 
+    next()
+}
+
 module.exports = {
     isLogin,
-    isLogout
+    isLogout,
+    addUserToLocals
 }

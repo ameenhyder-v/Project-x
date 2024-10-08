@@ -12,8 +12,16 @@
         cursor: pointer;
     }
     .custom-height {
-        height: 31rem; /* Adjust the height as needed */
-        overflow-y: auto; /* Optional: Add a vertical scrollbar if the content overflows */
+        min-height: 90vh; /* Ensure it takes up the full viewport height */
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+    .container {
+        flex-grow: 1; /* Allow the container to take up remaining space */
     }
 </style>
 
@@ -27,6 +35,8 @@
 
 <!-- SweetAlert2 CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<body>
+    
 
 <div class="container my-5 custom-height">
     <div class="card">
@@ -97,5 +107,7 @@
         </ul>
     </nav>
 </div>
+</body>
+
 
 <%- include("../partials/userpartials/footer.ejs") %>

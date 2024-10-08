@@ -3,9 +3,14 @@ const Wishlist = require("../Model/wishlist-model");
 const loadWishlist = async (req, res) => {
     try {
         const userId = req.session.userId;
+
+        if (!userId) {
+            return res.redirect("/login"); 
+        }
+
         const wishlistData = await Wishlist.findOne({ userId })
             .populate({
-                path: 'wishlistItems', 
+                path: 'wishlistItems',
                 populate: {
                     path: 'productId',
                     populate: {
@@ -14,13 +19,18 @@ const loadWishlist = async (req, res) => {
                 }
             })
             .exec();
-            
-        res.render("wish-list", { variants : wishlistData.wishlistItems})
-        
+
+        if (!wishlistData || !wishlistData.wishlistItems) {
+            return res.render("wish-list", { variants: [], message: "Your wishlist is empty." });  
+        }
+
+        res.render("wish-list", { variants: wishlistData.wishlistItems });
+
     } catch (error) {
-        console.log(`error from the wishlist controller load wish list - ${error}`)
+        console.log(`error from the wishlist controller load wishlist - ${error.message}`);
+        res.status(500).send("Internal server error");
     }
-}
+};
 
 
 const findUsersWishlistItems = async (userId) => {

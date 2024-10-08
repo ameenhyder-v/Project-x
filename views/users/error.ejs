@@ -1,0 +1,76 @@
+<!-- views/error.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - Page Not Found</title>
+    <link rel="stylesheet" href="/styles.css"> <!-- Link to your CSS file -->
+    <style>
+        main {
+            height: 100vh;
+            width: 100vw;
+            background: #f9f9f9; /* Light background color for contrast */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Merriweather Sans', sans-serif;
+            color: #333; /* Dark text color */
+        }
+
+        #errorText {
+            font-size: 24px;
+            margin: 20px 0;
+            text-align: center; /* Center align the text */
+        }
+
+        #errorLink {
+            font-size: 18px;
+            padding: 12px 20px;
+            border: 1px solid #333; /* Dark border for visibility */
+            color: #fff; /* White text color */
+            background-color: #333; /* Dark background for the button */
+            text-decoration: none;
+            border-radius: 5px; /* Rounded corners */
+            transition: all 0.3s ease-in-out; /* Smooth transition */
+        }
+
+        #errorLink:hover, #errorLink:active {
+            color: #333; /* Dark text on hover */
+            background: #fff; /* White background on hover */
+        }
+
+        /* Animation styles */
+        #g6219 {
+            transform-origin: 85px 4px;
+            animation: an1 12s 0.5s infinite ease-out;
+        }
+
+        @keyframes an1 {
+            0% { transform: rotate(0); }
+            5% { transform: rotate(3deg); }
+            15% { transform: rotate(-2.5deg); }
+            25% { transform: rotate(2deg); }
+            35% { transform: rotate(-1.5deg); }
+            45% { transform: rotate(1deg); }
+            55% { transform: rotate(-1.5deg); }
+            65% { transform: rotate(2deg); }
+            75% { transform: rotate(-2deg); }
+            85% { transform: rotate(2.5deg); }
+            95% { transform: rotate(-3deg); }
+            100% { transform: rotate(0); }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Oops!</h1>
+        <div id="errorText">
+            <p><%= message %></p>
+            <p><strong>Error Details:</strong> <%= error.message %></p>
+        </div>
+        <a href="/" id="errorLink">Go to Homepage</a>
+    </main>
+</body>
+</html>

@@ -9,8 +9,9 @@ const upload = require("../middleware/multer");
 const accountController = require("../Controller/accountController");
 const checkoutController = require("../Controller/checkoutController");
 const wishlistController = require("../Controller/wishlist-controller");
-const OrderController = require("../Controller/orderController")
-const couponController = require("../Controller/coupon-controller")
+const OrderController = require("../Controller/orderController");
+const couponController = require("../Controller/coupon-controller");
+const invoiceController = require("../Controller/invoiceController");
 
 
 require("../passport")
@@ -18,11 +19,14 @@ require("../passport")
 
 userRoute.use(passport.initialize());
 userRoute.use(passport.session())
+userRoute.use(checkState.addUserToLocals)
+
 userRoute.set("view engine", "ejs");
 
 userRoute.set("views", "./views/users")
 
 userRoute.get("/", userController.home)
+
 
 //! FOR USER REGISTRATION
 userRoute.get("/registration", checkState.isLogout,userController.register);
@@ -92,7 +96,10 @@ userRoute.get("/my-orders", checkState.isLogin, accountController.allOrders);
 userRoute.get("/order-summary", checkState.isLogin, accountController.orderSummary);
 userRoute.post("/returnOrder", checkState.isLogin, OrderController.returnOrder);
 userRoute.post("/cancelOrder", checkState.isLogin, OrderController.cancelOrder);
-userRoute.post("/retry-payment", checkState.isLogin, checkoutController.retryPayment )
+userRoute.post("/retry-payment", checkState.isLogin, checkoutController.retryPayment );
+userRoute.get('/order/invoice/download', invoiceController.generateInvoice);
+
+
 
 
 //! USER CHECK-OUT SECTION
@@ -111,6 +118,7 @@ userRoute.post("/wishlist/remove", checkState.isLogin, wishlistController.remove
 userRoute.get("/coupons/all", checkState.isLogin, couponController.getAllAvailCoupons);
 userRoute.post("/coupon/apply", checkState.isLogin, checkoutController.applyCoupon);
 userRoute.post("/coupon/remove", checkState.isLogin, checkoutController.removeCoupon);
+
 
 
 

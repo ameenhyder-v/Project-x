@@ -3,6 +3,8 @@ const Address = require("../Model/addressModel")
 const Order = require("../Model/orderModel")
 const Transaction = require("../Model/transactionModel")
 const bcrypt = require("bcrypt");
+const mongoose = require('mongoose');
+
 
 
 const accountLoad = async (req, res) => {
@@ -320,6 +322,11 @@ const orderSummary = async (req, res) => {
         const userId = req.session.userId;
         const { orderId } = req.query;
 
+        // Validate orderId
+        if (!mongoose.Types.ObjectId.isValid(orderId)) {
+            return res.status(404).send("Invalid order ID format");
+        }
+
         const order = await Order.findById(orderId)
             .populate({
                 path: 'orderedItems.variantId',
@@ -329,12 +336,16 @@ const orderSummary = async (req, res) => {
                 }
             });
 
+        if (!order) {
+            return res.status(404).send("Order not found");
+        }
+
         const user = await User.findById(userId);
 
         res.render("orderSummary", { order, user });
-
     } catch (error) {
-        console.log("error from the account controller . orderSummary ", error.message);
+        console.error("Error from the account controller . orderSummary: ", error.message);
+        res.status(500).send("Internal server error");
     }
 };
 

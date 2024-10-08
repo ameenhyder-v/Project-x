@@ -1,5 +1,89 @@
 <%- include("../partials/userpartials/header.ejs") %>
 
+<style>
+    .invoice-button-wrapper {
+        text-align: right;
+        margin: 1rem; /* 16px converted to 1rem */
+
+    }
+    
+    .invoice-button {
+        padding: 0.5rem 1rem;
+        background-color: #d0c4da;
+        color: white;
+        border: none;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        font-size: 0.875rem; 
+        transition: background-color 0.3s ease;
+    }
+    
+    .invoice-button:hover {
+        background-color: #917aa4;
+    }
+    
+    @media (max-width: 768px) {
+        .invoice-button-wrapper {
+            text-align: center;
+        }
+        
+        .invoice-button {
+            font-size: 0.8125rem; 
+            padding: 0.4375rem 0.875rem; 
+        }
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        padding-top: 4rem;
+    }
+    .container {
+        flex-grow: 1; 
+    }
+
+
+    .modal {
+        display: none; 
+        position: fixed;
+        z-index: 1000; 
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%; 
+        overflow: auto; 
+        background-color: rgb(0, 0, 0); 
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto; 
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%; 
+        text-align: center;
+    }
+
+    .loader {
+        border: 16px solid #e9e0e5; 
+        border-top: 16px solid #895c72;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 2s linear infinite;
+        margin: 20px auto;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+
+<body>
+    
 <div class="container my-5">
     <div class="card">
         <div class="card-header">
@@ -7,6 +91,12 @@
         </div>
         <div class="card-body">
             <h4 class="card-title">Items</h4>
+            <% if (order.orderStatus === "Placed" || order.orderStatus === "Delivered") { %>
+                <div class="invoice-button-wrapper">
+                    <button class="invoice-button" onclick="downloadInvoice('<%= order._id %>')">Download Invoice</button>
+                </div>
+            <% } %>            
+
             <div class="table-responsive">
                 <table class="table table-bordered">
                     <thead class="thead-dark">
@@ -83,6 +173,16 @@
                 </a>
             <% } %>
         </div>
+    </div>
+</div>
+<%- include("../partials/userpartials/footer.ejs") %> <!-- Correct placement -->
+
+
+<!-- Loading Modal -->
+<div id="loadingModal" class="modal">
+    <div class="modal-content">
+        <h2>Generating Invoice...</h2>
+        <div class="loader"></div> <!-- Loading Animation -->
     </div>
 </div>
 
@@ -362,6 +462,38 @@
         });
     }
     
+
+    function downloadInvoice(orderId) {
+        const loadingModal = document.getElementById('loadingModal');
+        loadingModal.style.display = 'block'; // Show the loading modal
+    
+        fetch(`/order/invoice/download?orderId=${orderId}`, {
+            method: 'GET',
+        })
+        .then(response => {
+            console.log('Response:', response);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            console.log('Blob:', blob);
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `invoice_${orderId}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        })
+        .finally(() => {
+            loadingModal.style.display = 'none';
+        });
+    }
 </script>
 
-<%- include("../partials/userpartials/footer.ejs") %>
