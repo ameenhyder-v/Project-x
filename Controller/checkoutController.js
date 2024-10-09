@@ -6,6 +6,7 @@ const User = require("../Model/userModel")
 const Order = require("../Model/orderModel");
 const Coupon = require("../Model/coupon-model")
 const Category = require("../Model/categoryModel");
+const Transaction = require("../Model/transactionModel")
 require('dotenv').config();
 const crypto = require('crypto')
 
@@ -67,6 +68,8 @@ const placeOrder = async (req, res) => {
 
         const userData = await User.findById(userId);
 
+        
+
         const cartData = await Cart.findOne({ userId }).populate({
             path: 'cartItems.variantId',
             populate: {
@@ -94,6 +97,12 @@ const placeOrder = async (req, res) => {
         }
 
         const totalAmount = await cartController.subTotal(userId);
+
+        if (paymentMethod === "COD" && totalAmount > 1000){
+            return res.status(400).json({ message: 'Order above Rs 1000 should not be allowed for COD' });
+        }
+
+        
 
         const address = await Address.findById(addressId);
         if (!address) {
@@ -131,16 +140,6 @@ const placeOrder = async (req, res) => {
             const offerDiscountPerItem = variant.price - smallestOfferPrice;
             totalOfferDiscount += offerDiscountPerItem * item.quantity;
 
-            // Logging for debugging
-            console.log({
-                originalPrice: variant.price,
-                productOfferPrice: variant.productOfferPrice,
-                categoryOfferPrice: variant.categoryOfferPrice,
-                smallestOfferPrice,
-                offerDiscountPerItem,
-            });
-
-
             return {
                 variantId: variant._id,
                 product_name: product.name,
@@ -155,7 +154,13 @@ const placeOrder = async (req, res) => {
         });
 
         const finalAmount = totalAmount - discount;
+        // console.log(finalAmount)
 
+        if (paymentMethod === "Wallet" && finalAmount > userData.wallet) {
+            console.log(paymentMethod, "user blaence : ", userData.wallet)
+            return res.status(400).json({ message: 'Insufficient wallet balance' });
+
+        }
 
         // Creating the order
         const order = new Order({
@@ -179,7 +184,7 @@ const placeOrder = async (req, res) => {
 
         await order.save();
 
-        console.log(order)
+        // console.log(order)
         const orderId = order._id;
 
         for (const item of availableCartItems) {
@@ -204,16 +209,38 @@ const placeOrder = async (req, res) => {
                 currency: 'INR',
                 receipt:`RECIPT_IS${ order._id }`
                 });
-        res.status(200).json({
-            message: 'Ordered by Razor',
-            razorpayOrderId: razorpayOrder.id,
-            userName: userData.name,
-            orderId: order._id,
-            amount: totalAmount,
-            currency: 'INR',
-            key: process.env.RAZORPAY_KEY_ID
-        });
-    }
+            res.status(200).json({
+                message: 'Ordered by Razor',
+                razorpayOrderId: razorpayOrder.id,
+                userName: userData.name,
+                orderId: order._id,
+                amount: finalAmount,
+                currency: 'INR',
+                key: process.env.RAZORPAY_KEY_ID
+            });
+        } else if (paymentMethod === "Wallet") {
+            if (userData.wallet > finalAmount) {
+                userData.wallet -= finalAmount;
+
+                await userData.save();
+
+                const transaction = new Transaction({
+                    userId: userId,
+                    amount: finalAmount,
+                    type: "debit"
+                });
+
+                await transaction.save();
+
+                order.paymentStatus = 'Confirmed';
+                order.orderStatus = 'Placed';
+                await order.save();
+
+                res.status(200).json({ message: 'Order Placed by Wallet', orderId });
+            } else {
+                res.status(400).json({ message: 'Insufficient wallet balance' });
+            }
+        }
 
     } catch (error) {
         console.error("Error in placeOrder:", error);

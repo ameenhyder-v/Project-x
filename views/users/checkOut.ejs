@@ -447,7 +447,7 @@
 
 <div class="checkout__input__checkbox">
     <label for="cod">
-        Cash on Delivery
+        Cash on Delivery <span>(Only for purchace under ₹ 1000)</span>
         <input type="radio" id="cod" name="payment" value="COD" required>
         <span class="checkmark"></span>
     </label>
@@ -756,7 +756,16 @@
                             })
                         })
                         rzpl.open();
-                    } else {
+                    } else if(data.message === 'Order Placed by Wallet') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: data.message,
+                            showConfirmButton: true,
+                        }).then(() => {
+                            window.location.href = `/order-summary?orderId=${data.orderId}`; 
+                        });
+                    }  else {
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',

@@ -51,10 +51,7 @@
                                 <a  href="/my-orders"><i class="fa fa-shopping-cart"></i>
                                     Order</a>
                             </li>
-                            <li>
-                                <a data-bs-toggle="pill" href="#pills-download"><i class="fa fa-cloud-download"></i>
-                                    Download</a>
-                            </li>
+    
                             <li>
                                 <a data-bs-toggle="pill" href="#pills-wallet"><i class="fa fa-credit-card"></i>
                                     Wallet</a>
@@ -99,47 +96,7 @@
                             </div>
                         </div>
 
-                        <div class="tab-pane fade" id="pills-download">
-                            <div class="my-account-download account-wrapper">
-                                <h4 class="account-title">Download</h4>
-                                <div class="account-table text-center table-responsive">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th class="name">
-                                                    Product
-                                                </th>
-                                                <th class="date">Date</th>
-                                                <th class="status">
-                                                    Expire
-                                                </th>
-                                                <th class="action">
-                                                    Download
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>Mostarizing Oil</td>
-                                                <td>Aug 22, 2020</td>
-                                                <td>Yes</td>
-                                                <td>
-                                                    <a href="#">Download File</a>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Katopeno Altuni</td>
-                                                <td>July 22, 2020</td>
-                                                <td>Never</td>
-                                                <td>
-                                                    <a href="#">Download File</a>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+                        
 
                         <div class="tab-pane fade" id="pills-wallet">
                             <div class="my-account-payment account-wrapper">
@@ -244,7 +201,9 @@
                                             </div>
                                         </div>
                                         <div class="col-md-6">
-                                            <button class="btn btn-primary btn-sm float-right" id="editButton"  style="margin-right: 20rem; margin-top: 1.5rem;">edit</button>
+                                            <button class=" btn-m float-right" id="editButton" style="margin-right: 2rem; margin-top: 1rem; padding: 0.25rem 0.75rem; font-size: 12px;">
+                                                <i class="fa fa-edit"></i> edit your profile
+                                            </button>
                                         </div>
                                         
                                         <form id="editForm" class="editform" style="display: none;"  onsubmit="return editUserDetail(event)">
@@ -320,7 +279,7 @@
                                                     </div>
                                                     <div class="col-md-6">
                                                         <div class="single-form">
-                                                            <button class="btn btn-primary btn-hover-dark" onclick="changePassword(event)">
+                                                            <button class="btn btn-primary btn-hover-dark mb-3" onclick="changePassword(event)">
                                                                 Changes Password
                                                             </button>
                                                         </div>

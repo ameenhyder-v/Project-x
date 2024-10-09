@@ -87,8 +87,18 @@
     }
 
 
-</style>
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+    section {
+        flex: 1;
+    }
 
+
+</style>
+    
 
 <div class="container">
     <div class="bread-crumb flex-w p-l-25 p-r-15 p-t-30 p-lr-0-lg">
@@ -190,7 +200,6 @@
         </div>
     <% } %>
 </section>
-
 
 <%- include("../partials/userpartials/footer.ejs") %>
 

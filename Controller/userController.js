@@ -259,7 +259,6 @@ const allProducts = async (req, res) => {
         const limit = 8; 
         const skip = (page - 1) * limit;
 
-        // Fetch all variants with pagination
         const allVariants = await Variant.find()
             .populate({
                 path: 'productId',
@@ -271,7 +270,6 @@ const allProducts = async (req, res) => {
             .skip(skip) 
             .limit(limit); 
 
-        // Filter out blocked products and categories
         const variants = allVariants.filter(variant => {
             const product = variant.productId;
             const category = product && product.categoryId;
@@ -281,7 +279,7 @@ const allProducts = async (req, res) => {
         const totalVariants = await Variant.countDocuments();
         const allCategories = await categoryController.getAllCategory();
         const totalPages = Math.ceil(totalVariants / limit);
-        console.log(`Total Pages: ${totalPages}, Current Page: ${page}`);
+        // console.log(`Total Pages: ${totalPages}, Current Page: ${page}`);
 
 
         res.render("allProducts", {

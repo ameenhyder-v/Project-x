@@ -123,7 +123,9 @@
                                 <b class=" mt-15 justify-content-center"> This order delevered successfully and cannot be returned</b>
                             <% } else if (order.orderStatus === "Returned") { %>
                                 <b class=" mt-15 justify-content-center"> This order hes returned successfully</b>
-                            <% } else { %>
+                            <% } else if (order.orderStatus === "Delivered") { %>
+                                <b class=" mt-15 justify-content-center"> This order hes successfully Delivered</b>
+                            <% }   else { %>
                                 <b>Change status&ensp;</b>
                                 <% let statuses = ["Canceled", "Delivered", "Returned", "Cannot Return", "Shipped"]; %>
                                 <select class="form-select d-inline-block mb-lg-0 mr-5 mw-200" id="statusSelect">
@@ -196,7 +198,7 @@
                                                         Country: <%= order.shippingAddress.country %><br>
                                                             Po Box: <%= order.shippingAddress.pincode %>
                                     </p>
-                                    <a href="#">View profile</a>
+                                    <!-- <a href="#">View profile</a> -->
                                 </div>
                             </article>
                         </div>
@@ -210,9 +212,10 @@
                                     <thead>
                                         <tr>
                                             <th width="40%">Product</th>
-                                            <th width="20%">Unit Price</th>
-                                            <th width="20%">Quantity</th>
-                                            <th width="20%" class="text-end">Total</th>
+                                            <th width="15%">Unit Price</th>
+                                            <th width="15%">Offer Price</th>
+                                            <th width="15%">Quantity</th>
+                                            <th width="15%" class="text-end">Total</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -232,10 +235,11 @@
                                                     </a>
                                                 </td>
                                                 <td>₹ <%= product.price %> .00</td>
+                                                <td>₹ <%= product.price - product.offerAmount %> .00</td>
                                                 <td>
                                                     <%= product.quantity %>
                                                 </td>
-                                                <td class="text-end">₹ <%= product.price * product.quantity %>
+                                                <td class="text-end">₹ <%= (product.price * product.quantity) - (product.offerAmount * product.quantity) %>
                                                 </td>
                                             </tr>
 

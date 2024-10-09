@@ -86,6 +86,21 @@ const cancelOrder = async (req, res) => {
             orderData.paymentStatus = "Refund"
         }
 
+        if (orderData.paymentMethod === "Wallet" && orderData.paymentStatus === "Confirmed") {
+            const refundAmount = orderData.totalAmount;
+            const user = await User.findById(userId);
+            user.wallet += refundAmount;
+            await user.save();
+
+            const transaction = new Transaction({
+                userId: userId,
+                amount: refundAmount,
+                type: 'credit'
+            });
+            await transaction.save();
+            orderData.paymentStatus = "Refund"
+        }
+
         orderData.orderStatus = 'Canceled';
         orderData.cancellationReason = reason;
         await orderData.save();
@@ -161,21 +176,19 @@ const salesReport = async (req, res) => {
 const downloadReportPdf = async (req, res) => {
     const { dateRange, startDate, endDate } = req.query;
 
-    const query = {
-        orderStatus: 'Delivered',
-    };
+    // Construct query based on the date range filter
+    const query = { orderStatus: 'Delivered' };
 
-    // Build the query based on the selected date range
     if (dateRange === 'custom' && startDate && endDate) {
         query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
     } else if (dateRange === 'daily') {
         const today = new Date();
-        query.createdAt = { $gte: new Date(today.setHours(0, 0, 0, 0)) }; 
+        query.createdAt = { $gte: new Date(today.setHours(0, 0, 0, 0)) };
     } else if (dateRange === 'LastWeek') {
         const lastWeek = new Date();
         lastWeek.setDate(lastWeek.getDate() - 7);
         query.createdAt = { $gte: lastWeek };
-    } else if (dateRange === 'monthly') { 
+    } else if (dateRange === 'monthly') {
         const startOfMonth = new Date();
         startOfMonth.setDate(1);
         query.createdAt = { $gte: startOfMonth };
@@ -186,55 +199,72 @@ const downloadReportPdf = async (req, res) => {
     }
 
     try {
+        // Fetch orders based on the query
         const orders = await Order.find(query);
 
-        const doc = new PDFDocument();
+        // Create a new PDF document
+        const doc = new PDFDocument({ margin: 50 });
+
+        // Set response headers
         let filename = 'sales_report.pdf';
         res.setHeader('Content-disposition', 'attachment; filename="' + filename + '"');
         res.setHeader('Content-type', 'application/pdf');
 
-        doc.font('Helvetica');
         doc.pipe(res);
 
-        // Title
-        doc.fontSize(25).text('Sales Report', { align: 'center' });
-        doc.moveDown();
+        // Title with styling
+        doc.fontSize(25).text('Sales Report', { align: 'center', underline: true });
+        doc.moveDown(1.5);
+
+        // Add Date Range info
+        if (dateRange === 'custom' && startDate && endDate) {
+            doc.fontSize(12).text(`Report Period: ${new Date(startDate).toDateString()} to ${new Date(endDate).toDateString()}`, { align: 'center' });
+        } else {
+            doc.fontSize(12).text(`Report Period: ${dateRange}`, { align: 'center' });
+        }
+        doc.moveDown(1.5);
 
         // Table Header
-        const header = ['Name', 'Mobile', 'Total Amount', 'Discount', 'Status', 'Date', 'Payment Method'];
-        const headerRow = header.join(' | ');
-        
-        doc.fontSize(12).text(headerRow, { align: 'left' });
-        doc.moveDown();
-        doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke(); 
+        doc.fontSize(14).text('Sales Summary', { underline: true });
+        doc.moveDown(0.5);
 
-        // Table Rows
+        const tableTop = doc.y;
+
+        // Draw Table Header
+        drawTableRow(doc, tableTop, 'Name', 'Mobile', 'Total Amount', 'Discount', 'Date', 'Payment Method');
+        drawTableLine(doc, tableTop + 15);
+
+        // Table Rows for Orders
+        let positionY = tableTop + 30;
         orders.forEach((order) => {
             const name = order.shippingAddress?.name || 'N/A';
             const mobile = order.shippingAddress?.mobile || 'N/A';
             const totalAmount = `₹${order.totalAmount.toFixed(2)}`;
             const discount = `₹${order.totalOfferAmount ? order.totalOfferAmount.toFixed(2) : '0.00'}`;
-            const status = order.orderStatus;
             const date = new Date(order.createdAt).toDateString();
-            const paymentMethod = order.paymentMethod;
+            const paymentMethod = `   ${order.paymentMethod || 'N/A'}`;
 
-            const row = [name, mobile, totalAmount, discount, status, date, paymentMethod].join(' | ');
-            doc.moveDown();
-            doc.text(row);
-            doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+            drawTableRow(doc, positionY, name, mobile, totalAmount, discount, date, paymentMethod);
+            drawTableLine(doc, positionY + 15);
+            positionY += 30;
 
-            doc.moveDown();
+            if (positionY > 700) {
+                doc.addPage();
+                positionY = 50;
+            }
         });
 
-        // Overall Summary
+        // Summary Section
+        doc.addPage();
+        doc.moveDown();
         const totalSalesCount = orders.length;
         const totalOrderAmount = orders.reduce((total, order) => total + order.totalAmount, 0);
         const totalDiscount = orders.reduce((total, order) => total + (order.totalOfferAmount || 0), 0);
 
-        doc.moveDown(); 
-        doc.moveDown();
-        doc.fontSize(16).text(`Total Sales Count: ${totalSalesCount}`);
-        doc.text(`Total Order Amount: ₹${totalOrderAmount.toFixed(2)}`);
+        doc.fontSize(18).text('Overall Sales Summary', { underline: true });
+        doc.moveDown(0.5);
+        doc.fontSize(14).text(`Total Sales Count: ${totalSalesCount}`);
+        doc.text(`Total Order Amount: \u20B9${totalOrderAmount.toFixed(2)}`);
         doc.text(`Total Discount: ₹${totalDiscount.toFixed(2)}`);
 
         doc.end();
@@ -242,7 +272,21 @@ const downloadReportPdf = async (req, res) => {
         console.error(error);
         res.status(500).send('Server Error');
     }
-}
+};
+
+const drawTableRow = (doc, y, name, mobile, totalAmount, discount,  date, paymentMethod) => {
+    doc.fontSize(10)
+        .text(name, 50, y, { width: 80, align: 'left' }) 
+        .text(mobile, 130, y, { width: 80, align: 'left' }) 
+        .text(totalAmount, 210, y, { width: 80, align: 'right' }) 
+        .text(discount, 290, y, { width: 80, align: 'right' }) 
+        .text(date, 450, y, { width: 80, align: 'left' }) 
+        .text(paymentMethod, 530, y, { width: 80, align: 'left' });
+};
+
+const drawTableLine = (doc, y) => {
+    doc.strokeColor('#aaaaaa').lineWidth(1).moveTo(50, y).lineTo(610, y).stroke();
+};
 
 
 //! DOWNLOAD EXCEL

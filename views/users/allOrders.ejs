@@ -63,7 +63,7 @@
                                     <td class="text-center"><%= index + 1 %></td>
                                     <td class="text-center"><%= order.orderId %></td>
                                     <% const options = { weekday: 'short', day: 'numeric', month: 'short' }; 
-                                    const formattedDate = new Date(order.orderedItems[0].orderedDate).toLocaleDateString('en-US', options); %>
+                                    const formattedDate = new Date(order.createdAt).toLocaleDateString('en-US', options); %>
                                     <td class="text-center"><%= formattedDate %></td>
                                     <td class="text-center"><%= order.orderStatus %></td>
                                     <td class="text-center">₹ <%= order.totalAmount %>.0</td>

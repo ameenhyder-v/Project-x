@@ -365,6 +365,20 @@ const acceptReturn = async (req, res) => {
             await transaction.save();
         }
 
+        if (order.paymentMethod === "Wallet" && order.paymentStatus === "Confirmed") {
+            const refundAmount = order.totalAmount;
+            const user = await User.findById(userId);
+            user.wallet += refundAmount;
+            await user.save();
+
+            const transaction = new Transaction({
+                userId: userId,
+                amount: refundAmount,
+                type: 'credit'
+            });
+            await transaction.save();
+        }
+
         order.orderStatus = "Returned";
         order.paymentStatus = "Refund"
         await order.save();
