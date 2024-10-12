@@ -28,15 +28,17 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            padding-top: 4rem;
+            background-color: #e9dbe4bd;
         }
-        .container {
+        .setction {
             flex-grow: 1; 
+            margin-top: 4rem;
+            padding: 2rem;
         }
     </style>
 <body>
     <!-- My Account Section Start -->
-        <div class="container">
+        <div class="setction">
             <div class="row gy-4" style="background-color: #e9dbe4; min-height: 40vh">
                 <div class="col-xl-3 col-md-4">
                     <!-- My Account Menu Start -->
@@ -201,9 +203,7 @@
                                             </div>
                                         </div>
                                         <div class="col-md-6">
-                                            <button class=" btn-m float-right" id="editButton" style="margin-right: 2rem; margin-top: 1rem; padding: 0.25rem 0.75rem; font-size: 12px;">
-                                                <i class="fa fa-edit"></i> edit your profile
-                                            </button>
+                                            <button class=" btn-m float-right" id="editButton" style="margin-right: 2rem; margin-top: 1rem; padding: 0.25rem 0.75rem; font-size: 12px;">edit your profile</button>
                                         </div>
                                         
                                         <form id="editForm" class="editform" style="display: none;"  onsubmit="return editUserDetail(event)">
@@ -371,9 +371,9 @@
 
 <!-- ! SUBMISSION EDIT ADDRESS FORM -->
         document.getElementById('editAddressForm').addEventListener('submit', async function(event) {
-            event.preventDefault(); // Prevent the default form submission
+            event.preventDefault(); 
         
-            const addressId = document.getElementById('editAddressForm').dataset.addressId; // Get the addressId from a data attribute
+            const addressId = document.getElementById('editAddressForm').dataset.addressId; 
         
             const formData = {
                 name: document.getElementById('modalName').value,
@@ -481,7 +481,7 @@
                     const emails = document.querySelectorAll('.editform')
                     const editButton = document.getElementById("editButton")
 
-                    editButton.textContent = editButton.textContent == "edit" ? "cancel" : "edit"
+                    editButton.textContent = editButton.textContent == "edit your profile" ? "cancel" : "edit your profile"
                     emails.forEach(email => {
                         email.style.display = email.style.display == 'none' ? 'block' : 'none'
                     })

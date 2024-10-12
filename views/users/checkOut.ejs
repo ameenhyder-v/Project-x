@@ -203,9 +203,11 @@
             flex-direction: column;
             min-height: 100vh;
         }
-        .container {
-            flex-grow: 1; 
+        .checkout-empty{
+            margin-top: 2rem;
+            min-height: 90vh;
         }
+        
     </style>
 
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
@@ -218,7 +220,7 @@
     <div class="section section-padding " style="background-color: rgb(255, 255, 255);">
         <div class="container">
             <% if (cartItems.length === 0) { %>
-                <div class="checkout-empty">
+                <div class="checkout-empty ">
                     <h2>Your cart is empty.</h2>
                     <p>Please add items to your cart before proceeding to checkout.</p>
                     <a href="/allProducts" class="btn btn-primary">Continue Shopping</a>
