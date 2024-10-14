@@ -85,6 +85,7 @@ adminRoute.get("/offer", adminAuth.isLogin, offerController.loadOfferPage);
 adminRoute.get("/fetchCategories", adminAuth.isLogin, offerController.fetchAllCategory);
 adminRoute.get("/fetchProducts", adminAuth.isLogin, offerController.fetchAllProducts);
 adminRoute.post("/offers/add", offerController.addOffer);
+adminRoute.delete("/offers/delete-offer", offerController.deleteOffer);
 
 
 //! SALES REPORT SECTION

@@ -5,7 +5,18 @@ const flash = require("express-flash")
 require("dotenv").config();
 const nocache = require("nocache");
 
-mongoose.connect("mongodb://127.0.0.1:27017/myStore");
+// mongoose.connect("mongodb://127.0.0.1:27017/myStore");
+
+const uri = process.env.MONGO_URI;
+
+mongoose.connect(uri)
+    .then(() => {
+        console.log('MongoDB connection established successfully');
+    })
+    .catch((err) => {
+        console.error('Error connecting to MongoDB:', err.message);
+    });
+
 
 const express = require("express");
 const app = express();

@@ -144,9 +144,73 @@ const addOffer = async (req, res) => {
 };
 
 
+const deleteOffer = async (req, res) => {
+    try {
+        const { offerId } = req.query;
+
+        // Find the offer by ID
+        const offer = await Offer.findById(offerId);
+
+        if (!offer) {
+            return res.status(404).json({ message: "Offer not found." });
+        }
+
+        const { selectionType, selectedItemId, discountPercentage } = offer;
+
+        // Reverting offer based on its type (category or product)
+        const discountMultiplier = discountPercentage / 100;
+
+        if (selectionType === "category") {
+            // Handling category-based offer removal
+            const products = await Product.find({ categoryId: selectedItemId });
+            const productIds = products.map(product => product._id);
+            const variants = await Variant.find({ productId: { $in: productIds } });
+
+            const revertOperations = variants.map(variant => {
+                return {
+                    updateOne: {
+                        filter: { _id: variant._id },
+                        update: { $set: { categoryOfferPrice: null } } // Revert category offer price
+                    }
+                };
+            });
+
+            await Variant.bulkWrite(revertOperations);
+            // console.log("Successfully reverted the category offer from variants.");
+
+        } else if (selectionType === "product") {
+            // Handling product-based offer removal
+            const variants = await Variant.find({ productId: selectedItemId });
+
+            const revertOperations = variants.map(variant => {
+                return {
+                    updateOne: {
+                        filter: { _id: variant._id },
+                        update: { $set: { productOfferPrice: null } } // Revert product offer price
+                    }
+                };
+            });
+
+            await Variant.bulkWrite(revertOperations);
+            // console.log("Successfully reverted the product offer from variants.");
+        }
+
+        // Delete the offer after reverting the prices
+        await Offer.findByIdAndDelete(offerId);
+
+        res.status(200).json({ success: true, message: "Offer deleted and prices reverted successfully." });
+
+    } catch (error) {
+        console.log(`Error from the offerController. deleteOffer: ${error}`);
+        res.status(500).json({ message: "Internal server error." });
+    }
+};
+
+
 module.exports = {
     loadOfferPage,
     fetchAllCategory,
     fetchAllProducts,
-    addOffer
+    addOffer,
+    deleteOffer
 }

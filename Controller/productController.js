@@ -92,8 +92,17 @@ const blockProduct = async (req, res) => {
 const editThisProduct = async (req, res) => {
     try {
         const { productId } = req.query;
-        const product = await Product.findById(productId);
+        const product = await Product.findById(productId)
+            .populate('categoryId', 'category gender');
+
+            console.log(product)
+        if (!product) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+
         res.status(200).json({ data: product });
+
+
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch product data' });
         console.error('Error fetching product data:', error);
