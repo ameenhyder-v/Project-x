@@ -16,7 +16,7 @@ const loadOfferPage = async (req, res) => {
 
         const totalOffers = await Offer.countDocuments();
 
-        res.render("Offer", { offerData, currentPage: parseInt(page, 10), totalPages: Math.ceil(totalOffers / perPage) });
+        res.render("offer", { offerData, currentPage: parseInt(page, 10), totalPages: Math.ceil(totalOffers / perPage) });
     } catch (error) {
         console.log(`error from the offerController. loadOfferPage fn: ${error.message}`);
     }
