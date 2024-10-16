@@ -80,7 +80,8 @@ const addVariant = async (req, res) => {
             res.status(200).json({ fail: "Sorry! Please try again.." })
         }
     } catch (error) {
-        console.log(`error form variantController.addVriant: ${error}`);
+        console.log(`Error from variantController.addVariant: ${error}`);
+        res.status(500).json({ fail: "Internal server error" });
     }
 }
 
