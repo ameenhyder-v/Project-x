@@ -39,7 +39,10 @@ const insertUser = async (req, res) => {
 
         // Validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+        const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d\W]{8,}$/;
+
+        //! passwordregex before: /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+
 
         if (username.length < 4) {
             req.flash("messageUsername", "Username must be at least 4 characters long.")
