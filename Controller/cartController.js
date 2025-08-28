@@ -33,6 +33,7 @@ const addToCart = async (req, res) => {
         }
         const saving = await userCart.save();
         if ( saving ){
+            console.log(saving)
             return res.status(200).json({ success: "added" })
         }
 
