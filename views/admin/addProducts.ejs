@@ -28,8 +28,12 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <!-- croper js  -->
-<link href="https://unpkg.com/cropperjs/dist/cropper.css" rel="stylesheet"/>
-<script src="https://unpkg.com/cropperjs"></script>
+<!-- <link href="https://unpkg.com/cropperjs/dist/cropper.css" rel="stylesheet"/>
+<script src="https://unpkg.com/cropperjs"></script> -->
+
+<link  href="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet"/>
+<script src="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.js"></script>
+
 
 <script>
 
@@ -198,7 +202,8 @@
 
 
     function removeProduct() {
-        fetch("/admin/remove-product")
+        fetch("/admin/remove-product");
+        window.location.reload();
     }
 
 
@@ -568,7 +573,7 @@
         </div>
     </div>
 
-    <!-- Modal for cropping -->
+    Modal for cropping
     <div id="cropperModal" class="modal">
         <div class="modal-content">
             <div class="cropper-container">

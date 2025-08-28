@@ -71,11 +71,7 @@ const insertUser = async (req, res) => {
             return res.redirect("/registration");
 
         }
-
-
         const hashedPassword = await bcrypt.hash(password, 10);
-
-
         const userData = new User({
             name: username,
             email: email,
@@ -180,33 +176,41 @@ const userLogin = async (req, res) => {
         console.log(`error from userLogin:--------------- ${error}`);
     }
 }
-
 const userVarify = async (req, res) => {
     try {
         const { username, password } = req.body;
-        const Data = await User.findOne({ $or: [{ name: username }, { email: username }] })
-        if(Data.isBlocked == true){
-            req.flash("message", "You are currently blocked by the admin")
-            res.redirect("/login")
-        }
-        if (!Data) {
-            req.flash("message", "User Name or Email incorect")
-            res.redirect("/login")
 
-        } else {
-            const comparePsw = await bcrypt.compare(password, Data.password);
-            if (!comparePsw) {
-                req.flash("messagePassword", "Incorrect Password")
-                res.redirect("/login")
-            } else {
-                req.session.userId = Data._id;
-                res.redirect("/");
-            }
+        const Data = await User.findOne({
+            $or: [
+                { name: username.trim() },
+                { email: username.trim() }
+            ]
+        });
+
+        if (!Data) {
+            req.flash("message", "User Name or Email incorrect");
+            return res.redirect("/login");
         }
+
+        if (Data.isBlocked) {
+            req.flash("message", "You are currently blocked by the admin");
+            return res.redirect("/login");
+        }
+
+        const comparePsw = await bcrypt.compare(password, Data.password);
+        if (!comparePsw) {
+            req.flash("messagePassword", "Incorrect Password");
+            return res.redirect("/login");
+        }
+
+        req.session.userId = Data._id;
+        res.redirect("/");
+
     } catch (error) {
-        console.log(`error from userConroller.userVarify: ${error}`);
+        console.log(`error from userController.userVarify: ${error}`);
     }
-}
+};
+
 
 
 

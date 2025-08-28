@@ -83,6 +83,7 @@ async function subTotal(userId) {
 
 const shopingCart = async (req, res) => {
     try {
+        console.log("hello")
         const userId = req.session.userId;
 
         if (!userId) {
@@ -96,6 +97,7 @@ const shopingCart = async (req, res) => {
                 model: "Product"
             }
         });
+        console.log(cartData)
 
         if (!cartData || !cartData.cartItems.length) {
             return res.render("shopping-cart", { cartData: { cartItems: [] }, subTotalAmount: 0, message: "Your cart is empty." });
