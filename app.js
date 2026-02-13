@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
 const path = require("path");
+const mongoose = require("mongoose");
 const session = require("express-session");
 const flash = require("express-flash");
 require("dotenv").config();
@@ -28,7 +28,7 @@ if (isProduction) {
 
 app.use(nocache());
 app.use(express.static(path.join(__dirname, "public/users/assets/")));
-app.use(express.static("public/admin"));
+app.use(express.static(path.join(__dirname, "public/admin")));
 app.use("/images", express.static(path.join(__dirname, "images")));
 
 app.set("view engine", "ejs");
@@ -45,7 +45,6 @@ app.use(flash());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rate limiting (stricter in production)
 const rateLimit = require("express-rate-limit");
 const limiter = rateLimit({
     windowMs: isProduction ? 15 * 60 * 1000 : 1 * 60 * 1000,
@@ -57,27 +56,24 @@ const limiter = rateLimit({
 app.use(limiter);
 
 const userRoute = require("./routes/userRoute");
-const adminRoute = require('./routes/adminRoute')
+const adminRoute = require("./routes/adminRoute");
 
 app.use("/", userRoute);
 app.use("/admin", adminRoute);
 
 app.use((req, res, next) => {
-    res.status(404).render('page_not_found');
+    res.status(404).render("page_not_found");
 });
 
-// Handle other errors
 app.use((err, req, res, next) => {
     console.error(isProduction ? err.message : err.stack);
     res.status(500).send(isProduction ? "Something went wrong." : "Something broke!");
 });
 
-// Log unhandled promise rejections (avoid silent failures in production)
 process.on("unhandledRejection", (reason, promise) => {
     console.error("Unhandled Rejection at:", promise, "reason:", reason);
 });
 
-// Start server only after MongoDB is connected
 mongoose.connect(mongoUri)
     .then(() => {
         if (!isProduction) console.log("MongoDB connected");
