@@ -10,7 +10,7 @@
                 </a>
             </li>
             <li class="menu-item active">
-                <a class="menu-link" href="/admin/productlist">
+                <a class="menu-link" href="/admin/productList">
                     <i class="icon material-icons md-shopping_bag"></i>
                     <span class="text">Products</span>
                 </a>
@@ -38,7 +38,7 @@
             </li>
 
             <li class="menu-item">
-                <a class="menu-link" href="/admin/Categories">
+                <a class="menu-link" href="/admin/categories">
                     <i class="icon material-icons md-layers"></i>
                     <span class="text">Categories</span>
                 </a>
@@ -86,90 +86,104 @@
             <div class="content-header">
                 <div>
                     <h2 class="content-title card-title">Products List</h2>
-                    <p>Lorem ipsum dolor sit amet.</p>
+                    <p class="text-muted mb-0"><%= allProducts.length %> product(s) on this page</p>
                 </div>
                 <div>
-                    <a href="/admin/addProduct" class="btn btn-primary btn-sm rounded">Create new</a>
+                    <a href="/admin/addProduct" class="btn btn-primary btn-sm rounded"><i class="material-icons md-add"></i> Add Product</a>
                 </div>
             </div>
             <div class="card mb-4">
-                <header class="card-header">
-                    <div class="row align-items-center">
-                        
-                        <div class="col-md-3 col-12 me-auto mb-md-0 mb-3">
-                            <h5>Product Name</h5>
-                        </div>
+                <header class="card-header bg-light border-bottom p-0">
+                    <div class="row align-items-center g-0 py-2 px-3 mx-0">
+                        <div class="col-lg-4 col-sm-4 col-8"><strong>Product</strong></div>
+                        <div class="col-lg-2 col-sm-2 col-4"><strong>Brand</strong></div>
+                        <div class="col-lg-2 col-sm-2 col-4"><strong>Category</strong></div>
+                        <div class="col-lg-2 col-sm-2 col-4"><strong>Status</strong></div>
+                        <div class="col-lg-1 col-sm-2 col-4"><strong>Variants</strong></div>
+                        <div class="col-lg-2 col-sm-2 col-4 text-end"><strong>Actions</strong></div>
+                    </div>
                 </header>
-                <!-- card-header end// -->
-                <div class="card-body">
-                    <% allProducts.forEach(product => { %>
-                        <article class="itemlist">
-                            <div class="row align-items-center">
-                                <div class="col-lg-4 col-sm-4 col-8 flex-grow-1 col-name">
-                                    <a class="itemside" href="#">
-                                        <!-- <div class="left">
-                                            <img src="/assets/imgs/items/1.jpg" class="img-sm img-thumbnail" alt="Item" />
-                                        </div> -->
-                                        <div class="info">
-                                            <h6 class="mb-0"><%= product.name %> </h6>
+                <div class="card-body p-0">
+                    <% if (!allProducts || allProducts.length === 0) { %>
+                        <div class="text-center py-5 px-3">
+                            <i class="material-icons md-shopping_bag text-muted" style="font-size: 64px;"></i>
+                            <p class="text-muted mt-3 mb-2">No products yet</p>
+                            <a href="/admin/addProduct" class="btn btn-primary rounded">Add your first product</a>
+                        </div>
+                    <% } else { %>
+                        <% allProducts.forEach((product, index) => { %>
+                        <article class="itemlist border-bottom border-light">
+                            <div class="row align-items-center g-0 py-3 px-3 mx-0 <%= index % 2 === 0 ? '' : 'bg-light' %>">
+                                <div class="col-lg-4 col-sm-4 col-8 col-name">
+                                    <div class="itemside d-flex align-items-center gap-3">
+                                        <% if (product.thumbnailImage) { %>
+                                        <div class="left flex-shrink-0">
+                                            <img src="/images/<%= product.thumbnailImage %>" class="img-sm img-thumbnail rounded" alt="<%= product.name %>" style="width: 56px; height: 56px; object-fit: cover;" />
                                         </div>
-                                    </a>
+                                        <% } else { %>
+                                        <div class="left flex-shrink-0 bg-light rounded d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
+                                            <i class="material-icons md-image text-muted" style="font-size: 28px;"></i>
+                                        </div>
+                                        <% } %>
+                                        <div class="info min-w-0">
+                                            <h6 class="mb-0"><%= product.name %></h6>
+                                            <% if (product.description && product.description.length) { %><p class="text-muted small mb-0 text-truncate" style="max-width: 220px;" title="<%= product.description %>"><%= product.description.length > 50 ? product.description.substring(0, 50) + '...' : product.description %></p><% } %>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-lg-2 col-sm-2 col-4 col-price"><span><%= product.brand %></span></div>
-                                <div class="col-lg-2 col-sm-2 col-4 col-price"><span><%= product.categoryId.category %> , <%= product.categoryId.gender %></span></div>
+                                <div class="col-lg-2 col-sm-2 col-4 col-price"><span ><%= product.brand || '—' %></span></div>
+                                <div class="col-lg-2 col-sm-2 col-4 col-price"><span ><%= product.categoryId ? product.categoryId.category + ', ' + product.categoryId.gender : '—' %></span></div>
                                 <div class="col-lg-2 col-sm-2 col-4 col-status">
                                     <% if (!product.isBlocked) { %>
-                                        <button id="block-btn-<%= product._id %>"
-                                            style="height: 35px; width: 80px;"
-                                            class="btn btn-sm btn-outline-danger rounded font-sm mt-15 block-btn justify-content-center"
-                                            data-id="<%= product._id %>"
-                                            onclick="blockProduct('<%= product._id %>')">
-                                            <i class="material-icons md-block"></i> Block
-                                        </button> 
+                                        <button type="button" id="block-btn-<%= product._id %>" class="btn btn-sm btn-outline-danger rounded font-sm block-btn" data-id="<%= product._id %>" onclick="blockProduct('<%= product._id %>', this)">
+                                            <i class="material-icons md-block" style="font-size: 18px; vertical-align: middle;"></i> Block
+                                        </button>
                                     <% } else { %>
-                                        <button id="block-btn-<%= product._id %>"
-                                            class="btn btn-sm btn-brand rounded font-sm mt-15 unblock-btn justify-content-center"
-                                            style="height: 35px; width: 80px;"
-                                            data-id="<%= product._id %>"
-                                            onclick="blockProduct('<%= product._id %>')">
-                                            <i class="material-icons md-check_circle"></i> Unblock
+                                        <span class="badge bg-secondary me-1">Blocked</span>
+                                        <button type="button" id="block-btn-<%= product._id %>" class="btn btn-sm btn-success rounded font-sm unblock-btn" data-id="<%= product._id %>" onclick="blockProduct('<%= product._id %>', this)">
+                                            <i class="material-icons md-check_circle" style="font-size: 18px; vertical-align: middle;"></i> Unblock
                                         </button>
                                     <% } %>
                                 </div>
-                                <div class="col-lg-1 col-sm-2 col-4 col-date">
-                                    <a href="/admin/load-variant?productId=<%= product._id %>" class="btn btn-sm font-sm rounded btn-brand"> <i class="material-icons md-edit"></i> Variants </a>
+                                <div class="col-lg-1 col-sm-2 col-4">
+                                    <a href="/admin/load-variant?productId=<%= product._id %>" class="btn btn-sm font-sm rounded btn-outline-primary"><i class="material-icons md-edit"></i> Variants</a>
                                 </div>
                                 <div class="col-lg-2 col-sm-2 col-4 col-action text-end">
-                                    <a href="#" class="btn btn-sm font-sm rounded btn-brand editProdLink" data-product-id="<%= product._id %>">
-                                        <i class="material-icons md-edit"></i> Edit
-                                    </a>
-                                    <button class="btn btn-sm font-sm btn-light text-danger rounded" onclick="deleteProduct('<%= product._id %>')"> <i class="material-icons md-delete_forever text-danger"></i> Delete </button>
+                                    <a href="#" class="btn btn-sm font-sm rounded btn-outline-secondary editProdLink" data-product-id="<%= product._id %>"><i class="material-icons md-edit"></i> Edit</a>
+                                    <button type="button" class="btn btn-sm font-sm btn-outline-danger rounded" onclick="deleteProduct('<%= product._id %>')"><i class="material-icons md-delete_forever"></i> Delete</button>
                                 </div>
                             </div>
-                            <!-- row .// -->
                         </article>
-                <% }) %>
+                        <% }); %>
+                    <% } %>
                 </div>
-                <!-- card-body end// -->
             </div>
             <!-- card end// -->
             <!-- PAGINATION  -->
-            <div class="pagination-area mt-30 mb-50">
-                <nav aria-label="Page navigation example">
-                    <ul class="pagination justify-content-start">
-                        <% for(let i = 1; i <= totalPages; i++) { %>
-                            <li class="page-item <%= currentPage === i ? 'active' : '' %>">
-                                <a class="page-link" href="?page=<%= i %>"><%= i %></a>
-                            </li>
+            <% if (totalPages > 1) { %>
+            <div class="pagination-area mt-30 mb-50 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <p class="text-muted small mb-0">Page <strong><%= currentPage %></strong> of <strong><%= totalPages %></strong></p>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center mb-0 flex-wrap">
+                        <% if (currentPage > 1) { %>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<%= currentPage - 1 %>"><i class="material-icons md-chevron_left"></i> Previous</a>
+                        </li>
+                        <% } %>
+                        <% for (let i = 1; i <= totalPages; i++) { %>
+                        <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                            <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                        </li>
                         <% } %>
                         <% if (currentPage < totalPages) { %>
-                            <li class="page-item">
-                                <a class="page-link" href="?page=<%= currentPage + 1 %>"><i class="material-icons md-chevron_right"></i></a>
-                            </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<%= currentPage + 1 %>">Next <i class="material-icons md-chevron_right"></i></a>
+                        </li>
                         <% } %>
                     </ul>
                 </nav>
             </div>
+            <% } %>
         </section>
 
 
@@ -201,21 +215,21 @@
                                 <input type="text" placeholder="Material" class="form-control" id="materialModal" name="material">
                             </div>
                             <div class="mb-4">
-                                <label class=" text-danger h6">Make sure the category and subcatogory are corroct!</label>
+                                <label class="text-danger small">Make sure the category and subcategory are correct.</label>
                             </div>
                             <div class="row gx-2">
                                 <div class="col-sm-6 mb-3">
                                     <label class="form-label">Gender</label>
                                     <select class="form-select" onchange="categoryFinding()" name="gender" id="genderModal">
-                                        <option disabled selected hidden>choose..</option>
-                                        <option>Male</option>
-                                        <option>Female</option>
+                                        <option value="" disabled selected hidden>Choose…</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
                                     </select>
                                 </div>
                                 <div class="col-sm-6 mb-3">
                                     <label class="form-label">Category</label>
                                     <select class="form-select" name="category" id="categoryModal">
-                                        <option disabled selected hidden>choose..</option> 
+                                        <option disabled selected hidden>Choose…</option>
                                     </select>
                                 </div>
                             </div>
@@ -223,9 +237,9 @@
                                 <label for="tagsModal" class="form-label">Tags</label>
                                 <input type="text" class="form-control" placeholder="New/Arrival" name="tags" id="tagsModal">
                             </div>
-                            <div class="d-grid">
-                                <button class="btn btn-light rounded font-sm mr-5 text-body hover-up" type="button" data-bs-dismiss="modal">Cancel</button>
-                                <button class="btn btn-md rounded font-sm hover-up" type="button" onclick="updateProduct(event)" >Update Product</button>
+                            <div class="d-flex gap-2 justify-content-end mt-4">
+                                <button class="btn btn-light rounded font-sm" type="button" data-bs-dismiss="modal">Cancel</button>
+                                <button class="btn btn-primary rounded font-sm" type="button" onclick="updateProduct(event)">Update Product</button>
                             </div>
                         </form>
                     </div>
@@ -241,34 +255,28 @@
 
 <script>
 
-function categoryFinding(preSelectedGender = null, preSelectedCategory = null) {
+function categoryFinding(preSelectedGender, preSelectedCategory) {
     const selectedGender = preSelectedGender || document.getElementById('genderModal').value;
-
-    if (selectedGender) {
-        fetch(`/admin/check-category?gender=${selectedGender}`)
-            .then(response => response.json())
-            .then(data => {
-                const selectElement = document.getElementById('categoryModal');
-                selectElement.innerHTML = '';
-
-                data.forEach(item => {
-                    const option = document.createElement('option');
-                    option.text = item.category;
-                    option.value = item.category;
-
-                    if (preSelectedCategory && preSelectedCategory === item.category) {
-                        option.selected = true;
-                    }
-
-                    selectElement.appendChild(option);
-                });
-            })
-            .catch(error => {
-                console.error('There was a problem with the fetch operation:', error);
-            });
-    } else {
+    if (!selectedGender) {
         alert('Please select a gender');
+        return Promise.resolve();
     }
+    return fetch(`/admin/check-category?gender=${selectedGender}`)
+        .then(response => response.json())
+        .then(data => {
+            const selectElement = document.getElementById('categoryModal');
+            selectElement.innerHTML = '<option disabled selected hidden>Choose…</option>';
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.textContent = item.category;
+                option.value = item.category;
+                if (preSelectedCategory && preSelectedCategory === item.category) option.selected = true;
+                selectElement.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading categories:', error);
+        });
 }
     
     document.addEventListener('DOMContentLoaded', function() {
@@ -276,29 +284,25 @@ function categoryFinding(preSelectedGender = null, preSelectedCategory = null) {
             link.addEventListener('click', function(event) {
                 event.preventDefault();
                 const productId = this.getAttribute('data-product-id');
-    
                 fetch(`/admin/edit-this-product?productId=${productId}`)
                     .then(response => response.json())
-                    .then(data => {
+                    .then(async function(data) {
                         const product = data.data;
-    
-                        document.getElementById("product_Id").value = product._id;
-                        document.getElementById('productNameModal').value = product.name;
-                        document.getElementById('descriptionModal').value = product.description;
-                        document.getElementById('brand_nameModal').value = product.brand;
-                        document.getElementById('materialModal').value = product.material;
-                        document.getElementById('tagsModal').value = product.tags;
-    
-                        const genderModal = document.getElementById('genderModal');
-                        genderModal.value = product.categoryId.gender;
-    
-                        categoryFinding(product.categoryId.gender, product.categoryId.category);
-    
+                        if (!product) return;
+                        document.getElementById('product_Id').value = product._id;
+                        document.getElementById('productNameModal').value = product.name || '';
+                        document.getElementById('descriptionModal').value = product.description || '';
+                        document.getElementById('brand_nameModal').value = product.brand || '';
+                        document.getElementById('materialModal').value = product.material || '';
+                        document.getElementById('tagsModal').value = product.tags || '';
+                        document.getElementById('genderModal').value = product.categoryId ? product.categoryId.gender : '';
+                        await categoryFinding(product.categoryId ? product.categoryId.gender : null, product.categoryId ? product.categoryId.category : null);
                         var myModal = new bootstrap.Modal(document.getElementById('editProductModal'));
                         myModal.show();
                     })
                     .catch(error => {
                         console.error('Error fetching product data:', error);
+                        Swal.fire({ title: 'Error', text: 'Could not load product.', icon: 'error' });
                     });
             });
         });
@@ -429,28 +433,35 @@ function categoryFinding(preSelectedGender = null, preSelectedCategory = null) {
     
 
 
-    function blockProduct(productId) {
-        
-        axios.post(`/admin/block-product?id=${productId}`)
-            .then(response => {
+    function blockProduct(productId, buttonEl) {
+        var btn = buttonEl || document.getElementById('block-btn-' + productId);
+        if (!btn) return;
+        var originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+
+        axios.post('/admin/block-product?id=' + productId)
+            .then(function(response) {
                 if (response.data.success) {
-                    console.log(response.data.success);
-                    let button = document.getElementById(`block-btn-${productId}`);
-                    if (button.classList.contains('btn-outline-danger')) {
-                        button.classList.remove('btn-outline-danger');
-                        button.classList.add('btn-brand');
-                        button.innerHTML = '<i class="material-icons md-check_circle"></i> Unblock';
+                    if (btn.classList.contains('btn-outline-danger')) {
+                        btn.classList.remove('btn-outline-danger');
+                        btn.classList.add('btn-success');
+                        btn.innerHTML = '<i class="material-icons md-check_circle" style="font-size: 18px; vertical-align: middle;"></i> Unblock';
                     } else {
-                        button.classList.remove('btn-brand');
-                        button.classList.add('btn-outline-danger');
-                        button.innerHTML = '<i class="material-icons md-block"></i> Block';
+                        btn.classList.remove('btn-success');
+                        btn.classList.add('btn-outline-danger');
+                        btn.innerHTML = '<i class="material-icons md-block" style="font-size: 18px; vertical-align: middle;"></i> Block';
                     }
                 } else {
-                    alert("An error occurred");
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    Swal.fire({ title: 'Error', text: response.data.message || 'An error occurred', icon: 'error' });
                 }
             })
-            .catch(error => {
-                console.log("Error in blocking and unblocking");
+            .catch(function(error) {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                Swal.fire({ title: 'Error', text: 'Could not update product status.', icon: 'error' });
             });
     }
 </script>

@@ -97,7 +97,7 @@ userRoute.get("/order-summary", checkState.isLogin, accountController.orderSumma
 userRoute.post("/returnOrder", checkState.isLogin, OrderController.returnOrder);
 userRoute.post("/cancelOrder", checkState.isLogin, OrderController.cancelOrder);
 userRoute.post("/retry-payment", checkState.isLogin, checkoutController.retryPayment );
-userRoute.get('/order/invoice/download', invoiceController.generateInvoice);
+userRoute.get('/order/invoice/download', checkState.isLogin, invoiceController.generateInvoice);
 
 
 

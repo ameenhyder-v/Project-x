@@ -1,113 +1,266 @@
 <%- include("../partials/userpartials/header.ejs") %>
 
 <style>
-    .table-custom th, .table-custom td {
-        vertical-align: middle;
-    }
-    .table-custom .product-img {
-        max-width: 50px;
-    }
-    .table-custom .cancel-btn {
-        color: red;
-        cursor: pointer;
-    }
-    .custom-height {
-        min-height: 90vh; /* Ensure it takes up the full viewport height */
-    }
-
+    /* Sticky footer: body = flex column, main grows, footer has margin-top auto */
     body {
         display: flex;
         flex-direction: column;
         min-height: 100vh;
+        margin: 0;
     }
-    .container {
-        flex-grow: 1; /* Allow the container to take up remaining space */
+    body > main.all-orders-page {
+        flex: 1 1 0%;
+        min-height: 0;
+        padding-top: 4rem;
+        padding-bottom: 2rem;
+    }
+    body > footer {
+        margin-top: auto;
+        flex-shrink: 0;
+    }
+    .all-orders-page .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .all-orders-page .card-header {
+        background: linear-gradient(135deg, #6b5b73 0%, #8e7a96 100%);
+        color: #fff;
+        border-radius: 12px 12px 0 0;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+    }
+    .all-orders-page .card-header h4 {
+        margin: 0;
+        font-size: 1.2rem;
+    }
+    .orders-table th {
+        font-weight: 600;
+        color: #333;
+        border-bottom-width: 2px;
+    }
+    .orders-table tbody tr {
+        transition: background-color 0.15s ease;
+    }
+    .orders-table tbody tr:hover {
+        background-color: #f8f7f9;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 0.35em 0.65em;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border-radius: 6px;
+        text-transform: capitalize;
+    }
+    .status-delivered { background: #d4edda; color: #155724; }
+    .status-placed, .status-pending { background: #fff3cd; color: #856404; }
+    .status-canceled, .status-returned, .status-cannot-return { background: #f8d7da; color: #721c24; }
+    .status-default { background: #e9ecef; color: #495057; }
+    .view-order-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.4rem 0.9rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #7d6b85 0%, #9a879f 100%);
+        color: #fff !important;
+        text-decoration: none !important;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .view-order-btn:hover {
+        color: #fff !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(125,107,133,0.35);
+    }
+    .pagination-wrap {
+        margin-top: 1.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+    .pagination-wrap .page-info {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    .empty-orders {
+        text-align: center;
+        padding: 3rem 1.5rem;
+    }
+    .empty-orders .icon-wrap {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 1rem;
+    }
+    .empty-orders p {
+        color: #6c757d;
+        margin-bottom: 1rem;
+    }
+
+    /* Desktop: table */
+    @media (min-width: 769px) {
+        .order-cards { display: none !important; }
+        .orders-table-wrap { display: block; }
+    }
+
+    /* Mobile: cards instead of table */
+    @media (max-width: 768px) {
+        .all-orders-page {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+        .orders-table-wrap { display: none; }
+        .order-cards { display: block; }
+        .order-card {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .order-card-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .order-card-row:last-child { border-bottom: none; }
+        .order-card-label {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.85rem;
+        }
+        .order-card-value { font-size: 0.9rem; }
+        .order-card .view-order-btn {
+            width: 100%;
+            margin-top: 0.5rem;
+            min-height: 44px;
+        }
+        .pagination-wrap {
+            padding: 0 0.5rem;
+        }
+        .pagination .page-link {
+            padding: 0.5rem 0.75rem;
+            min-width: 44px;
+            text-align: center;
+        }
     }
 </style>
 
-
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-<link href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
-<!-- SweetAlert2 CDN -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<body>
-    
-
-<div class="container my-5 custom-height">
+<main class="all-orders-page" role="main">
+<div class="container my-4">
     <div class="card">
         <div class="card-header">
-            <h4 class="card-title">Order List</h4>
+            <h4><i class="fa fa-list-alt" style="margin-right: 0.5rem;"></i>My Orders</h4>
         </div>
         <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-custom">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th class="text-center">No</th>
-                            <th class="text-center">Order Id</th>
-                            <th class="text-center">Date</th>
-                            <th class="text-center">Status</th>
-                            <th class="text-center">Total</th>
-                            <th class="text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% if (orders && orders.length > 0) { %>
-                            <% orders.forEach((order, index) => { %>
+            <% if (orders && orders.length > 0) { %>
+                <!-- Desktop table -->
+                <div class="table-responsive orders-table-wrap">
+                    <table class="table table-hover orders-table mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th class="text-center">#</th>
+                                <th>Order ID</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th class="text-end">Total</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% orders.forEach((order, index) => {
+                                const statusClass = order.orderStatus === 'Delivered' ? 'status-delivered' :
+                                    (order.orderStatus === 'Placed' || order.orderStatus === 'Pending') ? 'status-placed' :
+                                    (order.orderStatus === 'canceled' || order.orderStatus === 'returned' || order.orderStatus === 'cannot return') ? 'status-canceled' : 'status-default';
+                                const options = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
+                                const formattedDate = new Date(order.createdAt).toLocaleDateString('en-US', options);
+                            %>
                                 <tr>
-                                    <td class="text-center"><%= index + 1 %></td>
-                                    <td class="text-center"><%= order.orderId %></td>
-                                    <% const options = { weekday: 'short', day: 'numeric', month: 'short' }; 
-                                    const formattedDate = new Date(order.createdAt).toLocaleDateString('en-US', options); %>
-                                    <td class="text-center"><%= formattedDate %></td>
-                                    <td class="text-center"><%= order.orderStatus %></td>
-                                    <td class="text-center">₹ <%= order.totalAmount %>.0</td>
+                                    <td class="text-center text-muted"><%= (page - 1) * limit + index + 1 %></td>
+                                    <td><strong><%= order.orderId %></strong></td>
+                                    <td><%= formattedDate %></td>
+                                    <td><span class="status-badge <%= statusClass %>"><%= order.orderStatus %></span></td>
+                                    <td class="text-end">₹<%= order.totalAmount %></td>
                                     <td class="text-center">
-                                        <a href="/order-summary?orderId=<%= order._id %>">View</a>
+                                        <a href="/order-summary?orderId=<%= order._id %>" class="view-order-btn">View</a>
                                     </td>
                                 </tr>
                             <% }) %>
-                        <% } else { %>
-                            <tr>
-                                <td colspan="6" class="text-center">Order Not Found</td>
-                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile cards -->
+                <div class="order-cards">
+                    <% orders.forEach((order, index) => {
+                        const statusClass = order.orderStatus === 'Delivered' ? 'status-delivered' :
+                            (order.orderStatus === 'Placed' || order.orderStatus === 'Pending') ? 'status-placed' :
+                            (order.orderStatus === 'canceled' || order.orderStatus === 'returned' || order.orderStatus === 'cannot return') ? 'status-canceled' : 'status-default';
+                        const options = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
+                        const formattedDate = new Date(order.createdAt).toLocaleDateString('en-US', options);
+                    %>
+                        <div class="order-card">
+                            <div class="order-card-row">
+                                <span class="order-card-label">Order</span>
+                                <span class="order-card-value"><strong><%= order.orderId %></strong></span>
+                            </div>
+                            <div class="order-card-row">
+                                <span class="order-card-label">Date</span>
+                                <span class="order-card-value"><%= formattedDate %></span>
+                            </div>
+                            <div class="order-card-row">
+                                <span class="order-card-label">Status</span>
+                                <span class="status-badge <%= statusClass %>"><%= order.orderStatus %></span>
+                            </div>
+                            <div class="order-card-row">
+                                <span class="order-card-label">Total</span>
+                                <span class="order-card-value"><strong>₹<%= order.totalAmount %></strong></span>
+                            </div>
+                            <a href="/order-summary?orderId=<%= order._id %>" class="view-order-btn">View order</a>
+                        </div>
+                    <% }) %>
+                </div>
+
+                <% if (totalOrders > limit) { %>
+                <nav class="pagination-wrap" aria-label="Orders pagination">
+                    <span class="page-info">Page <strong><%= page %></strong> of <strong><%= Math.ceil(totalOrders / limit) %></strong></span>
+                    <ul class="pagination mb-0 flex-wrap justify-content-center">
+                        <% if (page > 1) { %>
+                            <li class="page-item">
+                                <a class="page-link" href="?page=<%= page - 1 %>&limit=<%= limit %>" aria-label="Previous">&laquo;</a>
+                            </li>
                         <% } %>
-                    </tbody>
-                </table>
-            </div>
+                        <% const totalPages = Math.ceil(totalOrders / limit);
+                           for (let i = 1; i <= totalPages; i++) { %>
+                            <li class="page-item <%= i === page ? 'active' : '' %>">
+                                <a class="page-link" href="?page=<%= i %>&limit=<%= limit %>"><%= i %></a>
+                            </li>
+                        <% } %>
+                        <% if (page < Math.ceil(totalOrders / limit)) { %>
+                            <li class="page-item">
+                                <a class="page-link" href="?page=<%= page + 1 %>&limit=<%= limit %>" aria-label="Next">&raquo;</a>
+                            </li>
+                        <% } %>
+                    </ul>
+                </nav>
+                <% } %>
+            <% } else { %>
+                <div class="empty-orders">
+                    <div class="icon-wrap"><i class="fa fa-shopping-bag"></i></div>
+                    <p class="mb-0">You haven't placed any orders yet.</p>
+                    <a href="/allProducts" class="btn btn-primary rounded">Browse products</a>
+                </div>
+            <% } %>
         </div>
     </div>
-
-    <nav aria-label="Page navigation">
-        <ul class="pagination justify-content-center">
-            <% if (page > 1) { %>
-                <li class="page-item">
-                    <a class="page-link" href="?page=<%= page - 1 %>&limit=<%= limit %>" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
-                </li>
-            <% } %>
-            <% for (let i = 1; i <= Math.ceil(totalOrders / limit); i++) { %>
-                <li class="page-item <%= i === page ? 'active' : '' %>">
-                    <a class="page-link" href="?page=<%= i %>&limit=<%= limit %>"><%= i %></a>
-                </li>
-            <% } %>
-            <% if (page < Math.ceil(totalOrders / limit)) { %>
-                <li class="page-item">
-                    <a class="page-link" href="?page=<%= page + 1 %>&limit=<%= limit %>" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
-                </li>
-            <% } %>
-        </ul>
-    </nav>
 </div>
-</body>
-
+</main>
 
 <%- include("../partials/userpartials/footer.ejs") %>

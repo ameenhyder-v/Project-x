@@ -1,11 +1,12 @@
 const Users = require("../Model/userModel");
 const CategoryModel = require("../Model/categoryModel");
 const Product = require("../Model/productModel");
+const Variant = require("../Model/variantModel");
 const Order = require("../Model/orderModel");
 const ReturnRequest = require("../Model/returnRequestModel");
 const categoryModel = require("../Model/categoryModel");
 const User = require("../Model/userModel");
-const Transaction = require("../Model/transactionModel")
+const Transaction = require("../Model/transactionModel");
 
 
 const adminLogin = async (req, res) => {
@@ -156,6 +157,21 @@ const productList = async (req, res) => {
 
         const startIndex = (page - 1) * limit;
         const productsToShow = filteredProducts.slice(startIndex, startIndex + limit);
+
+        // Get one variant image per product for thumbnails
+        const productIds = productsToShow.map(p => p._id);
+        const variants = await Variant.find({ productId: { $in: productIds } })
+            .select("productId image")
+            .lean();
+        const thumbnailByProduct = {};
+        variants.forEach((v) => {
+            if (!thumbnailByProduct[v.productId.toString()] && v.image && v.image.length) {
+                thumbnailByProduct[v.productId.toString()] = v.image[0];
+            }
+        });
+        productsToShow.forEach((p) => {
+            p.thumbnailImage = thumbnailByProduct[p._id.toString()] || null;
+        });
 
         res.render("productList", {
             allProducts: productsToShow,

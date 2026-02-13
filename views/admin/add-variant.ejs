@@ -13,28 +13,57 @@
         height: 100px;
         object-fit: cover;
     }
-    /* Modal styles */
-    
-    .modal-content {
-        margin: 10% auto;
-        padding: 20px;
-        width: 80%;
-        max-width: 600px;
-        background-color: #363636;
-    }
+    /* Cropper modal content - scoped to #cropperModal only */
     .cropper-container {
         width: 100%;
         max-height: 400px;
+        min-height: 300px;
         margin-bottom: 10px;
+    }
+    /* Cropper modal overlay - avoid Bootstrap .modal conflict */
+    #cropperModal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+    #cropperModal .modal-content {
+        margin: 2% auto;
+        padding: 20px;
+        width: 90%;
+        max-width: 600px;
+        background-color: #363636;
+        border-radius: 8px;
+    }
+    #cropperModal .cropper-container img {
+        max-width: 100%;
+        display: block;
+    }
+    #cropperModal button {
+        margin-right: 8px;
+        margin-top: 10px;
+        padding: 8px 16px;
+        cursor: pointer;
+        border-radius: 4px;
+        border: none;
+    }
+    #cropperModal button:first-of-type {
+        background: #0d6efd;
+        color: #fff;
     }
 </style>
 
-<!--? croper js  -->
-<link href="https://unpkg.com/cropperjs/dist/cropper.css" rel="stylesheet"/>
-<script src="https://unpkg.com/cropperjs"></script>
+<!-- Cropper.js -->
+<link href="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet"/>
+<script src="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.js"></script>
 
 <script>
-     // Image Priview and cropperjs
+     // Image preview and cropper (match addProducts.ejs logic)
      let cropper;
         let currentInput;
         let croppedFiles = new Map();
@@ -43,20 +72,27 @@
         function previewImage(event) {
             const input = event.target;
             const file = input.files[0];
-            currentInput = input; 
+            currentInput = input;
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const cropperImage = document.getElementById('cropperImage');
-                    cropperImage.src = e.target.result;
-                    document.getElementById('cropperModal').style.display = 'block';
+                    const cropperModal = document.getElementById('cropperModal');
+                    if (!cropperImage || !cropperModal) return;
                     if (cropper) {
                         cropper.destroy();
+                        cropper = null;
                     }
-                    cropper = new Cropper(cropperImage, {
-                        aspectRatio: 3 / 4, // Portrait aspect ratio
-                        viewMode: 1,
-                    });
+                    cropperModal.style.display = 'block';
+                    // Set onload before src so we never miss the load event
+                    cropperImage.onload = function() {
+                        cropperImage.onload = null;
+                        cropper = new Cropper(cropperImage, {
+                            aspectRatio: 3 / 4,
+                            viewMode: 1,
+                        });
+                    };
+                    cropperImage.src = e.target.result;
                 };
                 reader.readAsDataURL(file);
             }
@@ -276,7 +312,6 @@
                 <h2 class="content-title card-title">Add New Variant</h2>
             </div>
         </div>
-            </header>
 
             <form id="variantForm">
                 <div class="mb-3">

@@ -410,7 +410,7 @@ const updatePassword = async (req, res) => {
         const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
         const { password, psconfirm } = req.body;
         const email = req.session.email;
-        console.log(`password:${password}      ---------     psConfirm: ${psconfirm}, email : ${email}`)
+        // Avoid logging credentials
         if (!email) {
             req.flash("message", "try again.....");
             res.redirect("/forget-password")

@@ -3,6 +3,10 @@ const easyinvoice = require('easyinvoice');
 const fs = require('fs');
 const path = require('path');
 const { format } = require('date-fns');
+require('dotenv').config();
+
+// Free tier: omit apiKey so no Authorization header is sent (free endpoint works without it).
+// Paid: set EASYINVOICE_API_KEY in .env (get from https://app.budgetinvoice.com → Settings → API keys).
 
 // Generating the invoice using Easy Invoice    
 const generateInvoice = async (req, res) => {
@@ -26,10 +30,10 @@ const generateInvoice = async (req, res) => {
 
 
         const data = {
-            apiKey: "free", 
-            mode: "development",
+            apiKey: "free",
+            mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
             images: {
-                logo: "https://i.pinimg.com/originals/ba/6e/01/ba6e015ba478583bd77e2c54c52288d4.png",  
+                logo: process.env.LOGO_URL,  
             },
             sender: {
                 company: "Fein Clothing",
@@ -58,21 +62,19 @@ const generateInvoice = async (req, res) => {
         const invoiceFolderPath = path.join(__dirname, '../invoices');
         const invoiceFilePath = path.join(invoiceFolderPath, `invoice-${orderData.orderId}.pdf`);
 
-        // Creating the invoice
-        easyinvoice.createInvoice(data, async function (result) {
-            await fs.promises.mkdir(invoiceFolderPath, { recursive: true });
-            await fs.promises.writeFile(invoiceFilePath, result.pdf, 'base64');
-
-            res.sendFile(invoiceFilePath, {
-                headers: {
-                    'Content-Disposition': `attachment; filename="invoice-${orderData.orderId}.pdf"`,
-                },
-            }, (err) => {
-                if (err) {
-                    console.error("Error sending file:", err);
-                    return res.status(500).json({ message: 'Error sending file' });
-                }
-            });
+        const result = await easyinvoice.createInvoice(data);
+        if (!result || !result.pdf) {
+            return res.status(500).json({ message: 'Error generating invoice' });
+        }
+        await fs.promises.mkdir(invoiceFolderPath, { recursive: true });
+        await fs.promises.writeFile(invoiceFilePath, result.pdf, 'base64');
+        res.setHeader('Content-Disposition', `attachment; filename="invoice-${orderData.orderId}.pdf"`);
+        res.setHeader('Content-Type', 'application/pdf');
+        res.sendFile(invoiceFilePath, (err) => {
+            if (err) {
+                console.error("Error sending file:", err);
+                if (!res.headersSent) res.status(500).json({ message: 'Error sending file' });
+            }
         });
     } catch (error) {
         console.error("Error generating invoice:", error.message);

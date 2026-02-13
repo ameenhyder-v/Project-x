@@ -1,54 +1,62 @@
 const mongoose = require("mongoose");
-const path = require("path")
-const session = require("express-session")
-const flash = require("express-flash")
+const path = require("path");
+const session = require("express-session");
+const flash = require("express-flash");
 require("dotenv").config();
 const nocache = require("nocache");
 
-mongoose.connect("mongodb://127.0.0.1:27017/myStore")
-    .then(()=> console.log("mongodb worked"))
-    .catch(error => console.log("mongo connect error: ", error));
+const isProduction = process.env.NODE_ENV === "production";
+const mongoUri = isProduction ? process.env.MONGO_URI_PROD : process.env.MONGO_URI_DEV;
+const port = parseInt(process.env.PORT, 10) || 7999;
+const sessionSecret = (process.env.SESSION_SECRET || "").trim() || (isProduction ? null : "dev-secret-change-in-production");
 
-// const uri = process.env.MONGO_URI;
-
-// mongoose.connect(uri)
-//     .then(() => {
-//         console.log('MongoDB connection established successfully');
-//     })
-//     .catch((err) => {
-//         console.error('Error connecting to MongoDB:', err.message);
-//     });
-
+if (isProduction && !sessionSecret) {
+    console.error("Fatal: SESSION_SECRET must be set in production.");
+    process.exit(1);
+}
 
 const express = require("express");
 const app = express();
 
-app.use(nocache());
+if (isProduction) {
+    app.set("trust proxy", 1);
+    const helmet = require("helmet");
+    app.use(helmet({ contentSecurityPolicy: false }));
+    const compression = require("compression");
+    app.use(compression());
+}
 
+app.use(nocache());
 app.use(express.static(path.join(__dirname, "public/users/assets/")));
-// app.use(express.static("public/users"));
 app.use(express.static("public/admin"));
-app.use("/images", express.static(path.join(__dirname, "images")))
+app.use("/images", express.static(path.join(__dirname, "images")));
 
 app.set("view engine", "ejs");
-
-app.set("views", "./views/users")
-
+app.set("views", "./views/users");
 
 app.use(session({
-    secret: 'my-secret-key',
+    secret: sessionSecret,
     resave: false,
-    saveUninitialized: false
-}))
+    saveUninitialized: false,
+    cookie: isProduction ? { secure: true, httpOnly: true, maxAge: 24 * 60 * 60 * 1000 } : {}
+}));
 
-app.use(flash())
+app.use(flash());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.use(express.json())
-app.use(express.urlencoded({ extended: true}))
+// Rate limiting (stricter in production)
+const rateLimit = require("express-rate-limit");
+const limiter = rateLimit({
+    windowMs: isProduction ? 15 * 60 * 1000 : 1 * 60 * 1000,
+    max: isProduction ? 200 : 500,
+    message: "Too many requests, please try again later.",
+    standardHeaders: true,
+    legacyHeaders: false
+});
+app.use(limiter);
 
-
-
-const userRoute = require('./routes/userRoute')
+const userRoute = require("./routes/userRoute");
 const adminRoute = require('./routes/adminRoute')
 
 app.use("/", userRoute);
@@ -60,12 +68,24 @@ app.use((req, res, next) => {
 
 // Handle other errors
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
+    console.error(isProduction ? err.message : err.stack);
+    res.status(500).send(isProduction ? "Something went wrong." : "Something broke!");
 });
 
+// Log unhandled promise rejections (avoid silent failures in production)
+process.on("unhandledRejection", (reason, promise) => {
+    console.error("Unhandled Rejection at:", promise, "reason:", reason);
+});
 
-
-app.listen(7999,() =>{
-    console.log("server is running on : http://localhost:7999")
-})
+// Start server only after MongoDB is connected
+mongoose.connect(mongoUri)
+    .then(() => {
+        if (!isProduction) console.log("MongoDB connected");
+        app.listen(port, "0.0.0.0", () => {
+            console.log(isProduction ? `Server listening on port ${port}` : `Server: http://localhost:${port}`);
+        });
+    })
+    .catch((err) => {
+        console.error("MongoDB connection error:", err.message);
+        process.exit(1);
+    });

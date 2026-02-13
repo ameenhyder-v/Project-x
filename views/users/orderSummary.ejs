@@ -80,11 +80,28 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+    #invoiceLoadingModal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+    #invoiceLoadingModal .modal-inner { background: #fff; margin: 20% auto; padding: 2rem; border-radius: 12px; width: 90%; max-width: 320px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+    #invoiceLoadingModal .loader { border: 3px solid #eee; border-top-color: #895c72; border-radius: 50%; width: 48px; height: 48px; animation: spin 0.8s linear infinite; margin: 1rem auto; }
+    body.order-summary-body { padding-top: 4rem; min-height: 100vh; }
+    .order-summary-body .card { border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+    .order-summary-body .card-header { border-radius: 10px 10px 0 0; }
+    .billing-block { background: #f8f7f9; border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; }
+    .billing-block p { margin-bottom: 0.35rem; }
+    @media (max-width: 768px) {
+        .order-summary-body { padding-left: 0.5rem; padding-right: 0.5rem; }
+        .invoice-button-wrapper { text-align: center; }
+        .invoice-button { width: 100%; max-width: 280px; min-height: 48px; }
+        .order-summary-body .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .order-summary-body .table td, .order-summary-body .table th { padding: 0.5rem; font-size: 0.9rem; }
+        .order-summary-body .table img { max-width: 80px; height: auto; }
+        .order-summary-body .btn { min-height: 44px; }
+        .order-summary-body a.btn { display: inline-flex; align-items: center; justify-content: center; }
+    }
 </style>
 
-<body>
-    
-<div class="container my-5">
+<body class="order-summary-body">
+<div class="container my-4">
     <div class="card">
         <div class="card-header">
             <h1>Order Details for Order #<%= order.orderId %></h1>
@@ -93,7 +110,7 @@
             <h4 class="card-title">Items</h4>
             <% if (order.orderStatus === "Delivered") { %>
                 <div class="invoice-button-wrapper">
-                    <button class="invoice-button" onclick="downloadInvoice('<%= order._id %>')">Download Invoice</button>
+                    <button type="button" class="invoice-button" id="downloadInvoiceBtn" onclick="downloadInvoice('<%= order._id %>')"><i class="fas fa-download"></i> Download Invoice</button>
                 </div>
             <% } %>            
 
@@ -136,19 +153,20 @@
                 </table>
             </div>
 
-            <h4 class="card-title mt-4">Billing Information</h4>
-            <p><strong>Name:</strong> <%= order.shippingAddress.name %></p>
-            <p><strong>Email:</strong> <%= user.email %></p>
-            <p><strong>Address:</strong> <%= order.shippingAddress.address %>, <%= order.shippingAddress.city %>, <%= order.shippingAddress.state %>, <%= order.shippingAddress.country %> - <%= order.shippingAddress.pincode %></p>
-            <p><strong>Mobile:</strong> <%= order.shippingAddress.mobile %></p>
-            <p><strong>Date:</strong> <%= new Date(order.createdAt).toLocaleDateString() %></p>
-            <p class="text-danger"><strong class="text-dark">Status:</strong> <%= order.orderStatus %></p>
-            <p ><strong class="text-dark">Payment:</strong> <%= order.paymentStatus %></p>
-            <% if(order.couponDiscount > 0) {%>
-                <p ><strong class="text-dark">Coupon discount:</strong> <%= order.couponDiscount %></p>
-            <% } %>
-
-            <p><strong>Total:</strong> ₹<%= order.totalAmount %></p>
+            <h5 class="mt-4 mb-2">Billing</h5>
+            <div class="billing-block">
+                <p><strong>Name:</strong> <%= order.shippingAddress.name %></p>
+                <p><strong>Email:</strong> <%= user.email %></p>
+                <p><strong>Address:</strong> <%= order.shippingAddress.address %>, <%= order.shippingAddress.city %>, <%= order.shippingAddress.state %>, <%= order.shippingAddress.country %> - <%= order.shippingAddress.pincode %></p>
+                <p><strong>Mobile:</strong> <%= order.shippingAddress.mobile %></p>
+                <p><strong>Date:</strong> <%= new Date(order.createdAt).toLocaleDateString() %></p>
+                <p><strong>Status:</strong> <span class="<%= order.orderStatus === 'Delivered' ? 'text-success' : (order.orderStatus === 'canceled' || order.orderStatus === 'returned') ? 'text-danger' : '' %>"><%= order.orderStatus %></span></p>
+                <p><strong>Payment:</strong> <%= order.paymentStatus %></p>
+                <% if (order.couponDiscount > 0) { %>
+                    <p><strong>Coupon discount:</strong> ₹<%= order.couponDiscount %></p>
+                <% } %>
+                <p class="mb-0"><strong>Total:</strong> ₹<%= order.totalAmount %></p>
+            </div>
 
 
 
@@ -190,11 +208,11 @@
 <%- include("../partials/userpartials/footer.ejs") %> <!-- Correct placement -->
 
 
-<!-- Loading Modal -->
-<div id="loadingModal" class="modal">
-    <div class="modal-content">
-        <h2>Generating Invoice...</h2>
-        <div class="loader"></div> <!-- Loading Animation -->
+<!-- Loading Modal for Invoice -->
+<div id="invoiceLoadingModal">
+    <div class="modal-inner">
+        <h5 class="mb-2">Generating invoice…</h5>
+        <div class="loader"></div>
     </div>
 </div>
 
@@ -475,22 +493,27 @@
     }
     
 
-    function downloadInvoice(orderId) {
-        const loadingModal = document.getElementById('loadingModal');
-        loadingModal.style.display = 'block'; // Show the loading modal
-    
-        fetch(`/order/invoice/download?orderId=${orderId}`, {
-            method: 'GET',
-        })
-        .then(response => {
-            console.log('Response:', response);
+    async function downloadInvoice(orderId) {
+        const loadingModal = document.getElementById('invoiceLoadingModal');
+        const btn = document.getElementById('downloadInvoiceBtn');
+        if (loadingModal) loadingModal.style.display = 'block';
+        if (btn) btn.disabled = true;
+        try {
+            const response = await fetch(`/order/invoice/download?orderId=${orderId}`, { method: 'GET' });
+            const contentType = response.headers.get('content-type') || '';
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                let msg = 'Could not download invoice.';
+                if (contentType.includes('application/json')) {
+                    try { const d = await response.json(); if (d.message) msg = d.message; } catch (_) {}
+                }
+                Swal.fire({ icon: 'error', title: 'Download failed', text: msg });
+                return;
             }
-            return response.blob();
-        })
-        .then(blob => {
-            console.log('Blob:', blob);
+            if (!contentType.includes('application/pdf')) {
+                Swal.fire({ icon: 'error', title: 'Download failed', text: 'Invalid response from server.' });
+                return;
+            }
+            const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -499,13 +522,14 @@
             a.click();
             a.remove();
             URL.revokeObjectURL(url);
-        })
-        .catch(error => {
-            console.error('There was a problem with the fetch operation:', error);
-        })
-        .finally(() => {
-            loadingModal.style.display = 'none';
-        });
+            Swal.fire({ icon: 'success', title: 'Download started', timer: 1500, showConfirmButton: false });
+        } catch (error) {
+            console.error('Invoice download error:', error);
+            Swal.fire({ icon: 'error', title: 'Download failed', text: 'Please try again or check your connection.' });
+        } finally {
+            if (loadingModal) loadingModal.style.display = 'none';
+            if (btn) btn.disabled = false;
+        }
     }
 </script>
 
